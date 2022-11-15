@@ -1,0 +1,61 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net6.0</TargetFramework>
+        <LangVersion>10</LangVersion>
+        <AssemblyName>Infrastructure</AssemblyName>
+        <RootNamespace>Infrastructure</RootNamespace>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <Compile Remove="Repositories\**" />
+        <EmbeddedResource Remove="Repositories\**" />
+        <None Remove="Repositories\**" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <Compile Remove="Migrations\20210105013215_InitialBaseDataEntities.cs" />
+        <Compile Remove="Migrations\20210105013215_InitialBaseDataEntities.Designer.cs" />
+        <Compile Remove="Migrations\20210311064711_addIndicatorEntities.cs" />
+        <Compile Remove="Migrations\20210311064711_addIndicatorEntities.Designer.cs" />
+        <Compile Remove="Migrations\20210325171921_addGroupAndDataEntity.cs" />
+        <Compile Remove="Migrations\20210325171921_addGroupAndDataEntity.Designer.cs" />
+        <Compile Remove="Migrations\20210705162736_addUploadRecordEntity.cs" />
+        <Compile Remove="Migrations\20210705162736_addUploadRecordEntity.Designer.cs" />
+        <Compile Remove="Migrations\20210705163126_addUploadRecordEntity.cs" />
+        <Compile Remove="Migrations\20210705163126_addUploadRecordEntity.Designer.cs" />
+        <Compile Remove="Migrations\20210706061258_modifySystemSettingEntity.cs" />
+        <Compile Remove="Migrations\20210706061258_modifySystemSettingEntity.Designer.cs" />
+        <Compile Remove="Migrations\20210706070807_modifySystemSettingEntity.cs" />
+        <Compile Remove="Migrations\20210706070807_modifySystemSettingEntity.Designer.cs" />
+        <Compile Remove="Migrations\20210802172449_addWorkShopQualityPointRuleEntity.cs" />
+        <Compile Remove="Migrations\20210802172449_addWorkShopQualityPointRuleEntity.Designer.cs" />
+        <Compile Remove="Migrations\20211013052233_ModifyBaseGroupFromRecordsTypeToText.cs" />
+        <Compile Remove="Migrations\20211013052233_ModifyBaseGroupFromRecordsTypeToText.Designer.cs" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\Core\Core.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="EPPlus" Version="5.6.4" />
+        <PackageReference Include="Huanent.Logging.File" Version="2.1.0" />
+        <PackageReference Include="Microsoft.AspNetCore.Hosting" Version="2.2.7" />
+        <PackageReference Include="Microsoft.AspNetCore.Http" Version="2.2.2" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore" Version="6.0.0" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="6.0.0">
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+            <PrivateAssets>all</PrivateAssets>
+        </PackageReference>
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="6.0.0">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="6.15.0" />
+        <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+        <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="6.0.0" />
+        <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.15.0" />
+    </ItemGroup>
+
+</Project>

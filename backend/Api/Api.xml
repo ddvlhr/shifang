@@ -1,0 +1,286 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Api</name>
+    </assembly>
+    <members>
+        <member name="T:Api.Controllers.AuthenticationController">
+            <summary>
+                登录验证
+            </summary>
+        </member>
+        <member name="M:Api.Controllers.AuthenticationController.Login(Core.Dtos.Authorize.LoginUserDto)">
+            <summary>
+                登录
+            </summary>
+            <param name="user">用户信息</param>
+            <returns>返回token</returns>
+        </member>
+        <member name="M:Api.Controllers.AuthenticationController.Test">
+            <summary>
+                测试用户认证
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:Api.Controllers.BaseData.DepartmentController">
+            <summary>
+            部门管理
+            </summary>
+        </member>
+        <member name="M:Api.Controllers.BaseData.DepartmentController.GetDepartments(Core.Dtos.BaseQueryInfoDto)">
+            <summary>
+            获取部门列表信息
+            </summary>
+            <param name="dto"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Api.Controllers.BaseData.DepartmentController.Edit(Core.Dtos.BaseEditDto)">
+            <summary>
+            新增/修改部门信息
+            </summary>
+            <param name="dto"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Api.Controllers.BaseData.DepartmentController.GetOptions">
+            <summary>
+            获取部门选项信息
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:Api.Controllers.BaseData.MachineController">
+            <summary>
+                机台信息管理
+            </summary>
+        </member>
+        <member name="M:Api.Controllers.BaseData.MachineController.Get(Core.Dtos.BaseQueryInfoDto)">
+            <summary>
+                获取机台列表
+            </summary>
+            <param name="dto">查询条件</param>
+            <returns></returns>
+        </member>
+        <member name="M:Api.Controllers.BaseData.MachineController.Post(Core.Dtos.BaseEditDto)">
+            <summary>
+                新增机台
+            </summary>
+            <param name="dto">机台信息</param>
+            <returns></returns>
+        </member>
+        <member name="M:Api.Controllers.BaseData.MachineController.Put(Core.Dtos.BaseEditDto)">
+            <summary>
+                更新机台
+            </summary>
+            <param name="dto">机台信息</param>
+            <returns></returns>
+        </member>
+        <member name="M:Api.Controllers.BaseData.MeasureTypeController.Get(Core.Dtos.BaseQueryInfoDto)">
+            <summary>
+                获取测量类型列表
+            </summary>
+            <param name="dto">筛选条件</param>
+            <returns></returns>
+        </member>
+        <member name="M:Api.Controllers.BaseData.MeasureTypeController.Post(Core.Dtos.BaseEditDto)">
+            <summary>
+                新增测量类型
+            </summary>
+            <param name="dto">测量类型信息</param>
+            <returns></returns>
+        </member>
+        <member name="M:Api.Controllers.BaseData.MeasureTypeController.Put(Core.Dtos.BaseEditDto)">
+            <summary>
+                更新测量类型
+            </summary>
+            <param name="dto">测量类型信息</param>
+            <returns></returns>
+        </member>
+        <member name="T:Api.Controllers.BaseData.PackagingMachineController">
+            <summary>
+            包装机管理
+            </summary>
+        </member>
+        <member name="M:Api.Controllers.BaseData.SpecificationTypeController.Get(Core.Dtos.BaseQueryInfoDto)">
+            <summary>
+            获取牌号类型列表
+            </summary>
+            <param name="dto">筛选条件</param>
+            <returns></returns>
+        </member>
+        <member name="M:Api.Controllers.BaseData.SpecificationTypeController.Post(Core.Dtos.Specification.SpecificationTypeEditDto)">
+            <summary>
+                添加牌号类型
+            </summary>
+            <param name="dto">牌号类型信息</param>
+            <returns></returns>
+        </member>
+        <member name="M:Api.Controllers.BaseData.SpecificationTypeController.Put(Core.Dtos.Specification.SpecificationTypeEditDto)">
+            <summary>
+                更新牌号类型
+            </summary>
+            <param name="dto">牌号类型信息</param>
+            <returns></returns>
+        </member>
+        <member name="T:Api.Controllers.BaseData.TeamController">
+            <summary>
+            班组管理
+            </summary>
+        </member>
+        <member name="T:Api.Controllers.BaseData.VolumePickUpController">
+            <summary>
+            卷接机管理
+            </summary>
+        </member>
+        <member name="T:Api.Controllers.Defect.DefectController">
+            <summary>
+            缺陷管理
+            </summary>
+        </member>
+        <member name="T:Api.Controllers.DictionaryController">
+            <summary>
+            字典
+            </summary>
+        </member>
+        <member name="T:Api.Controllers.MetricalData.CalibrationController">
+            <summary>
+            标定数据管理
+            </summary>
+        </member>
+        <member name="T:Api.Controllers.MetricalData.MetricalDataController">
+            <summary>
+                测量数据管理
+            </summary>
+        </member>
+        <member name="M:Api.Controllers.MetricalData.MetricalDataController.Get(Core.Dtos.MetricalData.MetricalDataQueryDto)">
+            <summary>
+                获取测量数据组数据
+            </summary>
+            <param name="dto">查询条件</param>
+            <returns></returns>
+        </member>
+        <member name="M:Api.Controllers.MetricalData.MetricalDataController.AddGroup(Core.Dtos.MetricalData.MetricalDataGroupEditDto)">
+            <summary>
+                添加组数据
+            </summary>
+            <param name="dto">组信息</param>
+            <returns></returns>
+        </member>
+        <member name="M:Api.Controllers.MetricalData.MetricalDataController.UpdateGroup(Core.Dtos.MetricalData.MetricalDataGroupEditDto)">
+            <summary>
+                更新组数据
+            </summary>
+            <param name="dto">组信息</param>
+            <returns></returns>
+        </member>
+        <member name="M:Api.Controllers.MetricalData.MetricalDataController.AddData(Core.Dtos.MetricalData.MetricalDataEditDataDto)">
+            <summary>
+                添加测量数据
+            </summary>
+            <param name="dto">测量数据</param>
+            <returns></returns>
+        </member>
+        <member name="M:Api.Controllers.MetricalData.MetricalDataController.UpdateData(Core.Dtos.MetricalData.MetricalDataEditDataDto)">
+            <summary>
+                更新测量数据
+            </summary>
+            <param name="dto">测量数据</param>
+            <returns></returns>
+        </member>
+        <member name="M:Api.Controllers.MetricalData.MetricalDataController.GetData(System.Int32)">
+            <summary>
+                获取测量数据
+            </summary>
+            <param name="id">组数据ID</param>
+            <returns></returns>
+        </member>
+        <member name="M:Api.Controllers.MetricalData.MetricalDataController.Delete(System.Collections.Generic.List{System.Int32})">
+            <summary>
+                删除数据
+            </summary>
+            <param name="ids">组数据ID集合</param>
+            <returns></returns>
+        </member>
+        <member name="M:Api.Controllers.MetricalData.MetricalDataController.GetStatistic(System.Int32)">
+            <summary>
+                获取统计信息
+            </summary>
+            <param name="id">组数据ID</param>
+            <returns></returns>
+        </member>
+        <member name="T:Api.Controllers.Reports.ProcessDisciplineReportController">
+            <summary>
+            工艺纪律执行情况
+            </summary>
+        </member>
+        <member name="M:Api.Controllers.Reports.ProcessDisciplineReportController.GetTable(Core.Dtos.Report.ProcessDisciplineReportQueryInfoDto)">
+            <summary>
+            获取工艺纪律执行情况表
+            </summary>
+            <param name="dto"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Api.Controllers.Reports.ProcessDisciplineReportController.Edit(Core.Dtos.Report.ProcessDisciplineReportInfoDto)">
+            <summary>
+            新增/编辑工艺纪律执行情况表
+            </summary>
+            <param name="dto"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Api.Controllers.Reports.ProcessDisciplineReportController.Remove(System.Collections.Generic.List{System.Int32})">
+            <summary>
+            删除工艺纪律执行情况表
+            </summary>
+            <param name="ids"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Api.Controllers.Specification.SpecificationController">
+            <summary>
+                牌号管理
+            </summary>
+        </member>
+        <member name="M:Api.Controllers.Specification.SpecificationController.Get(Core.Dtos.Specification.SpecificationQueryInfoDto)">
+            <summary>
+                获取牌号列表
+            </summary>
+            <param name="dto">查询条件</param>
+            <returns></returns>
+        </member>
+        <member name="M:Api.Controllers.Specification.SpecificationController.Post(Core.Dtos.Specification.SpecificationEditDto)">
+            <summary>
+                添加牌号
+            </summary>
+            <param name="dto">牌号信息和牌号规则信息</param>
+            <returns></returns>
+        </member>
+        <member name="M:Api.Controllers.Specification.SpecificationController.Put(Core.Dtos.Specification.SpecificationEditDto)">
+            <summary>
+                更新牌号信息
+            </summary>
+            <param name="dto">牌号信息和牌号规则</param>
+            <returns></returns>
+        </member>
+        <member name="M:Api.Controllers.Specification.SpecificationController.GetInfo(System.Int32)">
+            <summary>
+                获取牌号信息
+            </summary>
+            <param name="id">牌号ID</param>
+            <returns></returns>
+        </member>
+        <member name="T:Api.Controllers.WeatherForecastController">
+            <summary>
+                天气
+            </summary>
+        </member>
+        <member name="M:Api.Controllers.WeatherForecastController.Get">
+            <summary>
+                获取天气信息
+            </summary>
+            <returns>随机天气数据</returns>
+        </member>
+        <member name="M:Api.Controllers.WeatherForecastController.Error">
+            <summary>
+                测试错误接口
+            </summary>
+            <returns></returns>
+        </member>
+    </members>
+</doc>

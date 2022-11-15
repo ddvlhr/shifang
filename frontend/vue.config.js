@@ -1,0 +1,56 @@
+/*
+ * @Author: ddvlhr 354874258@qq.com
+ * @Date: 2022-07-28 16:24:16
+ * @LastEditors: ddvlhr 354874258@qq.com
+ * @LastEditTime: 2022-10-28 19:56:46
+ * @FilePath: /frontend/vue.config.js
+ * @Description: 
+ */
+const { defineConfig } = require("@vue/cli-service");
+const { resolve } = require("node:path")
+module.exports = defineConfig({
+  transpileDependencies: true,
+  productionSourceMap: false,
+  publicPath: '/',
+  outputDir: 'dist',
+  lintOnSave: false,
+  devServer: {
+    host: '0.0.0.0',
+    port: 8080,
+    https: false,
+    open: false,
+    hot: true,
+    client: {
+      overlay: {
+        warnings: true
+      }
+    }
+  },
+  pluginOptions: {
+    windicss: {}
+  },
+  chainWebpack: config => {
+    config
+      .plugin('html')
+      .tap(args => {
+        args[0].title = '数据采集与分析系统'
+        return args
+      })
+
+    config.module
+      .rule('svg')
+      .exclude.add(resolve('src/assets/icons'))
+      .end()
+
+    config.module
+      .rule('icons')
+      .test(/\.svg$/)
+      .include.add(resolve('src/assets/icons'))
+      .end()
+      .use('svg-sprite-loader')
+      .loader('svg-sprite-loader')
+      .options({
+        symbolId: 'icon-[name]'
+      })
+  }
+});

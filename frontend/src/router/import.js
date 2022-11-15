@@ -1,0 +1,1 @@
+module.exports = (directory, file) => () => import(`@/views/${directory}/${file}.vue`)

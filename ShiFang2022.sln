@@ -1,0 +1,55 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.1.32328.378
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "backend", "backend", "{6807ED85-D010-4CD7-A110-349B1B2ACD61}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Core", "backend\Core\Core.csproj", "{11F473F1-F415-4A50-8D28-2C5D7569D689}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Infrastructure", "backend\Infrastructure\Infrastructure.csproj", "{362A4767-2E34-4A38-8CB8-92BD850F79A2}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Api", "backend\Api\Api.csproj", "{F6676090-A7AB-433D-86FF-6CF2AA2DE478}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "frontend", "frontend", "{2AE45984-A665-4403-998A-D2B5E0C1AA74}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "service", "service", "{57198180-0DE9-484C-9B86-D21EB7E5233A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FuYang.WebService", "service\FuYang.WebService\FuYang.WebService.csproj", "{53A21860-630B-43EF-B4BC-A17D0FE5E684}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{11F473F1-F415-4A50-8D28-2C5D7569D689}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{11F473F1-F415-4A50-8D28-2C5D7569D689}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{11F473F1-F415-4A50-8D28-2C5D7569D689}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{11F473F1-F415-4A50-8D28-2C5D7569D689}.Release|Any CPU.Build.0 = Release|Any CPU
+		{362A4767-2E34-4A38-8CB8-92BD850F79A2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{362A4767-2E34-4A38-8CB8-92BD850F79A2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{362A4767-2E34-4A38-8CB8-92BD850F79A2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{362A4767-2E34-4A38-8CB8-92BD850F79A2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F6676090-A7AB-433D-86FF-6CF2AA2DE478}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F6676090-A7AB-433D-86FF-6CF2AA2DE478}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F6676090-A7AB-433D-86FF-6CF2AA2DE478}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F6676090-A7AB-433D-86FF-6CF2AA2DE478}.Release|Any CPU.Build.0 = Release|Any CPU
+		{53A21860-630B-43EF-B4BC-A17D0FE5E684}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{53A21860-630B-43EF-B4BC-A17D0FE5E684}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{53A21860-630B-43EF-B4BC-A17D0FE5E684}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{53A21860-630B-43EF-B4BC-A17D0FE5E684}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{11F473F1-F415-4A50-8D28-2C5D7569D689} = {6807ED85-D010-4CD7-A110-349B1B2ACD61}
+		{362A4767-2E34-4A38-8CB8-92BD850F79A2} = {6807ED85-D010-4CD7-A110-349B1B2ACD61}
+		{F6676090-A7AB-433D-86FF-6CF2AA2DE478} = {6807ED85-D010-4CD7-A110-349B1B2ACD61}
+		{53A21860-630B-43EF-B4BC-A17D0FE5E684} = {57198180-0DE9-484C-9B86-D21EB7E5233A}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {6108378A-CBF4-4DD5-AD24-FB2E8F2B7C1C}
+	EndGlobalSection
+EndGlobal

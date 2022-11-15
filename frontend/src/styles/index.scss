@@ -1,0 +1,86 @@
+@import './var.css';
+
+.hover-trigger:hover {
+  background-color: #ffffff50;
+  transition: background var(--transition-time-02);
+  -webkit-transition: background var(--transition-time-02);
+  -moz-transition: background var(--transition-time-02);
+  -ms-transition: background var(--transition-time-02);
+  -o-transition: background var(--transition-time-02);
+}
+
+.top-header-tool-item {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  justify-content: center;
+  padding: 1px 10px 0;
+}
+
+.router-tab-custom {
+  color: var(--el-color-primary) !important;
+  border-color: var(--app-content-bg-color) !important;
+}
+
+.router-tab {
+  .router-tab__item.is-active {
+    border-bottom-color: var(--app-content-bg-color) !important;
+    background: var(--app-content-bg-color) !important;
+    transition: background var(--transition-time-02);
+    -webkit-transition: background var(--transition-time-02);
+    -moz-transition: background var(--transition-time-02);
+    -ms-transition: background var(--transition-time-02);
+    -o-transition: background var(--transition-time-02);
+}
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
+
+.main-container {
+  padding: 20px;
+  background-color: var(--app-content-bg-color);
+  min-height: calc(100vh - 100px);
+}
+
+.dataTable {
+  margin-top: 20px;
+}
+.el-card {
+  margin-top: 20px;
+}
+.ele-form-btns .el-form-item__content {
+  text-align: right;
+}
+.base-el-pagination {
+  margin: 20px 0;
+  float: right;
+}
+.el-menu {
+  border-right: 0;
+}
+
+.ele-form-dialog .el-dialog__body .el-row .el-col {
+  width: 95%;
+}
+
+.el-select{
+  width: 100%;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.el-drawer__body {
+  overflow-y: scroll;
+}
+
+.el-date-editor {
+  width: 100%;
+}
+
+.el-input__inner {
+  width: 100% !important;
+}
