@@ -2,7 +2,7 @@
  * @Author: ddvlhr 354874258@qq.com
  * @Date: 2022-11-15 22:34:26
  * @LastEditors: ddvlhr 354874258@qq.com
- * @LastEditTime: 2022-11-15 22:34:38
+ * @LastEditTime: 2022-11-16 00:12:48
  * @FilePath: /frontend/commitlint.config.js
  * @Description: 
  */

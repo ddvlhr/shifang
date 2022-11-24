@@ -2,7 +2,7 @@
  * @Author: ddvlhr 354874258@qq.com
  * @Date: 2022-11-01 13:10:05
  * @LastEditors: ddvlhr 354874258@qq.com
- * @LastEditTime: 2022-11-01 13:59:40
+ * @LastEditTime: 2022-11-24 22:36:52
  * @FilePath: /frontend/src/views/metricalData/Calibration.vue
  * @Description: 
 -->
@@ -10,6 +10,17 @@
   <div class="main-container">
     <function-button />
     <el-card shadow="never">
+      <div slot="header">
+        <el-row :gutter="20">
+          <el-col :span="6" :offset="0">
+            <query-date-picker v-model="daterange" @change="query" @clear="query" />
+          </el-col>
+          <el-col :span="6" :offset="0">
+            <query-input v-model="queryInfo.query" @click="query" @clear="query" />
+          </el-col>
+        </el-row>
+        
+      </div>
       <ele-table
         :columns-desc="tableDesc"
         :is-show-index="true"
@@ -24,13 +35,17 @@
 </template>
 
 <script>
+import { queryTable } from '@/utils'
 export default {
   data() {
     return {
       queryInfo: {
         query: '',
+        begin: '',
+        end: '',
         state: ''
       },
+      daterange: [],
       tableDesc: {
         time: {
           text: '时间'
@@ -59,10 +74,14 @@ export default {
   created() {},
   methods: {
     query() {
-      const size = this.$refs.table.size
-      const page = this.$refs.table.page
-      this.getCalibrations({ size, page })
-      this.$refs.table.getData()
+      if (this.daterange !== null) {
+        this.queryInfo.begin = this.daterange[0]
+        this.queryInfo.end = this.daterange[1]
+      } else {
+        this.queryInfo.begin = ''
+        this.queryInfo.end = ''
+      }
+      queryTable(this, this.getCalibrations)
     },
     async getCalibrations(params) {
       const { data: res } = await this.$api.getCalibrations(

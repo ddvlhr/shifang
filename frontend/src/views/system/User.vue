@@ -1,45 +1,35 @@
 <template>
   <div class="main-container">
-    <function-button @add="addUser" @edit="editUser" />
-    <el-card>
-      <el-row :gutter="10">
-        <el-col :span="8">
-          <el-input
-            v-model="queryInfo.query"
-            placeholder="请输入内容"
-            clearable
-            @clear="query"
-          >
-            <el-button
-              slot="append"
-              icon="el-icon-search"
+    <function-button @add="add" />
+    <el-card shadow="never">
+      <div slot="header">
+        <el-row :gutter="20">
+          <el-col :span="8">
+            <query-input
+              v-model="queryInfo.query"
               @click="query"
-            ></el-button>
-          </el-input>
-        </el-col>
-        <el-col :span="8">
-          <el-select
-            v-model="queryInfo.state"
-            placeholder="请选择状态"
-            clearable
-            @clear="query"
-            @change="query"
-          >
-            <el-option
-              v-for="item in stateList"
-              :key="item.value"
-              :value="item.value"
-              :label="item.label"
-            ></el-option>
-          </el-select>
-        </el-col>
-      </el-row>
+              @clear="query"
+            />
+          </el-col>
+          <el-col :span="8">
+            <query-select
+              v-model="queryInfo.state"
+              :options="stateList"
+              placeholder="状态筛选"
+              @change="query"
+              @clear="query"
+            />
+          </el-col>
+        </el-row>
+      </div>
+
       <ele-table
         :columns-desc="columnsDesc"
         :is-show-index="true"
         :request-fn="getUserList"
         :is-show-right-delete="false"
         :is-show-top-delete="false"
+        :right-buttons="rightButtons"
         ref="table"
       >
       </ele-table>
@@ -57,7 +47,7 @@
 </template>
 
 <script>
-import { reloadCurrentRoute } from '@/utils/utils'
+import { initRightButtons, queryTable } from '@/utils'
 export default {
   data() {
     return {
@@ -65,10 +55,8 @@ export default {
         query: '',
         state: ''
       },
-      stateList: [
-        { value: 0, label: '启用' },
-        { value: 1, label: '停用' }
-      ],
+      rightButtons: [],
+      stateList: this.$store.state.app.dicts.stateList,
       dialogFormVisible: false,
       columnsDesc: {
         userName: {
@@ -81,10 +69,7 @@ export default {
         state: {
           text: '状态',
           type: 'status',
-          options: [
-            { text: '启用', type: 'success', value: 0 },
-            { text: '停用', type: 'danger', value: 1 }
-          ]
+          options: this.$store.state.app.dicts.boolStateList
         }
       },
       formData: {},
@@ -102,11 +87,8 @@ export default {
         state: {
           type: 'radio',
           label: '状态',
-          default: 0,
-          options: [
-            { text: '启用', value: 0 },
-            { text: '停用', value: 1 }
-          ]
+          default: true,
+          options: this.$store.state.app.dicts.boolStateList
         }
       },
       rules: {
@@ -117,15 +99,14 @@ export default {
     }
   },
   created() {
-    // 根据 router-tab 当前选中的页面重新设置当前路由
-    reloadCurrentRoute(this.$tabs, this.$store)
+    this.setRightButtons()
   },
   methods: {
+    async setRightButtons() {
+      this.rightButtons = await initRightButtons(this)
+    },
     query() {
-      const pageNum = this.$refs.table.page
-      const pageSize = this.$refs.table.size
-      this.getUserList({ pageNum, pageSize })
-      this.$refs.table.getData()
+      queryTable(this, this.getUserList)
     },
     async getUserList(params) {
       const { data: res } = await this.$api.getUsers(
@@ -137,7 +118,7 @@ export default {
 
       return res.data
     },
-    addUser() {
+    add() {
       this.dialogFormVisible = true
     },
     async handleSubmit(user) {
@@ -157,22 +138,13 @@ export default {
       this.formData = {}
       this.$message.success('提交成功')
     },
-    editUser() {
-      const selectedData = this.$refs.table.selectedData
-      if (selectedData.length === 0) {
-        return this.$message.error('请选择需要编辑的用户')
-      }
-
-      if (selectedData.length > 1) {
-        return this.$message.error('只能选择一个用户进行编辑')
-      }
-
-      this.formData = selectedData[0]
-      this.dialogFormVisible = true
-      this.isEdit = true
+    edit(data, that) {
+      that.formData = data
+      that.dialogFormVisible = true
+      that.isEdit = true
     },
     handleClosed() {
-      this.formData = {}
+      this.formData = { state: true }
     }
   }
 }

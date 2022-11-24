@@ -103,7 +103,7 @@ public class UserService : IUserService
             Id = c.Id,
             UserName = c.UserName,
             NickName = c.NickName,
-            State = (int)c.Status
+            State = c.Status == Status.Enabled
         }).Skip(skip).Take(dto.PageSize).ToList();
         return result;
     }
@@ -122,7 +122,7 @@ public class UserService : IUserService
             UserName = dto.UserName,
             NickName = dto.NickName,
             HashedPassword = Encrypt.DesEncrypt("123456"),
-            Status = (Status)dto.State
+            Status = dto.State ? Status.Enabled : Status.Disabled
         };
 
         _userRepo.Add(user);
@@ -143,7 +143,7 @@ public class UserService : IUserService
         var user = _userRepo.Get(dto.Id);
         user.UserName = dto.UserName;
         user.NickName = dto.NickName;
-        user.Status = (Status)dto.State;
+        user.Status = dto.State ? Status.Enabled : Status.Disabled;
 
         _userRepo.Update(user);
 

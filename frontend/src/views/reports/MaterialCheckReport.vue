@@ -2,7 +2,7 @@
  * @Author: ddvlhr 354874258@qq.com
  * @Date: 2022-11-02 16:51:59
  * @LastEditors: ddvlhr 354874258@qq.com
- * @LastEditTime: 2022-11-14 11:20:26
+ * @LastEditTime: 2022-11-24 15:40:56
  * @FilePath: /frontend/src/views/reports/MaterialCheckReport.vue
  * @Description: 
 -->
@@ -10,52 +10,55 @@
   <div class="main-container">
     <function-button @add="add" />
     <el-card shadow="never">
-      <el-row :gutter="20">
-        <el-col :span="6">
-          <query-select
-            :options="specificationOptions"
-            v-model="queryInfo.specificationId"
-            placeholder="牌号筛选"
-          />
-        </el-col>
-        <el-col :span="6">
-          <query-select
-            :options="teamOptions"
-            v-model="queryInfo.teamId"
-            placeholder="班组筛选"
-          />
-        </el-col>
-        <el-col :span="6">
-          <query-select
-            :options="turnOptions"
-            v-model="queryInfo.turnId"
-            placeholder="班次筛选"
-          />
-        </el-col>
-        <el-col :span="6">
-          <query-select
-            :options="machineOptions"
-            v-model="queryInfo.machineId"
-            placeholder="机台筛选"
-          />
-        </el-col>
-      </el-row>
-      <el-row :gutter="20" class="mt-3">
-        <el-col :span="6">
-          <query-select
-            :options="qualified"
-            v-model="queryInfo.qualified"
-            placeholder="判定状态筛选"
-          />
-        </el-col>
-        <el-col :span="6">
-          <query-select
-            :options="materialCheckStatus"
-            v-model="queryInfo.state"
-            placeholder="流程状态筛选"
-          />
-        </el-col>
-      </el-row>
+      <div slot="header">
+        <el-row :gutter="20">
+          <el-col :span="6">
+            <query-select
+              :options="specificationOptions"
+              v-model="queryInfo.specificationId"
+              placeholder="牌号筛选"
+            />
+          </el-col>
+          <el-col :span="6">
+            <query-select
+              :options="teamOptions"
+              v-model="queryInfo.teamId"
+              placeholder="班组筛选"
+            />
+          </el-col>
+          <el-col :span="6">
+            <query-select
+              :options="turnOptions"
+              v-model="queryInfo.turnId"
+              placeholder="班次筛选"
+            />
+          </el-col>
+          <el-col :span="6">
+            <query-select
+              :options="machineOptions"
+              v-model="queryInfo.machineId"
+              placeholder="机台筛选"
+            />
+          </el-col>
+        </el-row>
+        <el-row :gutter="20" class="mt-3">
+          <el-col :span="6">
+            <query-select
+              :options="qualified"
+              v-model="queryInfo.qualified"
+              placeholder="判定状态筛选"
+            />
+          </el-col>
+          <el-col :span="6">
+            <query-select
+              :options="materialCheckStatus"
+              v-model="queryInfo.state"
+              placeholder="流程状态筛选"
+            />
+          </el-col>
+        </el-row>
+      </div>
+
       <ele-table
         :columns-desc="columnDesc"
         :is-show-index="true"
@@ -220,7 +223,9 @@ export default {
         Object.assign(this.queryInfo, params)
       )
       if (res.meta.code !== 0) {
-        return this.$message.error('获取物资申检报表列表失败: ' + res.meta.message)
+        return this.$message.error(
+          '获取物资申检报表列表失败: ' + res.meta.message
+        )
       }
       return res.data
     },

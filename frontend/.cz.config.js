@@ -2,7 +2,7 @@
  * @Author: ddvlhr 354874258@qq.com
  * @Date: 2022-11-15 22:41:12
  * @LastEditors: ddvlhr 354874258@qq.com
- * @LastEditTime: 2022-11-15 22:41:15
+ * @LastEditTime: 2022-11-16 00:15:08
  * @FilePath: /frontend/.cz.config.js
  * @Description: 
  */
@@ -21,6 +21,8 @@ module.exports = {
     {value: 'revert',   name: 'revert:   回退'},
     {value: 'build',    name: 'build:    打包'}
   ],
+  useEmoji: true,
+  emojiAlign: 'center',
   // override the messages, defaults are as follows
   messages: {
     type: '请选择提交类型:',

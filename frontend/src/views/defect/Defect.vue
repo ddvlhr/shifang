@@ -2,7 +2,7 @@
  * @Author: ddvlhr 354874258@qq.com
  * @Date: 2022-11-02 11:12:00
  * @LastEditors: ddvlhr 354874258@qq.com
- * @LastEditTime: 2022-11-02 14:03:58
+ * @LastEditTime: 2022-11-24 22:46:13
  * @FilePath: /frontend/src/views/defect/Defect.vue
  * @Description: 缺陷管理
 -->
@@ -10,22 +10,25 @@
   <div class="main-container">
     <function-button @add="add" />
     <el-card shadow="never">
-      <el-row :gutter="20">
-        <el-col :span="6">
-          <query-select
-            :options="defectTypeOptions"
-            v-model="queryInfo.typeId"
-            placeholder="缺陷类别筛选"
-          />
-        </el-col>
-        <el-col :span="6">
-          <query-select
-            :options="defectEventOptions"
-            v-model="queryInfo.eventId"
-            placeholder="类别小项筛选"
-          />
-        </el-col>
-      </el-row>
+      <div slot="header">
+        <el-row :gutter="20">
+          <el-col :span="6">
+            <query-select
+              :options="defectTypeOptions"
+              v-model="queryInfo.typeId"
+              placeholder="缺陷类别筛选"
+            />
+          </el-col>
+          <el-col :span="6">
+            <query-select
+              :options="defectEventOptions"
+              v-model="queryInfo.eventId"
+              placeholder="类别小项筛选"
+            />
+          </el-col>
+        </el-row>
+      </div>
+
       <ele-table
         :columns-desc="tableDesc"
         :is-show-index="true"
@@ -99,7 +102,7 @@ export default {
           { required: true, message: '缺陷简述不能为空', trigger: 'blur' }
         ],
         typeId: [
-          { required: true, message: '缺陷类别不能为空', trigger: 'change'}
+          { required: true, message: '缺陷类别不能为空', trigger: 'change' }
         ],
         code: [
           { required: true, message: '缺陷代码不能为空', trigger: 'blur' }

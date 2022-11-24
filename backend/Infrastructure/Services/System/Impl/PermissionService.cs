@@ -11,7 +11,7 @@ using Infrastructure.Extensions;
 namespace Infrastructure.Services.System.Impl;
 
 [AutoInject(typeof(IPermissionService), InjectType.Scope)]
-public class PermissionService: IPermissionService
+public class PermissionService : IPermissionService
 {
     private readonly IRepository<Permission> _permissionRepository;
     private readonly IUnitOfWork _uow;
@@ -29,7 +29,7 @@ public class PermissionService: IPermissionService
         if (role == 0)
         {
             var permissions = _permissionRepository.All().ToList();
-            var root = permissions.Where(c=>c.Level == 0).OrderBy(c=>c.Order).ToList();
+            var root = permissions.Where(c => c.Level == 0).OrderBy(c => c.Order).ToList();
             foreach (var item in root)
             {
                 var rootItem = new PermissionTreeDto()
@@ -151,7 +151,7 @@ public class PermissionService: IPermissionService
             message = "没有找到需要删除的数据";
             return false;
         }
-        
+
         _permissionRepository.DeleteRange(permissions);
 
         var result = _uow.Save() > 0;
@@ -164,19 +164,21 @@ public class PermissionService: IPermissionService
         List<BaseOptionDto> result;
         if (root)
         {
-            result = _permissionRepository.All().Where(c => c.Level == 0).OrderBy(c=>c.Order).Select(c => new BaseOptionDto()
-            {
-                Value = c.Id,
-                Text = c.Name
-            }).ToList();
+            result = _permissionRepository.All().Where(c => c.Level == 0).OrderBy(c => c.Order).Select(c =>
+                new BaseOptionDto()
+                {
+                    Value = c.Id,
+                    Text = c.Name
+                }).ToList();
         }
         else
         {
-            result = _permissionRepository.All().Where(c => c.Level != 0 && c.PermissionType == PermissionType.Menu).OrderBy(c=>c.Order).Select(c => new BaseOptionDto()
-            {
-                Value = c.Id,
-                Text = c.Name
-            }).ToList();
+            result = _permissionRepository.All().Where(c => c.Level != 0 && c.PermissionType == PermissionType.Menu)
+                .OrderByDescending(c=>c.ModifiedAtUtc).Select(c => new BaseOptionDto()
+                {
+                    Value = c.Id,
+                    Text = c.Name
+                }).ToList();
         }
 
         return result;

@@ -2902,6 +2902,164 @@ namespace FuYang.Infrastructure.Migrations
                     b.ToTable("t_work_shop_quality_point_rule");
                 });
 
+            modelBuilder.Entity("Core.Entities.WrapProcessInspectionReport", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("id");
+
+                    b.Property<string>("BatchNumber")
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)")
+                        .HasColumnName("batch_number")
+                        .HasComment("批号");
+
+                    b.Property<string>("BatchUnqualified")
+                        .HasMaxLength(256)
+                        .HasColumnType("varchar(256)")
+                        .HasColumnName("batch_unqualified")
+                        .HasComment("批不合格项");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("created_at_utc");
+
+                    b.Property<string>("Inspector")
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)")
+                        .HasColumnName("inspector")
+                        .HasComment("检验员");
+
+                    b.Property<int>("MachineId")
+                        .HasColumnType("int")
+                        .HasColumnName("machine_id")
+                        .HasComment("机台ID");
+
+                    b.Property<DateTime>("ModifiedAtUtc")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("modified_at_utc");
+
+                    b.Property<string>("OperatorName")
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)")
+                        .HasColumnName("operator_name")
+                        .HasComment("操作员");
+
+                    b.Property<int>("OtherCount")
+                        .HasColumnType("int")
+                        .HasColumnName("other_count")
+                        .HasComment("其他指标超标支数");
+
+                    b.Property<string>("OtherIndicators")
+                        .HasMaxLength(512)
+                        .HasColumnType("varchar(512)")
+                        .HasColumnName("other_indicators")
+                        .HasComment("其他指标超标");
+
+                    b.Property<string>("Remark")
+                        .HasMaxLength(256)
+                        .HasColumnType("varchar(256)")
+                        .HasColumnName("remark")
+                        .HasComment("备注");
+
+                    b.Property<int>("ResistanceLower")
+                        .HasColumnType("int")
+                        .HasColumnName("resistance_lower")
+                        .HasComment("吸阻偏小支数");
+
+                    b.Property<int>("ResistanceUpper")
+                        .HasColumnType("int")
+                        .HasColumnName("resistance_upper")
+                        .HasComment("吸阻偏大支数");
+
+                    b.Property<int>("Result")
+                        .HasColumnType("int")
+                        .HasColumnName("result")
+                        .HasComment("判定结果");
+
+                    b.Property<double>("Score")
+                        .HasColumnType("double")
+                        .HasColumnName("score")
+                        .HasComment("扣分");
+
+                    b.Property<int>("SpecificationId")
+                        .HasColumnType("int")
+                        .HasColumnName("specification_id")
+                        .HasComment("牌号ID");
+
+                    b.Property<DateTime>("Time")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("time")
+                        .HasComment("检测时间");
+
+                    b.Property<int>("TurnId")
+                        .HasColumnType("int")
+                        .HasColumnName("turn_id")
+                        .HasComment("班次ID");
+
+                    b.Property<int>("WeightLower")
+                        .HasColumnType("int")
+                        .HasColumnName("weight_lower")
+                        .HasComment("重量偏小支数");
+
+                    b.Property<int>("WeightUpper")
+                        .HasColumnType("int")
+                        .HasColumnName("weight_upper")
+                        .HasComment("重量偏大支数");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MachineId");
+
+                    b.HasIndex("SpecificationId");
+
+                    b.HasIndex("TurnId");
+
+                    b.ToTable("t_wrap_process_inspection_report");
+                });
+
+            modelBuilder.Entity("Core.Entities.WrapProcessInspectionReportDefect", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("id");
+
+                    b.Property<int>("Count")
+                        .HasColumnType("int")
+                        .HasColumnName("count")
+                        .HasComment("数量");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("created_at_utc");
+
+                    b.Property<int>("DefectId")
+                        .HasColumnType("int")
+                        .HasColumnName("defect_id")
+                        .HasComment("缺陷 Id");
+
+                    b.Property<DateTime>("ModifiedAtUtc")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("modified_at_utc");
+
+                    b.Property<int>("ReportId")
+                        .HasColumnType("int")
+                        .HasColumnName("report_id")
+                        .HasComment("卷包质量检验报表 Id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DefectId");
+
+                    b.HasIndex("ReportId");
+
+                    b.ToTable("t_wrap_process_inspection_report_defect");
+
+                    b.HasComment("卷制过程检验报告缺陷表");
+                });
+
             modelBuilder.Entity("Core.Entities.WrapQualityInspectionReport", b =>
                 {
                     b.Property<int>("Id")
@@ -3566,6 +3724,52 @@ namespace FuYang.Infrastructure.Migrations
                     b.Navigation("SpecificationType");
 
                     b.Navigation("WorkShop");
+                });
+
+            modelBuilder.Entity("Core.Entities.WrapProcessInspectionReport", b =>
+                {
+                    b.HasOne("Core.Entities.Machine", "Machine")
+                        .WithMany()
+                        .HasForeignKey("MachineId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Core.Entities.Specification", "Specification")
+                        .WithMany()
+                        .HasForeignKey("SpecificationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Core.Entities.Turn", "Turn")
+                        .WithMany()
+                        .HasForeignKey("TurnId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Machine");
+
+                    b.Navigation("Specification");
+
+                    b.Navigation("Turn");
+                });
+
+            modelBuilder.Entity("Core.Entities.WrapProcessInspectionReportDefect", b =>
+                {
+                    b.HasOne("Core.Entities.Defect", "Defect")
+                        .WithMany()
+                        .HasForeignKey("DefectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Core.Entities.WrapProcessInspectionReport", "WrapProcessInspectionReport")
+                        .WithMany()
+                        .HasForeignKey("ReportId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Defect");
+
+                    b.Navigation("WrapProcessInspectionReport");
                 });
 
             modelBuilder.Entity("Core.Entities.WrapQualityInspectionReport", b =>

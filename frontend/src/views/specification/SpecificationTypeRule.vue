@@ -2,17 +2,20 @@
   <div class="main-container">
     <function-button @edit="edit" />
     <el-card shadow="never">
-      <el-row :gutter="10">
-        <el-col :span="6">
-          <el-input v-model="queryInfo.query" placeholder="请输入关键字">
-            <el-button
-              slot="append"
-              icon="el-icon-search"
-              @click="query"
-            ></el-button>
-          </el-input>
-        </el-col>
-      </el-row>
+      <div slot="header">
+        <el-row :gutter="10">
+          <el-col :span="6">
+            <el-input v-model="queryInfo.query" placeholder="请输入关键字">
+              <el-button
+                slot="append"
+                icon="el-icon-search"
+                @click="query"
+              ></el-button>
+            </el-input>
+          </el-col>
+        </el-row>
+      </div>
+
       <ele-table
         :columns-desc="columnsDesc"
         :is-show-top-delete="false"
@@ -186,7 +189,8 @@ export default {
       if (res.meta.code !== 0) {
         return this.$message.error('获取信息失败: ' + res.meta.message)
       }
-      this.formDesc.rules.attrs.columns[0].content.options = this.indicatorOptions
+      this.formDesc.rules.attrs.columns[0].content.options =
+        this.indicatorOptions
       this.formData = res.data
       // if (res.data.rules == null) {
       //   this.formData.rules = []

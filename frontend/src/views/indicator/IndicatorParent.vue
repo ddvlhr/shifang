@@ -1,17 +1,28 @@
 <template>
   <div class="main-container">
     <function-button @add="add" @edit="edit" />
-    <el-card>
-      <el-row :gutter="10">
-        <el-col :span="8">
-          <el-input v-model="queryInfo.query" placeholder="请输入内容" clearable @clear="query">
-            <el-button slot="append" icon="el-icon-search" @click="query"></el-button>
-          </el-input>
-        </el-col>
-        <el-col :span="8">
-          <query-select :options="stateList" v-model="queryInfo.state" placeholder="装填筛选" @change="query" @clear="query" />
-        </el-col>
-      </el-row>
+    <el-card shadow="never">
+      <div slot="header">
+        <el-row :gutter="20">
+          <el-col :span="8">
+            <query-input
+              v-model="queryInfo.query"
+              @click="query"
+              @clear="query"
+            />
+          </el-col>
+          <el-col :span="8">
+            <query-select
+              :options="stateList"
+              v-model="queryInfo.state"
+              placeholder="装态筛选"
+              @change="query"
+              @clear="query"
+            />
+          </el-col>
+        </el-row>
+      </div>
+
       <ele-table
         :columns-desc="columnsDesc"
         :is-show-index="true"
@@ -19,7 +30,8 @@
         :is-show-right-delete="false"
         :is-show-top-delete="false"
         :right-buttons="rightButtons"
-        ref="table"></ele-table>
+        ref="table"
+      ></ele-table>
     </el-card>
     <ele-form-dialog
       v-model="formData"
@@ -28,7 +40,8 @@
       :title="isEdit ? '添加上级指标' : '编辑上级指标'"
       :request-fn="handleSubmit"
       :visible.sync="dialogFormVisible"
-      @request-success="handleSuccess"></ele-form-dialog>
+      @request-success="handleSuccess"
+    ></ele-form-dialog>
   </div>
 </template>
 

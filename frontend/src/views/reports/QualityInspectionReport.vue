@@ -2,7 +2,7 @@
  * @Author: ddvlhr 354874258@qq.com
  * @Date: 2022-11-09 14:00:16
  * @LastEditors: ddvlhr 354874258@qq.com
- * @LastEditTime: 2022-11-10 13:37:46
+ * @LastEditTime: 2022-11-24 15:43:07
  * @FilePath: /frontend/src/views/reports/QualityInspectionReport.vue
  * @Description: 
 -->
@@ -10,79 +10,82 @@
   <div class="main-container">
     <function-button @add="add" @remove="remove" />
     <el-card shadow="never">
-      <el-row :gutter="20">
-        <el-col :span="6">
-          <query-input v-model="queryInfo.query" />
-        </el-col>
-        <el-col :span="6">
-          <query-select
-            :options="specificationOptions"
-            v-model="queryInfo.specificationId"
-            placeholder="牌号筛选"
-            @change="query"
-            @clear="query"
-          />
-        </el-col>
-        <el-col :span="6">
-          <query-select
-            :options="teamOptions"
-            v-model="queryInfo.teamId"
-            placeholder="班组筛选"
-            @change="query"
-            @clear="query"
-          />
-        </el-col>
-        <el-col :span="6">
-          <query-select
-            :options="turnOptions"
-            v-model="queryInfo.turnId"
-            placeholder="班次筛选"
-            @change="query"
-            @clear="query"
-          />
-        </el-col>
-      </el-row>
-      <el-row :gutter="20" class="mt-3">
-        <el-col :span="6">
-          <el-date-picker
-            v-model="dateRange"
-            type="daterange"
-            range-separator="-"
-            start-placeholder="开始日期"
-            end-placeholder="结束日期"
-            @change="query"
-            @clear="query"
-          >
-          </el-date-picker>
-        </el-col>
-        <el-col :span="6">
-          <query-select
-            :options="volumePickUpOptions"
-            v-model="queryInfo.volumePickUpId"
-            placeholder="卷接机筛选"
-            @change="query"
-            @clear="query"
-          />
-        </el-col>
-        <el-col :span="6">
-          <query-select
-            :options="packagingMachineOptions"
-            v-model="queryInfo.packagingMachineId"
-            placeholder="包装机筛选"
-            @change="query"
-            @clear="query"
-          />
-        </el-col>
-        <el-col :span="6">
-          <query-select
-            :options="qualityResult"
-            v-model="queryInfo.result"
-            placeholder="状态筛选"
-            @change="query"
-            @clear="query"
-          />
-        </el-col>
-      </el-row>
+      <div slot="header">
+        <el-row :gutter="20">
+          <el-col :span="6">
+            <query-input v-model="queryInfo.query" />
+          </el-col>
+          <el-col :span="6">
+            <query-select
+              :options="specificationOptions"
+              v-model="queryInfo.specificationId"
+              placeholder="牌号筛选"
+              @change="query"
+              @clear="query"
+            />
+          </el-col>
+          <el-col :span="6">
+            <query-select
+              :options="teamOptions"
+              v-model="queryInfo.teamId"
+              placeholder="班组筛选"
+              @change="query"
+              @clear="query"
+            />
+          </el-col>
+          <el-col :span="6">
+            <query-select
+              :options="turnOptions"
+              v-model="queryInfo.turnId"
+              placeholder="班次筛选"
+              @change="query"
+              @clear="query"
+            />
+          </el-col>
+        </el-row>
+        <el-row :gutter="20" class="mt-3">
+          <el-col :span="6">
+            <el-date-picker
+              v-model="dateRange"
+              type="daterange"
+              range-separator="-"
+              start-placeholder="开始日期"
+              end-placeholder="结束日期"
+              @change="query"
+              @clear="query"
+            >
+            </el-date-picker>
+          </el-col>
+          <el-col :span="6">
+            <query-select
+              :options="volumePickUpOptions"
+              v-model="queryInfo.volumePickUpId"
+              placeholder="卷接机筛选"
+              @change="query"
+              @clear="query"
+            />
+          </el-col>
+          <el-col :span="6">
+            <query-select
+              :options="packagingMachineOptions"
+              v-model="queryInfo.packagingMachineId"
+              placeholder="包装机筛选"
+              @change="query"
+              @clear="query"
+            />
+          </el-col>
+          <el-col :span="6">
+            <query-select
+              :options="qualityResult"
+              v-model="queryInfo.result"
+              placeholder="状态筛选"
+              @change="query"
+              @clear="query"
+            />
+          </el-col>
+        </el-row>
+      </div>
+
       <ele-table
         :columns-desc="columnDesc"
         :is-show-index="true"
@@ -93,6 +96,7 @@
         ref="table"
       ></ele-table>
       <ele-form-dialog
+        width="80%"
         v-model="formData"
         :form-desc="formDesc"
         :form-error="formError"
@@ -131,6 +135,7 @@ export default {
       turnOptions: [],
       volumePickUpOptions: [],
       packagingMachineOptions: [],
+      defectOptions: [],
       userOptions: [],
       columnDesc: {
         time: {
@@ -263,6 +268,38 @@ export default {
             filterable: true
           },
           prop: { text: 'text', value: 'valueStr' }
+        },
+        defects: {
+          label: '缺陷',
+          type: 'table-editor',
+          attrs: {
+            columns: [
+              {
+                label: '#',
+                width: 50,
+                type: 'index'
+              },
+              {
+                label: '缺陷',
+                prop: 'defectId',
+                content: {
+                  type: 'el-select',
+                  options: [],
+                  attrs: {
+                    filterable: true
+                  }
+                }
+              },
+              {
+                label: '数量',
+                prop: 'count',
+                content: {
+                  type: 'el-input-number',
+                  default: 1
+                }
+              }
+            ]
+          }
         }
       },
       rules: {
@@ -286,6 +323,13 @@ export default {
   },
   methods: {
     query() {
+      if (this.dateRange !== null) {
+        this.queryInfo.beginTime = this.dateRange[0]
+        this.queryInfo.endTime = this.dateRange[1]
+      } else {
+        this.queryInfo.beginTime = ''
+        this.queryInfo.endTime = ''
+      }
       queryTable(this, this.getQualityInspectionReports)
     },
     async setRightButtons() {
@@ -298,7 +342,8 @@ export default {
         this.$api.getTurnOptions(),
         this.$api.getVolumePickUpOptions(),
         this.$api.getPackagingMachineOptions(),
-        this.$api.getUserOptions()
+        this.$api.getUserOptions(),
+        this.$api.getDefectOptions()
       ]).then((res) => {
         this.specificationOptions = res[0].data.data
         this.teamOptions = res[1].data.data
@@ -306,6 +351,7 @@ export default {
         this.volumePickUpOptions = res[3].data.data
         this.packagingMachineOptions = res[4].data.data
         this.userOptions = res[5].data.data
+        this.defectOptions = res[6].data.data
       })
     },
     async getQualityInspectionReports(params) {
@@ -327,6 +373,8 @@ export default {
       that.formData = data
       that.isEdit = true
       that.dialogFormVisible = true
+      that.formDesc.defects.attrs.columns[1].content.options =
+        that.defectOptions
     },
     async remove() {
       const selectedData = this.$refs.table.selectedData

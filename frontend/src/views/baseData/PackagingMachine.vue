@@ -2,7 +2,7 @@
  * @Author: ddvlhr 354874258@qq.com
  * @Date: 2022-10-31 14:23:40
  * @LastEditors: ddvlhr 354874258@qq.com
- * @LastEditTime: 2022-11-01 13:07:59
+ * @LastEditTime: 2022-11-24 22:59:55
  * @FilePath: /frontend/src/views/baseData/PackagingMachine.vue
  * @Description: 包装机管理
 -->
@@ -10,14 +10,27 @@
   <div class="main-container">
     <function-button @add="add" />
     <el-card shadow="never">
-      <el-row :gutter="20">
-        <el-col :span="8">
-          <query-input v-model="queryInfo.query" @click="query" @clear="query" />
-        </el-col>
-        <el-col :span="8">
-          <query-select :options="stateList" v-model="queryInfo.state" placeholder="状态筛选" @change="query" @clear="query" />
-        </el-col>
-      </el-row>
+      <div slot="header">
+        <el-row :gutter="20">
+          <el-col :span="8">
+            <query-input
+              v-model="queryInfo.query"
+              @click="query"
+              @clear="query"
+            />
+          </el-col>
+          <el-col :span="8">
+            <query-select
+              :options="stateList"
+              v-model="queryInfo.state"
+              placeholder="状态筛选"
+              @change="query"
+              @clear="query"
+            />
+          </el-col>
+        </el-row>
+      </div>
+
       <ele-table
         :columns-desc="tableDesc"
         :is-show-index="true"
@@ -106,7 +119,9 @@ export default {
         Object.assign(params, this.queryInfo)
       )
       if (res.meta.code !== 0) {
-        return this.$message.error('获取包装机列表信息失败: ' + res.meta.message)
+        return this.$message.error(
+          '获取包装机列表信息失败: ' + res.meta.message
+        )
       }
       return res.data
     },

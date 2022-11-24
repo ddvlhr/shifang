@@ -8,82 +8,64 @@
       @copy="copy"
       @downloadInfo="downloadInfo"
     />
-    <el-card>
-      <el-row :gutter="10">
-        <el-col :span="6">
-          <query-select
-            v-model="queryInfo.specificationId"
-            placeholder="牌号筛选"
-            @clear="query"
-            @change="query"
-            :options="specificationOptions"
-          />
-        </el-col>
-        <el-col :span="6">
-          <query-select
-            v-model="queryInfo.specificationTypeId"
-            placeholder="牌号类型筛选"
-            @clear="query"
-            @change="query"
-            :options="specificationTypeOptions"
-          />
-        </el-col>
-        <el-col :span="4" :offset="0">
-          <query-select
-            v-model="queryInfo.turnId"
-            placeholder="班次筛选"
-            :options="turnOptions"
-            @change="query"
-            @clear="query"
-          />
-        </el-col>
-        <el-col :span="4" :offset="0">
-          <query-select
-            v-model="queryInfo.machineModelId"
-            placeholder="机台筛选"
-            :options="machineModelOptions"
-            @change="query"
-            @clear="query"
-          />
-        </el-col>
-        <el-col :span="4" :offset="0">
-          <query-select
-            v-model="queryInfo.measureTypeId"
-            placeholder="测量类型筛选"
-            :options="measureTypeOptions"
-            @change="query"
-            @clear="query"
-          />
-        </el-col>
-      </el-row>
-      <el-row :gutter="10" style="margin-top: 20px">
-        <el-col :span="6" :offset="0">
-          <el-date-picker
-            v-model="testTime"
-            @change="getDateRange"
-            type="daterange"
-            size="normal"
-            range-separator="-"
-            start-placeholder="开始时间"
-            end-placeholder="结束时间"
-            value-format="yyyy-MM-dd"
-          ></el-date-picker>
-        </el-col>
-        <el-col :span="6" :offset="0">
-          <el-input
-            v-model="queryInfo.query"
-            placeholder="请输入关键字"
-            clearable
-            @clear="query"
-          >
-            <el-button
-              slot="append"
-              icon="el-icon-search"
-              @click="query"
-            ></el-button>
-          </el-input>
-        </el-col>
-      </el-row>
+    <el-card shadow="never">
+      <div slot="header">
+        <el-row :gutter="20">
+          <el-col :span="6">
+            <query-select
+              v-model="queryInfo.specificationId"
+              placeholder="牌号筛选"
+              @clear="query"
+              @change="query"
+              :options="specificationOptions"
+            />
+          </el-col>
+          <el-col :span="6">
+            <query-select
+              v-model="queryInfo.specificationTypeId"
+              placeholder="牌号类型筛选"
+              @clear="query"
+              @change="query"
+              :options="specificationTypeOptions"
+            />
+          </el-col>
+          <el-col :span="4" :offset="0">
+            <query-select
+              v-model="queryInfo.turnId"
+              placeholder="班次筛选"
+              :options="turnOptions"
+              @change="query"
+              @clear="query"
+            />
+          </el-col>
+          <el-col :span="4" :offset="0">
+            <query-select
+              v-model="queryInfo.machineModelId"
+              placeholder="机台筛选"
+              :options="machineModelOptions"
+              @change="query"
+              @clear="query"
+            />
+          </el-col>
+          <el-col :span="4" :offset="0">
+            <query-select
+              v-model="queryInfo.measureTypeId"
+              placeholder="测量类型筛选"
+              :options="measureTypeOptions"
+              @change="query"
+              @clear="query"
+            />
+          </el-col>
+        </el-row>
+        <el-row :gutter="20" class="mt-3">
+          <el-col :span="6" :offset="0">
+            <query-date-picker v-model="daterange" picker-type="daterange" @change="query" @clear="query" />
+          </el-col>
+          <el-col :span="6" :offset="0">
+            <query-input v-model="queryInfo.query" @click="query" @clear="query" />
+          </el-col>
+        </el-row>
+      </div>
 
       <ele-table
         :columns-desc="columnsDesc"
@@ -162,7 +144,7 @@
 </template>
 
 <script>
-import { initRightButtons } from '@/utils'
+import { initRightButtons, queryTable } from '@/utils'
 import {
   getCurrentDay,
   getWater,
@@ -183,6 +165,7 @@ export default {
         turnId: '',
         machineModelId: ''
       },
+      daterange: [],
       testTime: [],
       specificationOptions: [],
       turnOptions: [],
@@ -537,27 +520,20 @@ export default {
       this.reportOrderOptions = res.data.reportOrders
     },
     query() {
-      const page = this.$refs.table.page
-      const size = this.$refs.table.size
-      this.getMetricalData({ page, size })
-      this.$refs.table.getData()
+      if (this.daterange !== null) {
+        this.queryInfo.beginTime = this.daterange[0]
+        this.queryInfo.endTime = this.daterange[1]
+      } else {
+        this.queryInfo.beginTime = ''
+        this.queryInfo.endTime = ''
+      }
+      queryTable(this, this.getMetricalData)
     },
     getStatisticDataInfo() {
       return this.statisticDataInfo
     },
     getOriginDataInfo() {
       return this.originDataInfo
-    },
-    // 获取时间段筛选条件
-    getDateRange() {
-      if (this.testTime == null || Object.keys(this.testTime).length === 0) {
-        this.queryInfo.beginTime = ''
-        this.queryInfo.endTime = ''
-      } else {
-        this.queryInfo.beginTime = this.testTime[0]
-        this.queryInfo.endTime = this.testTime[1]
-      }
-      this.query()
     },
     // 获取原始测量数据
     async getMetricalData(params) {
@@ -592,13 +568,6 @@ export default {
     },
     // 编辑组数据功能
     edit(data, that) {
-      // const selectedData = this.getSelectedData(false)
-      // console.log(selectedData)
-      // if (!this.user.showSettings) {
-      //   if (this.user.id !== selectedData.userId) {
-      //     return this.$message.error('非管理员只能编辑自己的数据')
-      //   }
-      // }
       that.formData = data
       that.formData.testTime = that.formData.beginTime
       that.isEdit = true
@@ -606,11 +575,6 @@ export default {
     },
     // 复制功能
     copy(data, that) {
-      // if (!this.user.showSettings) {
-      //   if (this.user.id !== selectedData.userId) {
-      //     return this.$message.error('非管理员只能编辑自己的数据')
-      //   }
-      // }
       that.formData = data
       that.formData.copyId = data.id
       that.formData.testTime = data.beginTime
@@ -680,89 +644,6 @@ export default {
         that.dataInfo = dataInfo
         that.dataDialogVisible = true
       }
-    },
-    async getGroupRecords() {
-      this.groupRecordsLoading = true
-      this.filterDataQueryInfo.groupId = this.selectedData.id
-      const { data: res } = await this.$api.getGroupRecordInfo(
-        this.filterDataQueryInfo
-      )
-      this.groupRecordInfoList = res.data.result.groupRecords
-      this.groupRecordsTotal = res.data.total
-      this.groupRecordsLoading = false
-      // 判断是否已经选择了滤棒数据
-      if (res.data.result.fromRecords !== null) {
-        this.selectedGroupRecords = res.data.result.fromRecords
-      }
-    },
-    handleGroupRecordsCurrentChange() {
-      this.getGroupRecords()
-    },
-    groupRecordTableQuery() {
-      const page = this.$refs.filterGroupRecoredTableRef.page
-      const size = this.$refs.filterGroupRecoredTableRef.size
-      this.getGroupRecords({ page, size })
-      this.$refs.filterGroupRecoredTableRef.getData()
-    },
-    /**
-     * 设置 filterTable 选中, 需要使用this.$nextTick() 包裹
-     */
-    filterTableToggle(arr) {
-      arr.forEach((row) => {
-        this.$refs.filterGroupRecoredTableRef.toggleRowSelection(row, true)
-      })
-    },
-    filterDataQueryChange() {
-      this.getGroupRecords()
-    },
-    getGroupRecordsDateRange() {
-      if (
-        this.groupRecordsTestTimeRange == null ||
-        Object.keys(this.groupRecordsTestTimeRange).length === 0
-      ) {
-        this.filterDataQueryInfo.beginTime = ''
-        this.filterDataQueryInfo.endTime = ''
-      } else {
-        this.filterDataQueryInfo.beginTime = this.groupRecordsTestTimeRange[0]
-        this.filterDataQueryInfo.endTime = this.groupRecordsTestTimeRange[1]
-      }
-      this.groupRecordTableQuery()
-    },
-    handleRowClick(row, column, e) {
-      const existIds = this.selectedGroupRecords.map((e) => e.groupId)
-      const indicatorNames = this.selectedGroupRecords.map(
-        (e) => e.indicatorName
-      )
-      if (indicatorNames.includes(row.indicatorName)) {
-        return this.$message.error(`${row.indicatorName} 测量指标已选择数据`)
-      }
-
-      if (!existIds.includes(row.groupId)) {
-        this.selectedGroupRecords.push(row)
-      }
-    },
-    async handleFilterData() {
-      if (this.selectedGroupRecords.length === 0) {
-        return this.$message.error('请选择滤棒测量数据')
-      }
-      const groupId = this.filterDataSelectFormData.id
-      const { data: res } = await this.$api.addFilterData({
-        groupId,
-        groupRecordIds: this.groupRecordIds,
-        selectedGroupRecords: this.selectedGroupRecords
-      })
-      if (res.meta.code !== 0) {
-        return this.$message.error('提交失败: ' + res.meta.message)
-      }
-      this.filterDataSelectDialog = false
-      if (this.dataDialogVisible) {
-        this.dataDialogVisible = false
-      }
-      this.$message.success('提交成功')
-      this.query()
-    },
-    filterDataSelectDialogClose() {
-      this.selectedGroupRecords = []
     },
     async getDataInfo() {
       const { data: res } = await this.$api.getData(this.selectedData.id)

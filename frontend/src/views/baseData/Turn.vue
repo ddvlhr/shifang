@@ -2,16 +2,26 @@
   <div class="main-container">
     <function-button @add="add" />
     <el-card shadow="never">
-      <el-row :gutter="10">
-        <el-col :span="8">
-          <el-input v-model="queryInfo.query" clearable @clear="query" placeholder="请输入名称">
-            <el-button slot="append" @click="query" icon="el-icon-search"></el-button>
-          </el-input>
-        </el-col>
-        <el-col :span="8">
-          <query-select :options="stateList" v-model="queryInfo.state" placeholder="状态筛选" @change="query" @clear="query" />
-        </el-col>
-      </el-row>
+      <div slot="header">
+        <el-row :gutter="20">
+          <el-col :span="8">
+            <query-input
+              v-model="queryInfo.query"
+              @click="query"
+              @clear="query"
+            />
+          </el-col>
+          <el-col :span="8">
+            <query-select
+              :options="stateList"
+              v-model="queryInfo.state"
+              placeholder="状态筛选"
+              @change="query"
+              @clear="query"
+            />
+          </el-col>
+        </el-row>
+      </div>
       <ele-table
         :columns-desc="columnsDesc"
         :is-show-index="true"
@@ -75,9 +85,7 @@ export default {
         }
       },
       rules: {
-        name: [
-          { required: true, message: '班次名称不能为空', trigger: 'blur' }
-        ]
+        name: [{ required: true, message: '班次名称不能为空', trigger: 'blur' }]
       },
       isEdit: false
     }

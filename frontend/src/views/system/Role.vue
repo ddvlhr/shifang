@@ -1,30 +1,35 @@
 <template>
   <div class="main-container">
     <function-button @add="add" @edit="edit" @configure="configure" />
-    <el-card>
-      <el-row :gutter="10">
-        <el-col :span="8">
-          <el-input v-model="queryInfo.query" placeholder="请输入内容" clearable @clear="query">
-            <el-button slot="append" icon="el-icon-search" @click="query"></el-button>
-          </el-input>
-        </el-col>
-        <el-col :span="8">
-          <el-select v-model="queryInfo.state" placeholder="状态筛选">
-            <el-option
-              v-for="item in stateList"
-              :key="item.value"
-              :value="item.value"
-              :label="item.text"
-            ></el-option>
-          </el-select>
-        </el-col>
-      </el-row>
+    <el-card shadow="never">
+      <div slot="header">
+        <el-row :gutter="20">
+          <el-col :span="8">
+            <query-input
+              v-model="queryInfo.query"
+              @click="query"
+              @clear="query"
+            />
+          </el-col>
+          <el-col :span="8">
+            <query-select
+              v-model="queryInfo.state"
+              :options="stateList"
+              placeholder="状态筛选"
+              @change="query"
+              @clear="query"
+            />
+          </el-col>
+        </el-row>
+      </div>
+
       <ele-table
         :columns-desc="columnsDesc"
         :is-show-index="true"
         :request-fn="getRoleList"
         :is-show-top-delete="false"
         :is-show-right-delete="false"
+        :right-buttons="rightButtons"
         ref="table"
       ></ele-table>
     </el-card>
@@ -53,6 +58,7 @@
 <script>
 import { stateList, boolStateList } from '../../assets/js/constant'
 import { reloadCurrentRoute } from '@/utils/utils'
+import { initRightButtons, queryTable } from '@/utils'
 export default {
   data() {
     return {
@@ -60,7 +66,8 @@ export default {
         query: '',
         state: ''
       },
-      stateList: stateList,
+      stateList: this.$store.state.app.dicts.stateList,
+      rightButtons: [],
       columnsDesc: {
         name: {
           text: '角色名称'
@@ -68,7 +75,7 @@ export default {
         state: {
           text: '状态',
           type: 'status',
-          options: boolStateList
+          options: this.$store.state.app.dicts.boolStateList
         }
       },
       userOptions: [],
@@ -91,7 +98,7 @@ export default {
             multiple: true,
             flat: true
           },
-          options: async data => {
+          options: async (data) => {
             const { data: res } = await this.$api.getAllMenuFunctions()
             if (res.meta.code !== 0) {
               return this.$message.error(
@@ -146,8 +153,12 @@ export default {
     reloadCurrentRoute(this.$tabs, this.$store)
     this.getMenuFunctions()
     this.getOptions()
+    this.setRightButtons()
   },
   methods: {
+    async setRightButtons() {
+      this.rightButtons = await initRightButtons(this)
+    },
     async getOptions() {
       const { data: res } = await this.$api.getOptions()
       if (res.meta.code !== 0) {
@@ -156,10 +167,7 @@ export default {
       this.userOptions = res.data.users
     },
     query() {
-      const page = this.$refs.table.page
-      const size = this.$refs.table.size
-      this.getRoleList({ page, size })
-      this.$refs.table.getData()
+      queryTable(this, this.getRoleList)
     },
     async getRoleList(params) {
       const { data: res } = await this.$api.getRoleList(
@@ -201,26 +209,19 @@ export default {
       }
       this.userOptions = res.data.noRoleUsers
     },
-    async configure() {
-      const selectedData = this.$refs.table.selectedData
-      if (selectedData.length === 0) {
-        return this.$message.error('请选择需要配置的角色')
-      }
-      if (selectedData.length > 1) {
-        return this.$message.error('每次只能配置一个角色')
-      }
-      this.getNoRoleUsers()
-      const { data: res } = await this.$api.getUserRole(selectedData[0].id)
+    async configure(data, that) {
+      that.getNoRoleUsers()
+      const { data: res } = await that.$api.getUserRole(data.id)
       if (res.meta.code !== 0) {
-        return this.$message.error('获取用户角色信息失败: ' + res.meta.message)
+        return that.$message.error('获取用户角色信息失败: ' + res.meta.message)
       }
-      this.userRoleFormData = res.data
+      that.userRoleFormData = res.data
       if (res.data.id > 0) {
-        this.isEdit = true
+        that.isEdit = true
       } else {
-        this.isEdit = false
+        that.isEdit = false
       }
-      this.userRoleDialogVisible = true
+      that.userRoleDialogVisible = true
     },
     async handleSubmit(data) {
       this.formError = {}

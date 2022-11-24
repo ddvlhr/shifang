@@ -2,7 +2,7 @@
  * @Author: ddvlhr 354874258@qq.com
  * @Date: 2022-10-31 14:20:55
  * @LastEditors: ddvlhr 354874258@qq.com
- * @LastEditTime: 2022-11-02 09:14:49
+ * @LastEditTime: 2022-11-24 22:56:33
  * @FilePath: /frontend/src/views/baseData/Department.vue
  * @Description: 部门管理
 -->
@@ -10,31 +10,23 @@
   <div class="main-container">
     <function-button @add="add" />
     <el-card shadow="never">
-      <el-row :gutter="20">
-        <el-col :span="8">
-          <el-input
-            v-model="queryInfo.query"
-            clearable
-            @clear="query"
-            placeholder="请输入名称"
-          >
-            <el-button
-              slot="append"
-              @click="query"
-              icon="el-icon-search"
-            ></el-button>
-          </el-input>
-        </el-col>
-        <el-col :span="8">
-          <query-select
-            :options="stateList"
-            v-model="queryInfo.state"
-            placeholder="状态筛选"
-            @change="query"
-            @clear="query"
-          />
-        </el-col>
-      </el-row>
+      <div slot="header">
+        <el-row :gutter="20">
+          <el-col :span="8">
+            <query-input v-model="queryInfo.query" @click="query" @clear="query" />
+          </el-col>
+          <el-col :span="8">
+            <query-select
+              :options="stateList"
+              v-model="queryInfo.state"
+              placeholder="状态筛选"
+              @change="query"
+              @clear="query"
+            />
+          </el-col>
+        </el-row>
+      </div>
+
       <ele-table
         :columns-desc="tableDesc"
         :is-show-index="true"
@@ -98,9 +90,7 @@ export default {
       },
       formError: {},
       rules: {
-        name: [
-          { required: true, message: '部门名称不能为空', trigger: 'blur' }
-        ]
+        name: [{ required: true, message: '部门名称不能为空', trigger: 'blur' }]
       }
     }
   },

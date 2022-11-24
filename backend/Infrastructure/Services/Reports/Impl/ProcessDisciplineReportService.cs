@@ -26,6 +26,12 @@ public class ProcessDisciplineReportService: IProcessDisciplineReportService
     public IEnumerable<ProcessDisciplineReportInfoDto> GetTable(ProcessDisciplineReportQueryInfoDto dto, out int total)
     {
         var data = _pdrRepo.All().AsNoTracking();
+        if (!string.IsNullOrEmpty(dto.Begin) && !string.IsNullOrEmpty(dto.End))
+        {
+            var begin = Convert.ToDateTime(dto.Begin);
+            var end = Convert.ToDateTime(dto.End);
+            data = data.Where(c => c.Time.Date >= begin && c.Time.Date <= end);
+        }
         if (!string.IsNullOrEmpty(dto.Query))
         {
             data = data.Where(c => c.Department.Name.Contains(dto.Query) ||

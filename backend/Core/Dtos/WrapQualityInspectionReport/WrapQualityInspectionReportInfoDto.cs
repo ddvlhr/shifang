@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace Core.Dtos.WrapQualityInspectionReport;
 
 public class WrapQualityInspectionReportInfoDto
@@ -20,4 +22,6 @@ public class WrapQualityInspectionReportInfoDto
     public string VolumePickUpOperator { get; set; }
     public string PackagingMachineOperator { get; set; }
     public int Result { get; set; }
+
+    public List<BaseDefectInfoDto> Defects { get; set; }
 }

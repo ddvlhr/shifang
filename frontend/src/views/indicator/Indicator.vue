@@ -1,65 +1,46 @@
 <template>
   <div class="main-container">
     <function-button @add="add" @edit="edit" />
-    <el-card>
-      <el-row :gutter="10">
-        <el-col :span="6">
-          <el-input
-            v-model="queryInfo.query"
-            placeholder="请输入内容"
-            clearable
-            @clear="query"
-          >
-            <el-button
-              slot="append"
+    <el-card shadow="never">
+      <div slot="header">
+        <el-row :gutter="20">
+          <el-col :span="6">
+            <query-input
+              v-model="queryInfo.query"
               @click="query"
-              icon="el-icon-search"
-            ></el-button>
-          </el-input>
-        </el-col>
-        <el-col :span="4">
-          <el-select
-            v-model="queryInfo.state"
-            placeholder="请选择状态"
-            clearable
-            @clear="query"
-            @change="query"
-          >
-            <el-option
-              v-for="item in stateList"
-              :key="item.value"
-              :value="item.value"
-              :label="item.text"
-            ></el-option>
-          </el-select>
-        </el-col>
-        <el-col :span="4">
-          <el-select
-            v-model="queryInfo.parent"
-            placeholder="请选择上级指标"
-            clearable
-            @clear="query"
-            @change="query"
-          >
-            <el-option
-              v-for="item in indicatorParentOptions"
-              :key="item.value"
-              :value="item.value"
-              :label="item.text"
-            ></el-option>
-          </el-select>
-        </el-col>
-        <el-col :span="4">
-          <query-select
-            v-model="queryInfo.project"
-            placeholder="请选择指标类别"
-            :options="this.indicatorProjectOptions"
-            @clear="query"
-            @change="query"
-            :clearable="true"
-          />
-        </el-col>
-      </el-row>
+              @clear="query"
+            />
+          </el-col>
+          <el-col :span="6">
+            <query-select
+              v-model="queryInfo.state"
+              :options="stateList"
+              placeholder="状态筛选"
+              @change="query"
+              @clear="query"
+            />
+          </el-col>
+          <el-col :span="6">
+            <query-select
+              v-model="queryInfo.parent"
+              :options="indicatorParentOptions"
+              placeholder="上级指标筛选"
+              @change="query"
+              @clear="query"
+            />
+          </el-col>
+          <el-col :span="6">
+            <query-select
+              v-model="queryInfo.project"
+              :options="indicatorProjectOptions"
+              placeholder="指标类别筛选"
+              @change="query"
+              @clear="query"
+            />
+          </el-col>
+        </el-row>
+      </div>
+
       <ele-table
         :columns-desc="columnsDesc"
         :is-show-index="true"
@@ -94,7 +75,7 @@ import { reloadCurrentRoute } from '@/utils/utils'
 export default {
   data() {
     return {
-      stateList: stateList,
+      stateList: this.$store.state.app.dicts.stateList,
       indicatorParentOptions: [],
       indicatorProjectOptions: indicatorProjectList,
       rightButtons: [],
@@ -143,7 +124,7 @@ export default {
         parent: {
           type: 'select',
           label: '上级指标',
-          options: async (data) => {
+          options: async () => {
             return await this.indicatorParentOptions
           },
           required: true
@@ -170,9 +151,7 @@ export default {
   },
   methods: {
     async setRightButtons() {
-      const methods = this.$options.methods
-      const buttons = await initRightButtons(this)
-      this.rightButtons = buttons
+      this.rightButtons = await initRightButtons(this)
     },
     async getIndicatorParentOptions() {
       const { data: res } = await this.$api.getIndicatorParentOptions()
@@ -180,8 +159,6 @@ export default {
         return this.$message.error('获取上级指标列表失败: ' + res.meta.message)
       }
       this.indicatorParentOptions = res.data
-      console.log(this.indicatorParentOptions)
-      console.log('indicatorProjectList: ', this.indicatorProjectList)
     },
     query() {
       const page = this.$refs.table.page

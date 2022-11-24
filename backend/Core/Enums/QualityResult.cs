@@ -12,5 +12,7 @@ public enum QualityResult
     [Description("一等品")]
     Grade,
     [Description("不合格品")]
-    Nonconforming
+    Nonconforming,
+    [Description("二等品")]
+    Seconds
 }

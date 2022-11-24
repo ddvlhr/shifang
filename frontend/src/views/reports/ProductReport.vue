@@ -1,68 +1,72 @@
 <template>
   <div class="main-container">
     <function-button @addAppearance="addAppearance" @download="download" />
-    <el-card>
-      <el-row :gutter="10">
-        <el-col :span="6" :offset="0">
-          <query-select
-            v-model="queryInfo.specificationId"
-            :options="specificationOptions"
-            @change="query"
-            @clear="query"
-            placeholder="牌号筛选"
-          />
-        </el-col>
-        <el-col :span="6" :offset="0">
-          <query-select
-            v-model="queryInfo.specificationTypeId"
-            :options="specificationTypeOptions"
-            @change="query"
-            @clear="query"
-            placeholder="牌号类型筛选"
-          />
-        </el-col>
-        <el-col :span="4" :offset="0">
-          <query-select
-            v-model="queryInfo.turnId"
-            :options="turnOptions"
-            @change="query"
-            @clear="query"
-            placeholder="班次筛选"
-          />
-        </el-col>
-        <el-col :span="4" :offset="0">
-          <query-select
-            v-model="queryInfo.machineModelId"
-            :options="machineModelOptions"
-            @change="query"
-            @clear="query"
-            placeholder="请选择机台"
-            :clearable="true"
-          />
-        </el-col>
-      </el-row>
-      <el-row :gutter="10" style="margin-top: 15px">
-        <el-col :span="6" :offset="0">
-          <el-date-picker
-            v-model="dateRange"
-            @change="getDateRange"
-            type="daterange"
-            size="normal"
-            range-separator="-"
-            start-placeholder="开始时间"
-            end-placeholder="结束时间"
-            value-format="yyyy-MM-dd"
-          ></el-date-picker>
-        </el-col>
-        <el-col :span="4">
-          <query-select
-            v-model="queryInfo.state"
-            placeholder="报表状态筛选"
-            :options="reportRetList"
-            @change="query"
-          />
-        </el-col>
-      </el-row>
+    <el-card shadow="never">
+      <div slot="header">
+        <el-row :gutter="10">
+          <el-col :span="6" :offset="0">
+            <query-select
+              v-model="queryInfo.specificationId"
+              :options="specificationOptions"
+              @change="query"
+              @clear="query"
+              placeholder="牌号筛选"
+            />
+          </el-col>
+          <el-col :span="6" :offset="0">
+            <query-select
+              v-model="queryInfo.specificationTypeId"
+              :options="specificationTypeOptions"
+              @change="query"
+              @clear="query"
+              placeholder="牌号类型筛选"
+            />
+          </el-col>
+          <el-col :span="4" :offset="0">
+            <query-select
+              v-model="queryInfo.turnId"
+              :options="turnOptions"
+              @change="query"
+              @clear="query"
+              placeholder="班次筛选"
+            />
+          </el-col>
+          <el-col :span="4" :offset="0">
+            <query-select
+              v-model="queryInfo.machineModelId"
+              :options="machineModelOptions"
+              @change="query"
+              @clear="query"
+              placeholder="请选择机台"
+              :clearable="true"
+            />
+          </el-col>
+        </el-row>
+        <el-row :gutter="10" style="margin-top: 15px">
+          <el-col :span="6" :offset="0">
+            <el-date-picker
+              v-model="dateRange"
+              @change="query"
+              @clear="query"
+              type="daterange"
+              size="normal"
+              range-separator="-"
+              start-placeholder="开始时间"
+              end-placeholder="结束时间"
+              value-format="yyyy-MM-dd"
+            ></el-date-picker>
+          </el-col>
+          <el-col :span="4">
+            <query-select
+              v-model="queryInfo.state"
+              placeholder="报表状态筛选"
+              :options="reportRetList"
+              @change="query"
+            />
+          </el-col>
+        </el-row>
+      </div>
+
       <ele-table
         :columns-desc="columnsDesc"
         :is-show-index="true"
@@ -162,6 +166,7 @@
 <script>
 import { reportRetList } from '@/assets/js/constant'
 import { reloadCurrentRoute } from '@/utils/utils'
+import { initRightButtons, queryTable } from '@/utils'
 export default {
   data() {
     return {
@@ -190,6 +195,7 @@ export default {
         query: '',
         state: ''
       },
+      rightButtons: [],
       dateRange: [],
       tabSelected: 'statistic',
       statisticKey: 0,
@@ -208,7 +214,7 @@ export default {
           text: '水分(%)'
         }
       },
-      rightButtons: [
+      oldRightButtons: [
         {
           text: '统计信息',
           attrs: {
@@ -328,13 +334,21 @@ export default {
     // 根据 router-tab 当前选中的页面重新设置当前路由
     reloadCurrentRoute(this.$tabs, this.$store)
     this.getOptions()
+    this.setRightButtons()
   },
   methods: {
+    async setRightButtons() {
+      this.rightButtons = await initRightButtons(this)
+    },
     query() {
-      const page = this.$refs.table.page
-      const size = this.$refs.table.size
-      this.getProductReports({ page, size })
-      this.$refs.table.getData()
+      if (this.dateRange !== null) {
+        this.queryInfo.beginDate = this.dateRange[0]
+        this.queryInfo.endDate = this.dateRange[1]
+      } else {
+        this.queryInfo.beginDate = ''
+        this.queryInfo.endDate = ''
+      }
+      queryTable(this, this.getProductReports)
     },
     async getOptions() {
       const { data: res } = await this.$api.getOptions()
@@ -358,16 +372,6 @@ export default {
         )
       }
       return res.data
-    },
-    getDateRange() {
-      if (this.dateRange.length === 0) {
-        this.queryInfo.beginDate = ''
-        this.queryInfo.endDate = ''
-      } else {
-        this.queryInfo.beginDate = this.dateRange[0]
-        this.queryInfo.endDate = this.dateRange[1]
-      }
-      this.query()
     },
     async addAppearance() {
       const selectedData = this.$refs.table.selectedData
@@ -396,6 +400,22 @@ export default {
     },
     getWaterDataInfo() {
       return this.waterDataInfo
+    },
+    edit(data, that) {},
+    async statistic(data, that) {
+      const id = data.id
+      const { data: res } = await that.$api.getProductStatistic(id)
+      if (res.meta.code !== 0) {
+        return that.$message.error('获取统计信息失败: ' + res.meta.message)
+      }
+      that.statisticInfo = res.data
+      that.statisticColumnsDesc = JSON.parse(res.data.statisticColumns)
+      that.originColumnsDesc = JSON.parse(res.data.originColumns)
+      that.originDataInfo = JSON.parse(res.data.originData)
+      that.statisticDataInfo = JSON.parse(res.data.statisticData)
+      that.waterDataInfo = res.data.waterInfos
+      that.statisticKey = id
+      that.statisticDialogVisible = true
     },
     async handleSubmit(data) {
       this.formError = false

@@ -2,7 +2,7 @@
  * @Author: ddvlhr 354874258@qq.com
  * @Date: 2022-11-07 13:40:50
  * @LastEditors: ddvlhr 354874258@qq.com
- * @LastEditTime: 2022-11-10 15:25:26
+ * @LastEditTime: 2022-11-24 15:41:41
  * @FilePath: /frontend/src/views/reports/ManualInspectionReport.vue
  * @Description: 
 -->
@@ -10,29 +10,49 @@
   <div class="main-container">
     <function-button @add="add" />
     <el-card shadow="never">
-      <el-row :gutter="20">
-        <el-col :span="6">
-          <query-input v-model="queryInfo.query" @click="query"  @clear="query" />
-        </el-col>
-        <el-col :span="6">
-          <query-select
-            :options="specificationOptions"
-            v-model="queryInfo.specificationId"
-            placeholder="牌号筛选"
-            @change="query"
-            @clear="query"
-          />
-        </el-col>
-        <el-col :span="6">
-          <query-select
-            :options="qualityResult"
-            v-model="queryInfo.result"
-            placeholder="状态筛选"
-            @change="query"
-            @clear="query"
-          />
-        </el-col>
-      </el-row>
+      <div slot="header">
+        <el-row :gutter="20">
+          <el-col :span="8">
+            <query-input
+              v-model="queryInfo.query"
+              @click="query"
+              @clear="query"
+            />
+          </el-col>
+          <el-col :span="8">
+            <query-select
+              :options="specificationOptions"
+              v-model="queryInfo.specificationId"
+              placeholder="牌号筛选"
+              @change="query"
+              @clear="query"
+            />
+          </el-col>
+          <el-col :span="8">
+            <query-select
+              :options="qualityResult"
+              v-model="queryInfo.result"
+              placeholder="状态筛选"
+              @change="query"
+              @clear="query"
+            />
+          </el-col>
+        </el-row>
+        <el-row :gutter="20" class="mt-3">
+          <el-col :span="8" :offset="0">
+            <el-date-picker
+              v-model="dateRange"
+              type="daterange"
+              range-separator="-"
+              start-placeholder="开始日期"
+              end-placeholder="结束日期"
+              @change="query"
+              @clear="query"
+            />
+          </el-col>
+        </el-row>
+      </div>
+
       <ele-table
         :columns-desc="columnDesc"
         :is-show-index="true"
@@ -66,8 +86,11 @@ export default {
       queryInfo: {
         specificationId: '',
         count: '',
-        result: ''
+        result: '',
+        begin: '',
+        end: ''
       },
+      dateRange: [],
       specificationOptions: [],
       defectOptions: [],
       rightButtons: [],
@@ -176,6 +199,13 @@ export default {
       this.rightButtons = await initRightButtons(this)
     },
     query() {
+      if (this.dateRange !== null) {
+        this.queryInfo.begin = this.dateRange[0]
+        this.queryInfo.end = this.dateRange[1]
+      } else {
+        this.queryInfo.begin = ''
+        this.queryInfo.end = ''
+      }
       queryTable(this, this.getReports)
     },
     async getReports(params) {
@@ -190,13 +220,15 @@ export default {
     add() {
       this.isEdit = false
       this.dialogFormVisible = true
-      this.formDesc.defectInfo.attrs.columns[1].content.options = this.defectOptions
+      this.formDesc.defectInfo.attrs.columns[1].content.options =
+        this.defectOptions
     },
     edit(data, that) {
       that.isEdit = true
       that.formData = data
       that.dialogFormVisible = true
-      that.formDesc.defectInfo.attrs.columns[1].content.options = that.defectOptions
+      that.formDesc.defectInfo.attrs.columns[1].content.options =
+        that.defectOptions
     },
     async handleSubmit(data) {
       // return console.log(data)

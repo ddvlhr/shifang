@@ -29,7 +29,8 @@ public class DictionaryController : BaseController
         {
             new BaseOptionDto() { Value = QualityResult.Quality, Text = QualityResult.Quality.toDescription(), Type = "success"},
             new BaseOptionDto() { Value = QualityResult.Grade, Text = QualityResult.Grade.toDescription(), Type = "primary"},
-            new BaseOptionDto() { Value = QualityResult.Nonconforming, Text = QualityResult.Nonconforming.toDescription(), Type = "danger"}
+            new BaseOptionDto() { Value = QualityResult.Nonconforming, Text = QualityResult.Nonconforming.toDescription(), Type = "danger"},
+            new BaseOptionDto() { Value = QualityResult.Seconds, Text = QualityResult.Seconds.toDescription(), Type = "warning"}
         };
         var qualified = typeof(QualifiedStatus).ToOptions().ToList();
         var qualifiedTypes = new List<BaseOptionDto>()

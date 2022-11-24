@@ -2,16 +2,27 @@
   <div class="main-container">
     <function-button @add="add" @edit="edit" />
     <el-card shadow="never">
-      <el-row :gutter="10">
-        <el-col :span="8">
-          <el-input v-model="queryInfo.query" placeholder="请输入内容" clearable @clear="query">
-            <el-button slot="append" icon="el-icon-search" @click="query"></el-button>
-          </el-input>
-        </el-col>
-        <el-col :span="8">
-          <query-select :options="stateList" v-model="queryInfo.state" placeholder="状态筛选" @change="query" @clear="query" />
-        </el-col>
-      </el-row>
+      <div slot="header">
+        <el-row :gutter="20">
+          <el-col :span="8">
+            <query-input
+              v-model="queryInfo.query"
+              @click="query"
+              @clear="query"
+            />
+          </el-col>
+          <el-col :span="8">
+            <query-select
+              :options="stateList"
+              v-model="queryInfo.state"
+              placeholder="状态筛选"
+              @change="query"
+              @clear="query"
+            />
+          </el-col>
+        </el-row>
+      </div>
+
       <ele-table
         :columns-desc="columnsDesc"
         :is-show-index="true"
@@ -20,7 +31,8 @@
         :request-fn="getSpecificationTypeList"
         :is-show-right-delete="false"
         :is-show-top-delete="false"
-        ref="table"></ele-table>
+        ref="table"
+      ></ele-table>
     </el-card>
     <ele-form-dialog
       v-model="formData"
@@ -76,9 +88,7 @@ export default {
         }
       },
       rules: {
-        name: [
-          { required: true, message: '牌号名称不能为空', trigger: 'blur' }
-        ]
+        name: [{ required: true, message: '牌号名称不能为空', trigger: 'blur' }]
       }
     }
   },

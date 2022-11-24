@@ -2,7 +2,7 @@
  * @Author: ddvlhr 354874258@qq.com
  * @Date: 2022-11-02 09:22:20
  * @LastEditors: ddvlhr 354874258@qq.com
- * @LastEditTime: 2022-11-02 10:37:28
+ * @LastEditTime: 2022-11-24 22:46:48
  * @FilePath: /frontend/src/views/defect/DefectType.vue
  * @Description: 缺陷类型管理
 -->
@@ -10,15 +10,27 @@
   <div class="main-container">
     <function-button @add="add" />
     <el-card shadow="never">
-      <el-row :gutter="20">
-        <el-col :span="8">
-          <query-input v-model="queryInfo.query" @click="query" @clear="query" />
-        </el-col>
-        <el-col :span="8">
-          <query-select :options="stateList" v-model="queryInfo.state" placeholder="状态筛选"
-          @change="query" @clear="query" />
-        </el-col>
-      </el-row>
+      <div slot="header">
+        <el-row :gutter="20">
+          <el-col :span="8">
+            <query-input
+              v-model="queryInfo.query"
+              @click="query"
+              @clear="query"
+            />
+          </el-col>
+          <el-col :span="8">
+            <query-select
+              :options="stateList"
+              v-model="queryInfo.state"
+              placeholder="状态筛选"
+              @change="query"
+              @clear="query"
+            />
+          </el-col>
+        </el-row>
+      </div>
+
       <ele-table
         :columns-desc="tableDesc"
         :is-show-index="true"

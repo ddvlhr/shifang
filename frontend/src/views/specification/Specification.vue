@@ -2,40 +2,43 @@
   <div class="main-container">
     <function-button @add="add" @edit="edit" @copy="copy" />
     <el-card shadow="never">
-      <el-row :gutter="10">
-        <el-col :span="8">
-          <el-input
-            v-model="queryInfo.query"
-            placeholder="请输入关键字"
-            clearable
-            @clear="query"
-          >
-            <el-button
-              slot="append"
-              @click="query"
-              icon="el-icon-search"
-            ></el-button>
-          </el-input>
-        </el-col>
-        <el-col :span="4">
-          <query-select
-            :options="specificationTypeOptions"
-            v-model="queryInfo.typeId"
-            placeholder="牌号类型筛选"
-            @change="query"
-            @clear="query"
-          />
-        </el-col>
-        <el-col :span="8" :offset="0">
-          <query-select
-            :options="stateList"
-            v-model="queryInfo.state"
-            placeholder="状态筛选"
-            @change="query"
-            @clear="query"
-          />
-        </el-col>
-      </el-row>
+      <div slot="header">
+        <el-row :gutter="10">
+          <el-col :span="8">
+            <el-input
+              v-model="queryInfo.query"
+              placeholder="请输入关键字"
+              clearable
+              @clear="query"
+            >
+              <el-button
+                slot="append"
+                @click="query"
+                icon="el-icon-search"
+              ></el-button>
+            </el-input>
+          </el-col>
+          <el-col :span="4">
+            <query-select
+              :options="specificationTypeOptions"
+              v-model="queryInfo.typeId"
+              placeholder="牌号类型筛选"
+              @change="query"
+              @clear="query"
+            />
+          </el-col>
+          <el-col :span="8" :offset="0">
+            <query-select
+              :options="stateList"
+              v-model="queryInfo.state"
+              placeholder="状态筛选"
+              @change="query"
+              @clear="query"
+            />
+          </el-col>
+        </el-row>
+      </div>
+
       <ele-table
         :columns-desc="columnsDesc"
         :is-show-index="true"

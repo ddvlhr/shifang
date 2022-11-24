@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Core.Dtos;
 using Core.Dtos.WrapQualityInspectionReport;
 using Core.Entities;
 using Core.Enums;
@@ -17,14 +18,17 @@ public class WrapQualityInspectionReportService: IWrapQualityInspectionReportSer
     private readonly IRepository<WrapQualityInspectionReport> _wiRepo;
     private readonly IRepository<WrapQualityInspectionReportDefect> _widRepo;
     private readonly IUnitOfWork _uow;
+    private readonly IRepository<Core.Entities.Defect> _dRepo;
 
     public WrapQualityInspectionReportService(IRepository<WrapQualityInspectionReport> wiRepo,
         IRepository<WrapQualityInspectionReportDefect> widRepo,
-        IUnitOfWork uow)
+        IUnitOfWork uow,
+        IRepository<Core.Entities.Defect> dRepo)
     {
         _wiRepo = wiRepo;
         _widRepo = widRepo;
         _uow = uow;
+        _dRepo = dRepo;
     }
     public IEnumerable<WrapQualityInspectionReportInfoDto> GetReport(WrapQualityInspectionReportQueryInfoDto dto, out int total)
     {
@@ -86,6 +90,19 @@ public class WrapQualityInspectionReportService: IWrapQualityInspectionReportSer
                 OrderNo = c.OrderNo, Inspector = c.Inspector, VolumePickUpOperator = c.VolumePickUpOperator,
                 PackagingMachineOperator = c.PackagingMachineOperator
             }).ToList();
+        
+        var ids = list.Select(c => c.Id).ToList();
+        var allDefects = _widRepo.All().AsNoTracking().Where(c => ids.Contains(c.ReportId))
+            .Select(c => new BaseDefectInfoDto()
+            {
+                Id = c.Id, ReportId = c.ReportId, DefectId = c.DefectId, Count = c.Count
+            }).ToList();
+        
+        foreach (var item in list)
+        {
+            var defects = allDefects.Where(c => c.ReportId == item.Id).ToList();
+            item.Defects = defects;
+        }
 
         return list;
     }
@@ -94,6 +111,8 @@ public class WrapQualityInspectionReportService: IWrapQualityInspectionReportSer
     {
         var modify = dto.Id > 0;
         var report = new WrapQualityInspectionReport();
+        var hasDefects = dto.Defects.Count > 0 || dto.Defects != null;
+        var points = 0;
         if (modify)
         {
             report = _wiRepo.Get(dto.Id);
@@ -110,7 +129,30 @@ public class WrapQualityInspectionReportService: IWrapQualityInspectionReportSer
         report.Inspector = dto.Inspector;
         report.VolumePickUpOperator = dto.VolumePickUpOperator;
         report.PackagingMachineOperator = dto.PackagingMachineOperator;
-        report.Result = QualityResult.Quality;
+        // report.Result = QualityResult.Quality;
+
+        if (hasDefects)
+        {
+            var defectIds = dto.Defects.Select(c => c.DefectId).ToList();
+            var defects = _dRepo.All().Where(c => defectIds.Contains(c.Id)).ToList();
+            foreach (var d in dto.Defects)
+            {
+                var currentDefect = defects.FirstOrDefault(c => c.Id == d.DefectId);
+                if (currentDefect == null)
+                    continue;
+
+                points += Convert.ToInt32(d.Count * currentDefect.Score);
+            }
+        }
+
+        report.TotalPoints = points;
+        report.Result = points switch
+        {
+            <= 15 => QualityResult.Quality,
+            <= 100 and > 15 => QualityResult.Grade,
+            <= 200 and > 100 => QualityResult.Seconds,
+            > 200 => QualityResult.Nonconforming,
+        };
         
         if (modify)
             _wiRepo.Update(report);
@@ -118,6 +160,29 @@ public class WrapQualityInspectionReportService: IWrapQualityInspectionReportSer
             _wiRepo.Add(report);
 
         var result = modify ? _uow.Save() >= 0 : _uow.Save() > 0;
+
+        if (result)
+        {
+            if (modify)
+            {
+                var existDefects = _widRepo.All().Where(c => c.ReportId == dto.Id).ToList();
+                _widRepo.DeleteRange(existDefects);
+            }
+            
+            if (hasDefects)
+            {
+                if (dto.Defects != null)
+                {
+                    var defectInfo = dto.Defects.Select(c => new WrapQualityInspectionReportDefect()
+                    {
+                        ReportId = report.Id, DefectId = c.DefectId, Count = c.Count
+                    }).ToList();
+                    _widRepo.AddRange(defectInfo);
+                }
+            }
+            
+            result = _uow.Save() >= 0;
+        }
         message = result ? modify ? "修改成功" : "添加成功" : modify ? "修改失败" : "添加失败";
         return result;
     }

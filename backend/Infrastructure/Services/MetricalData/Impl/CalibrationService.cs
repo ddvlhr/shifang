@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Core.Dtos;
@@ -23,6 +24,20 @@ public class CalibrationService: ICalibrationService
     public IEnumerable<CalibrationInfoDto> GetCalibrations(BaseQueryInfoDto dto, out int total)
     {
         var data = _calibrationRepo.All().AsNoTracking();
+
+        if (!string.IsNullOrEmpty(dto.Begin) && !string.IsNullOrEmpty(dto.End))
+        {
+            var begin = Convert.ToDateTime(dto.Begin);
+            var end = Convert.ToDateTime(dto.End);
+            data = data.Where(c => c.Time.Date >= begin && c.Time.Date <= end);
+        }
+
+        if (!string.IsNullOrEmpty(dto.Query))
+        {
+            data = data.Where(c => c.Operation.Contains(dto.Query) ||
+                                   c.Unit.Contains(dto.Query) ||
+                                   c.Description.Contains(dto.Query));
+        }
 
         total = data.Count();
 

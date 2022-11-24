@@ -2,7 +2,7 @@
  * @Author: ddvlhr 354874258@qq.com
  * @Date: 2022-10-29 00:23:03
  * @LastEditors: ddvlhr 354874258@qq.com
- * @LastEditTime: 2022-10-31 10:49:17
+ * @LastEditTime: 2022-11-24 14:55:26
  * @FilePath: /frontend/src/permission.js
  * @Description:
  */
@@ -11,6 +11,7 @@ import store from '@/store'
 import { Message } from 'element-ui'
 import NProgress from 'nprogress'
 import 'nprogress/nprogress.css'
+import watermark from '@/utils/watermark'
 
 NProgress.configure({ showSpinner: false })
 
@@ -35,7 +36,6 @@ router.beforeEach(async (to, from, next) => {
     }
   } else {
     if (whiteList.indexOf(to.path) !== -1) {
-      console.log('white list')
       next()
     } else {
       store.commit('user/clearToken')
@@ -45,6 +45,13 @@ router.beforeEach(async (to, from, next) => {
   }
 })
 
-router.afterEach(() => {
+router.afterEach((to) => {
+  if (to.path === '/login') {
+    watermark.out()
+  } else {
+    const wm =
+      store.state.user.userInfo.nickName + ' ' + store.state.user.userInfo.userName
+    watermark.set(wm)
+  }
   NProgress.done()
 })

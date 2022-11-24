@@ -2,7 +2,7 @@
  * @Author: ddvlhr 354874258@qq.com
  * @Date: 2022-11-02 09:22:20
  * @LastEditors: ddvlhr 354874258@qq.com
- * @LastEditTime: 2022-11-02 10:44:53
+ * @LastEditTime: 2022-11-24 22:46:33
  * @FilePath: /frontend/src/views/defect/DefectEvents.vue
  * @Description: 缺陷类型小项管理
 -->
@@ -10,15 +10,27 @@
   <div class="main-container">
     <function-button @add="add" />
     <el-card shadow="never">
-      <el-row :gutter="20">
-        <el-col :span="8">
-          <query-input v-model="queryInfo.query" @click="query" @clear="query" />
-        </el-col>
-        <el-col :span="8">
-          <query-select :options="stateList" v-model="queryInfo.state" placeholder="状态筛选"
-          @change="query" @clear="query" />
-        </el-col>
-      </el-row>
+      <div slot="header">
+        <el-row :gutter="20">
+          <el-col :span="8">
+            <query-input
+              v-model="queryInfo.query"
+              @click="query"
+              @clear="query"
+            />
+          </el-col>
+          <el-col :span="8">
+            <query-select
+              :options="stateList"
+              v-model="queryInfo.state"
+              placeholder="状态筛选"
+              @change="query"
+              @clear="query"
+            />
+          </el-col>
+        </el-row>
+      </div>
+
       <ele-table
         :columns-desc="tableDesc"
         :is-show-index="true"
@@ -84,7 +96,11 @@ export default {
       },
       rules: {
         name: [
-          { required: true, message: '缺陷类别小项名称不能为空', trigger: 'blur' }
+          {
+            required: true,
+            message: '缺陷类别小项名称不能为空',
+            trigger: 'blur'
+          }
         ]
       }
     }
@@ -107,7 +123,9 @@ export default {
         Object.assign(this.queryInfo, params)
       )
       if (res.meta.code !== 0) {
-        return this.$message.error('获取缺陷类别小项列表失败: ' + res.meta.message)
+        return this.$message.error(
+          '获取缺陷类别小项列表失败: ' + res.meta.message
+        )
       }
       return res.data
     },

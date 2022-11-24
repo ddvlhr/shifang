@@ -33,6 +33,13 @@ public class ManualInspectionReportService : IManualInspectionReportService
     public IEnumerable<ManualInspectionReportInfoDto> GetReports(ManualInspectionReportQueryInfoDto dto, out int total)
     {
         var data = _miRepo.All().AsNoTracking();
+        if (!string.IsNullOrEmpty(dto.Begin) && !string.IsNullOrEmpty(dto.End))
+        {
+            var begin = Convert.ToDateTime(dto.Begin);
+            var end = Convert.ToDateTime(dto.End);
+            data = data.Where(c => c.Time.Date >= begin && c.Time.Date <= end);
+        }
+
         if (!string.IsNullOrEmpty(dto.SpecificationId))
         {
             var specificationId = int.Parse(dto.SpecificationId);

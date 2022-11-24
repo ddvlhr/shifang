@@ -2,7 +2,7 @@
  * @Author: ddvlhr 354874258@qq.com
  * @Date: 2022-11-01 14:21:45
  * @LastEditors: ddvlhr 354874258@qq.com
- * @LastEditTime: 2022-11-01 16:53:52
+ * @LastEditTime: 2022-11-24 15:23:11
  * @FilePath: /frontend/src/views/reports/ProcessDisciplineReport.vue
  * @Description: 工艺纪律执行情况报表
 -->
@@ -10,24 +10,39 @@
   <div class="main-container">
     <function-button @add="add" @remove="remove" />
     <el-card shadow="never">
-      <el-row :gutter="20">
-        <el-col :span="8">
-          <query-input
-            v-model="queryInfo.query"
-            @click="query"
-            @clear="query"
-          />
-        </el-col>
-        <el-col :span="8">
-          <query-select
-            :options="departmentOptions"
-            v-model="queryInfo.department"
-            placeholder="部门筛选"
-            @change="query"
-            @clear="query"
-          />
-        </el-col>
-      </el-row>
+      <div slot="header">
+        <el-row :gutter="20">
+          <el-col :span="8">
+            <el-date-picker
+              v-model="dateRange"
+              type="daterange"
+              range-separator="-"
+              start-placeholder="开始日期"
+              end-placeholder="结束日期"
+              @change="query"
+              @clear="query"
+            >
+            </el-date-picker>
+          </el-col>
+          <el-col :span="8">
+            <query-input
+              v-model="queryInfo.query"
+              @click="query"
+              @clear="query"
+            />
+          </el-col>
+          <el-col :span="8">
+            <query-select
+              :options="departmentOptions"
+              v-model="queryInfo.department"
+              placeholder="部门筛选"
+              @change="query"
+              @clear="query"
+            />
+          </el-col>
+        </el-row>
+      </div>
+
       <ele-table
         :columns-desc="tableDesc"
         :is-show-index="true"
@@ -52,15 +67,18 @@
 </template>
 
 <script>
-import { initRightButtons } from '@/utils'
+import { initRightButtons, queryTable } from '@/utils'
 export default {
   data() {
     return {
       queryInfo: {
         query: '',
         state: '',
+        begin: '',
+        end: '',
         department: ''
       },
+      dateRange: [],
       departmentOptions: [],
       tableDesc: {
         time: {
@@ -129,10 +147,14 @@ export default {
       })
     },
     query() {
-      const size = this.$refs.table.size
-      const page = this.$refs.table.page
-      this.getProcessImplements({ size, page })
-      this.$refs.table.getData()
+      if (this.dateRange !== null) {
+        this.queryInfo.begin = this.dateRange[0]
+        this.queryInfo.end = this.dateRange[1]
+      } else {
+        this.queryInfo.begin = ''
+        this.queryInfo.end = ''
+      }
+      queryTable(this, this.getProcessImplements)
     },
     async getProcessImplements(params) {
       const { data: res } = await this.$api.getProcessDisciplineReports(
