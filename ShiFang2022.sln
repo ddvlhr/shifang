@@ -15,7 +15,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "frontend", "frontend", "{2A
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "service", "service", "{57198180-0DE9-484C-9B86-D21EB7E5233A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FuYang.WebService", "service\FuYang.WebService\FuYang.WebService.csproj", "{53A21860-630B-43EF-B4BC-A17D0FE5E684}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebService", "service\WebService\WebService.csproj", "{53A21860-630B-43EF-B4BC-A17D0FE5E684}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

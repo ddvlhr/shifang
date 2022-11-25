@@ -5,7 +5,7 @@ using System.Linq;
 using System.Web;
 using MySql.Data.MySqlClient;
 
-namespace FuYang.WebService
+namespace WebService
 {
     public class DbHelper
     {
