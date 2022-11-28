@@ -218,12 +218,12 @@ public class SpecificationService : ISpecificationService
     }
 
     public bool GetIndicatorsTableDescById(int id,
-        out string result, 
+        out TableEditor result, 
         out string message, 
         int measureTypeId = 0,
         int machineModelId = 0)
     {
-        result = "";
+        result = new TableEditor();
         message = "";
         var specification = _speRepo.Get(id);
         if (specification == null)
@@ -260,42 +260,82 @@ public class SpecificationService : ISpecificationService
             message = "没有找到该牌号的测量指标信息, 请填写牌号中的单支规则信息";
             return false;
         }
-        
-        var label = new JObject { { "label", "原始数据" }, { "type", "table-editor" } };
-        var columns = new JArray();
-        var idObj = new JObject { { "prop", "id" }, { "label", "ID" }, { "width", "150" } };
-        columns.Add(idObj);
-        var testTime = new JObject { { "prop", "testTime" }, { "label", "测量时间" }, { "width", "300" } };
-        var testTimeContent = new JObject { { "type", "el-date-picker" } };
-        var testTimeAttrs = new JObject
+
+        var tableEditor = new TableEditor
         {
-            { "type", "datetime" }, { "value-format", "yyyy-MM-dd HH:mm:ss" },
-            { "default-value", DateTime.Now.Date },
-            { "default-time", $"{DateTime.Now.Hour}:{DateTime.Now.Minute}:{DateTime.Now.Second}" }
+            Label = "原始数据",
+            Type = "table-editor"
         };
-        testTimeContent.Add("attrs", testTimeAttrs);
-        testTime.Add("content", testTimeContent);
-        columns.Add(testTime);
+
+        var tableEditorAttrs = new TableEditor.TableEditorAttr()
+        {
+            IsShowDelete = true,
+            Rules = new object(),
+            TableAttrs = new Dictionary<string, object>()
+            {
+                { "max-height", "500" },
+                {"ref", "dataTable" }
+            }
+        };
+
+        var tableEditorColumns = new List<TableEditor.ColumnAttr>();
+        var idColumn = new TableEditor.ColumnAttr
+        {
+            Prop = "id",
+            Label = "ID",
+            Width = "100"
+        };
+        tableEditorColumns.Add(idColumn);
+        var timeColumns = new TableEditor.ColumnAttr()
+        {
+            Prop = "testTime",
+            Label = "测量时间",
+            Width = "300",
+            Content = new Dictionary<string, object>()
+            {
+                {"type", "el-date-picker"},
+                {"attrs", new Dictionary<string, object>()
+                {
+                    {"type", "datetime"},
+                    {"placeholder", "选择测量时间"},
+                    {"value-format", "yyyy-MM-dd HH:mm:ss"},
+                    {"default-value", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}
+                }}
+            }
+        };
+        tableEditorColumns.Add(timeColumns);
         foreach (var rule in rules.OrderByDescending(c => c.Standard))
         {
             var indicator = indicators.FirstOrDefault(c => c.Id == rule.Id);
             if (indicator == null) continue;
             var indicatorName = indicator.Name;
             if (rule.Standard == "0") indicatorName += "(外观)";
-            var column = new JObject { { "prop", rule.Id.ToString() }, { "label", indicatorName }, { "width", 150 } };
-            var content = new JObject { { "type", "el-input" } };
-            var attrs = new JObject { { "type", "number" }, { "step", "0.0000001" } };
-            content.Add("attrs", attrs);
-            column.Add("content", content);
-            columns.Add(column);
-        }
 
-        var tableAttrs = new JObject { { "ref", "dataTable" }, { "height", "500" } };
-        var parentAttrs = new JObject { { "tableAttrs", tableAttrs }, { "columns", columns } };
-        label.Add("attrs", parentAttrs);
-        var dataObj = new JObject { { "data", label } };
-        var specificationObj = new JObject { { "id", specification.Id }, { "desc", dataObj } };
-        result = specificationObj.ToString();
+            var indicatorColumn = new TableEditor.ColumnAttr()
+            {
+                Prop = rule.Id.ToString(),
+                Label = indicatorName,
+                Width = "220",
+                Content = new Dictionary<string, object>()
+                {
+                    { "type", "el-input-number" },
+                    {
+                        "attrs", new Dictionary<string, object>()
+                        {
+                            { "precision", 3 },
+                            { "step", 0.001 },
+                            { "width", "200" }
+                        }
+                    }
+                }
+            };
+            tableEditorColumns.Add(indicatorColumn);
+        }
+        
+        tableEditorAttrs.Columns = tableEditorColumns;
+        tableEditor.Attrs = tableEditorAttrs;
+
+        result = tableEditor;
         return true;
     }
 }

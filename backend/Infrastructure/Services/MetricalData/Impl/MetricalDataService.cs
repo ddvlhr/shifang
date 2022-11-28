@@ -35,7 +35,6 @@ public class MetricalDataService : IMetricalDataService
     private readonly IRepository<FactoryReport> _frRepo;
     private readonly IFactoryReportService _frService;
     private readonly IRepository<Group> _gRepo;
-    private readonly IRepository<GroupRecord> _grRepo;
     private readonly IRepository<Core.Entities.Indicator> _iRepo;
     private readonly IRepository<InspectionReport> _irRepo;
     private readonly IInspectionReportService _irService;
@@ -61,7 +60,7 @@ public class MetricalDataService : IMetricalDataService
         IMaterialReportService mrService, IOptionsSnapshot<Settings> settings,
         IRepository<SpecificationTypeRule> sptRepo,
         IRepository<CraftIndicatorRule> cirRepo, IRepository<WaterRecord> wrRepo, IRepository<MachineModel> mmRepo,
-        ICraftReportService crService, IRepository<GroupRecord> grRepo, IRepository<DataRecord> drRepo,
+        ICraftReportService crService, IRepository<DataRecord> drRepo,
         IRepository<FactoryReport> frRepo,
         IRepository<CraftReport> crRepo,
         IRepository<TestReport> trRepo,
@@ -87,7 +86,6 @@ public class MetricalDataService : IMetricalDataService
         _wrRepo = wrRepo;
         _mmRepo = mmRepo;
         _crService = crService;
-        _grRepo = grRepo;
         _drRepo = drRepo;
         _frRepo = frRepo;
         _crRepo = crRepo;
@@ -145,12 +143,13 @@ public class MetricalDataService : IMetricalDataService
             return false;
         }
 
-        var userId = _accessor.HttpContext.User.FindFirst(c => c.Type == ClaimTypes.UserData).Value;
+        var userId = _accessor.HttpContext.getUserId();
         var group = new Group
         {
             SpecificationId = dto.SpecificationId,
             TurnId = dto.TurnId,
-            MachineModelId = dto.MachineModelId,
+            TeamId = dto.TeamId,
+            MachineId = dto.MachineId,
             MeasureTypeId = dto.MeasureTypeId,
             BeginTime = Convert.ToDateTime(dto.TestTime),
             EndTime = Convert.ToDateTime(dto.TestTime),
@@ -172,7 +171,7 @@ public class MetricalDataService : IMetricalDataService
             failReason = "组数据保存失败";
             return false;
         }
-
+        
         if (dto.CopyId > 0)
         {
             var dataList = new List<Data>();
@@ -251,35 +250,35 @@ public class MetricalDataService : IMetricalDataService
         _dRepo.AddRange(addList);
         _dRepo.UpdateRange(updateList);
         _dRepo.DeleteRange(deleteList);
-        _uow.Save();
-        if (group.MeasureTypeId == _settings.PhysicalTypeId)
-        {
-            if (!_prService.Add(dto)) failReason = "生成物检检验报表失败";
-        }
-        else if (group.MeasureTypeId == _settings.InspectionTypeId)
-        {
-            if (!_irService.Add(dto)) failReason = "生成巡检检验报表失败";
-        }
-        else if (group.MeasureTypeId == _settings.ProductionTypeId)
-        {
-            if (!_prsService.Add(dto)) failReason = "生成成品检验报表失败";
-        }
-        else if (group.MeasureTypeId == _settings.MaterialTypeId)
-        {
-            if (!_mrService.Add(dto)) failReason = "生产原辅材料检验报表失败";
-        }
-        else if (group.MeasureTypeId == _settings.FactoryTypeId)
-        {
-            if (!_frService.Add(dto)) failReason = "生成出厂检验报告失败";
-        }
-        else if (_settings.CraftTypeIds.Contains(group.MeasureTypeId))
-        {
-            if (!_crService.Add(dto, out var fail)) failReason = fail;
-        }
-        else if (group.MeasureTypeId == _settings.TestTypeId)
-        {
-            if (!_trService.Add(dto)) failReason = "生成测试检验报表失败";
-        }
+        // _uow.Save();
+        // if (group.MeasureTypeId == _settings.PhysicalTypeId)
+        // {
+        //     if (!_prService.Add(dto)) failReason = "生成物检检验报表失败";
+        // }
+        // else if (group.MeasureTypeId == _settings.InspectionTypeId)
+        // {
+        //     if (!_irService.Add(dto)) failReason = "生成巡检检验报表失败";
+        // }
+        // else if (group.MeasureTypeId == _settings.ProductionTypeId)
+        // {
+        //     if (!_prsService.Add(dto)) failReason = "生成成品检验报表失败";
+        // }
+        // else if (group.MeasureTypeId == _settings.MaterialTypeId)
+        // {
+        //     if (!_mrService.Add(dto)) failReason = "生产原辅材料检验报表失败";
+        // }
+        // else if (group.MeasureTypeId == _settings.FactoryTypeId)
+        // {
+        //     if (!_frService.Add(dto)) failReason = "生成出厂检验报告失败";
+        // }
+        // else if (_settings.CraftTypeIds.Contains(group.MeasureTypeId))
+        // {
+        //     if (!_crService.Add(dto, out var fail)) failReason = fail;
+        // }
+        // else if (group.MeasureTypeId == _settings.TestTypeId)
+        // {
+        //     if (!_trService.Add(dto)) failReason = "生成测试检验报表失败";
+        // }
 
         return _uow.Save() >= 0;
     }
@@ -290,23 +289,31 @@ public class MetricalDataService : IMetricalDataService
     /// <param name="dto">组数据</param>
     /// <param name="failReason">返回错误原因</param>
     /// <returns></returns>
-    public bool UpdateGroupInfo(MetricalDataGroupEditDto dto, out string failReason)
+    public bool UpdateGroupInfo(MetricalDataGroupEditDto dto, out int groupId, out string failReason)
     {
+        groupId = 0;
         failReason = string.Empty;
-        if (_gRepo.All().Any(c => c.BeginTime == Convert.ToDateTime(dto.TestTime) &&
-                                  c.EndTime == Convert.ToDateTime(dto.TestTime) &&
-                                  c.SpecificationId == dto.SpecificationId &&
-                                  c.TurnId == dto.TurnId && c.MachineModelId == dto.MachineModelId &&
-                                  c.MeasureTypeId == dto.MeasureTypeId && c.Id != dto.Id))
-        {
-            failReason = "该组数据已存在, 请修改选项后再提交";
-            return false;
-        }
+        // if (_gRepo.All().Any(c => c.BeginTime == Convert.ToDateTime(dto.TestTime) &&
+        //                           c.EndTime == Convert.ToDateTime(dto.TestTime) &&
+        //                           c.SpecificationId == dto.SpecificationId &&
+        //                           c.TurnId == dto.TurnId && c.MachineModelId == dto.MachineModelId &&
+        //                           c.MeasureTypeId == dto.MeasureTypeId && c.Id != dto.Id))
+        // {
+        //     failReason = "该组数据已存在, 请修改选项后再提交";
+        //     return false;
+        // }
 
-        var group = _gRepo.Get(dto.Id);
+        var modify = dto.Id > 0;
+        var group = new Group();
+        if (modify)
+        {
+            group = _gRepo.Get(dto.Id);
+        }
         group.SpecificationId = dto.SpecificationId;
         group.TurnId = dto.TurnId;
-        group.MachineModelId = dto.MachineModelId;
+        group.TeamId = dto.TeamId;
+        group.MachineId = dto.MachineId;
+        // group.MachineModelId = dto.MachineModelId;
         group.MeasureTypeId = dto.MeasureTypeId;
         group.BeginTime = Convert.ToDateTime(dto.TestTime);
         group.EndTime = Convert.ToDateTime(dto.TestTime);
@@ -325,9 +332,13 @@ public class MetricalDataService : IMetricalDataService
         else
             group.DeliverTime = null;
 
-        _gRepo.Update(group);
-
-        return _uow.Save() >= 0;
+        if (modify)
+            _gRepo.Update(group);
+        else
+            _gRepo.Add(group);
+        var ret = modify ? _uow.Save() >= 0 : _uow.Save() > 0;
+        if (ret) groupId = group.Id;
+        return ret;
     }
 
     /// <summary>
@@ -545,6 +556,30 @@ public class MetricalDataService : IMetricalDataService
         return JsonConvert.SerializeObject(data);
     }
 
+    public List<Dictionary<string, object>> GetDataInfoByGroupId(int groupId)
+    {
+        var list = new List<Dictionary<string, object>>();
+        if (groupId > 0)
+        {
+            var data = _dRepo.All().Where(c=>c.GroupId == groupId).ToList();
+            foreach (var item in data)
+            {
+                var info = JsonConvert.DeserializeObject<Dictionary<string, object>>(item.Data);
+                if (info == null) continue;
+                if (!info.ContainsKey("id"))
+                    info.Add("id", item.Id);
+                else
+                    info["id"] = item.Id;
+                list.Add(info);
+            }
+
+            return list;
+        }
+        else
+        {
+            return list;
+        }
+    }
     public string GetDataInfo(int id)
     {
         var group = _gRepo.All().Include(c => c.Specification).FirstOrDefault(c => c.Id == id);
@@ -847,125 +882,7 @@ public class MetricalDataService : IMetricalDataService
         file.Seek(0, SeekOrigin.Begin);
         return file;
     }
-
-    public bool AddFilterData(FilterDataAddDto dto, out string failReason)
-    {
-        failReason = string.Empty;
-        var group = _gRepo.Get(dto.GroupId);
-        if (!string.IsNullOrEmpty(group.FromRecords))
-        {
-            var dataInDb = _dRepo.All().Where(c => c.GroupId == dto.GroupId).ToList();
-            _dRepo.DeleteRange(dataInDb);
-        }
-
-        group.FromRecords = JsonConvert.SerializeObject(dto.SelectedGroupRecords);
-        var groupRecordIds = dto.SelectedGroupRecords.Select(c => c.GroupId).ToList();
-        var records = _grRepo.All().Where(c => groupRecordIds.Contains(c.Id)).ToList();
-        var dataList = new List<Data>();
-        var testTimeList = new List<DateTime>();
-        var weightList = new List<double>();
-        var circleList = new List<double>();
-        var ovalList = new List<double>();
-        var lengthList = new List<double>();
-        var resistanceList = new List<double>();
-        var hardnessList = new List<double>();
-        foreach (var record in records)
-        {
-            var dataRecords = _drRepo.All().Where(c => c.GroupId == record.Id).Select(c => new
-            {
-                c.TestTime, c.Weight, c.Circle, c.Oval, c.Length, c.Resistance, c.Hardness
-            }).ToList();
-            testTimeList.AddRange(dataRecords.Select(c => c.TestTime));
-            if (dataRecords.Any(c => c.Weight != null))
-                weightList.AddRange(dataRecords.Select(c => Convert.ToDouble(c.Weight)));
-
-            if (dataRecords.Any(c => c.Circle != null))
-                circleList.AddRange(dataRecords.Select(c => Convert.ToDouble(c.Circle)));
-
-            if (dataRecords.Any(c => c.Oval != null))
-                ovalList.AddRange(dataRecords.Select(c => Convert.ToDouble(c.Oval)));
-
-            if (dataRecords.Any(c => c.Length != null))
-                lengthList.AddRange(dataRecords.Select(c => Convert.ToDouble(c.Length)));
-
-            if (dataRecords.Any(c => c.Resistance != null))
-                resistanceList.AddRange(dataRecords.Select(c => Convert.ToDouble(c.Resistance)));
-
-            if (dataRecords.Any(c => c.Hardness != null))
-                hardnessList.AddRange(dataRecords.Select(c => Convert.ToDouble(c.Hardness)));
-        }
-
-        var lengthArray = new[]
-        {
-            weightList.Count, circleList.Count, ovalList.Count, lengthList.Count, resistanceList.Count,
-            hardnessList.Count
-        };
-
-        var count = lengthArray.Max();
-        var distTestTimeList = testTimeList.Distinct().ToList();
-        for (var i = 0; i < count; i++)
-        {
-            var data = new Data
-            {
-                GroupId = dto.GroupId,
-                TestTime = DateTime.Now
-            };
-            var obj = new JObject();
-            var testTime = new JProperty("testTime", distTestTimeList[i].ToString("yyyy-MM-dd HH:mm:ss"));
-            obj.Add(testTime);
-
-            if (weightList.Count > 0)
-                if (weightList.Count > i)
-                {
-                    var weight = new JProperty($"{_settings.Weight}", weightList[i].ToString());
-                    obj.Add(weight);
-                }
-
-            if (circleList.Count > 0)
-                if (circleList.Count > i)
-                {
-                    var circle = new JProperty($"{_settings.Circle}", circleList[i].ToString());
-                    obj.Add(circle);
-                }
-
-            if (ovalList.Count > 0)
-                if (ovalList.Count > i)
-                {
-                    var oval = new JProperty($"{_settings.Oval}", ovalList[i].ToString());
-                    obj.Add(oval);
-                }
-
-            if (lengthList.Count > 0)
-                if (lengthList.Count > i)
-                {
-                    var length = new JProperty($"{_settings.Length}", lengthList[i].ToString());
-                    obj.Add(length);
-                }
-
-            if (resistanceList.Count > 0)
-                if (resistanceList.Count > i)
-                {
-                    var resistance = new JProperty($"{_settings.Resistance}", resistanceList[i].ToString());
-                    obj.Add(resistance);
-                }
-
-            if (hardnessList.Count > 0)
-                if (hardnessList.Count > i)
-                {
-                    var hardness = new JProperty($"{_settings.Hardness}", hardnessList[i].ToString());
-                    obj.Add(hardness);
-                }
-
-            data.Data = JsonConvert.SerializeObject(obj);
-            dataList.Add(data);
-        }
-
-        _dRepo.AddRange(dataList);
-
-        var result = _uow.Save() > 0;
-        return result;
-    }
-
+    
     public IEnumerable<BaseOptionDto> GetMeasureDataBySpecificationIdAndMeasureTypeId(int specificationId,
         int measureTypeId)
     {
@@ -992,17 +909,17 @@ public class MetricalDataService : IMetricalDataService
             var spt = _sptRepo.All().FirstOrDefault(c => c.SpecificationTypeId == specification.SpecificationTypeId);
             rules = JsonConvert.DeserializeObject<List<Rule>>(spt != null ? spt.Rules : specification.SingleRules);
         }
-        else if (_settings.CraftTypeIds.Contains(group.MeasureTypeId))
-        {
-            var machineModel = _mmRepo.Get(group.MachineModelId);
-            CraftIndicatorRule craftRules = null;
-            if (machineModel.ModelId > 0)
-                craftRules = _cirRepo.All().FirstOrDefault(c => c.ModelId == machineModel.ModelId);
-
-            rules = JsonConvert.DeserializeObject<List<Rule>>(craftRules != null
-                ? craftRules.Rules
-                : specification.SingleRules);
-        }
+        // else if (_settings.CraftTypeIds.Contains(group.MeasureTypeId))
+        // {
+        //     // var machineModel = _mmRepo.Get(group.MachineModelId);
+        //     // CraftIndicatorRule craftRules = null;
+        //     // if (machineModel.ModelId > 0)
+        //     //     craftRules = _cirRepo.All().FirstOrDefault(c => c.ModelId == machineModel.ModelId);
+        //     //
+        //     // rules = JsonConvert.DeserializeObject<List<Rule>>(craftRules != null
+        //     //     ? craftRules.Rules
+        //     //     : specification.SingleRules);
+        // }
         else
         {
             rules = JsonConvert.DeserializeObject<List<Rule>>(specification.SingleRules);

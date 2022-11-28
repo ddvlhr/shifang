@@ -79,4 +79,12 @@ public class SpecificationController : BaseController
     {
         return Success(_spService.GetOptions());
     }
+
+    [HttpGet, Route("specification/indicators/{id}")]
+    public IActionResult GetIndicators(int id)
+    {
+        return _spService.GetIndicatorsTableDescById(id, out var result, out var message)
+            ? Success(result)
+            : Error(message);
+    }
 }

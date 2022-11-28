@@ -2,11 +2,15 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Core.Dtos.MaterialCheckReport;
+using Core.Dtos.MetricalData;
 using Core.Entities;
 using Core.Enums;
 using Infrastructure.Attributes;
 using Infrastructure.DataBase;
+using Infrastructure.Services.MetricalData;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace Infrastructure.Services.Reports.Impl;
 
@@ -15,16 +19,25 @@ public class MaterialCheckReportService: IMaterialCheckReportService
 {
     private readonly IRepository<MaterialCheckReport> _mcRepo;
     private readonly IUnitOfWork _uow;
+    private readonly IMetricalDataService _mdService;
 
     public MaterialCheckReportService(IRepository<MaterialCheckReport> mcRepo,
-        IUnitOfWork uow)
+        IUnitOfWork uow,
+        IMetricalDataService mdService)
     {
         _mcRepo = mcRepo;
         _uow = uow;
+        _mdService = mdService;
     }
     public IEnumerable<MaterialCheckReportInfoDto> GetReports(MaterialCheckReportQueryInfoDto dto, out int total)
     {
         var data = _mcRepo.All().AsNoTracking();
+        if (!string.IsNullOrEmpty(dto.Begin) && !string.IsNullOrEmpty(dto.End))
+        {
+            var begin = Convert.ToDateTime(dto.Begin);
+            var end = Convert.ToDateTime(dto.End);
+            data = data.Where(c => c.TestDate.Date >= begin && c.TestDate.Date <= end);
+        }
         if (!string.IsNullOrEmpty(dto.SpecificationId))
         {
             var specificationId = int.Parse(dto.SpecificationId);
@@ -74,6 +87,12 @@ public class MaterialCheckReportService: IMaterialCheckReportService
                 Qualified = (int)c.Qualified, MaterialCheckStatus = (int)c.Status, GroupId = c.GroupId
             }).ToList();
 
+        foreach (var item in list)
+        {
+            var dataInfo = _mdService.GetDataInfoByGroupId(item.GroupId);
+            item.DataInfo = dataInfo;
+        }
+
         return list;
     }
 
@@ -97,9 +116,65 @@ public class MaterialCheckReportService: IMaterialCheckReportService
             report.Originator = dto.Originator;
             report.Qualified = QualifiedStatus.Undefined;
             report.Status = MaterialCheckStatus.Undetected;
-        } else if (report.Status == MaterialCheckStatus.Undetected || report.Status == MaterialCheckStatus.Rejected)
+        } 
+        else if (report.Status is MaterialCheckStatus.Undetected or MaterialCheckStatus.Rejected)
         {
-            report.GroupId = dto.GroupId;
+            if (!string.IsNullOrEmpty(dto.Data))
+            {
+                var groupInfo = new MetricalDataGroupEditDto()
+                {
+                    Id = dto.GroupId,
+                    TestTime = dto.TestDate,
+                    SpecificationId = dto.SpecificationId,
+                    TurnId = dto.TurnId,
+                    MeasureTypeId = dto.MeasureTypeId,
+                    TeamId = dto.TeamId,
+                    MachineId = dto.MachineId,
+                    ProductionTime = "",
+                    DeliverTime = ""
+                };
+                if (dto.GroupId > 0)
+                {
+                    var dataInfo = new MetricalDataEditDataDto()
+                    {
+                        GroupId = dto.GroupId,
+                        DataInfo = dto.Data
+                    };
+                    var ret = _mdService.UpdateDataInfo(dataInfo, out var dataMessage);
+                    if (!ret)
+                    {
+                        message = dataMessage;
+                        return false;
+                    }
+                }
+                else
+                {
+                    if (_mdService.UpdateGroupInfo(groupInfo, out var groupId, out var groupMessage))
+                    {
+                        report.GroupId = groupId;
+                        var dataInfo = new MetricalDataEditDataDto()
+                        {
+                            GroupId = groupId,
+                            DataInfo = dto.Data
+                        };
+                        var ret = _mdService.UpdateDataInfo(dataInfo, out var dataMessage);
+                        if (!ret)
+                        {
+                            message = dataMessage;
+                            return false;
+                        }
+                    }
+                    else
+                    {
+                        message = groupMessage;
+                        return false;
+                    }
+                }
+            }
+            else
+            {
+                report.GroupId = dto.GroupId;
+            }
         }
         
         if (modify) 
@@ -107,7 +182,7 @@ public class MaterialCheckReportService: IMaterialCheckReportService
         else
             _mcRepo.Add(report);
 
-        var result = _uow.Save() > 0;
+        var result = modify ? _uow.Save() >= 0 : _uow.Save() > 0;
         message = "";
         return result;
     }

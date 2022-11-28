@@ -1,3 +1,6 @@
+using System.Collections.Generic;
+using Newtonsoft.Json.Linq;
+
 namespace Core.Dtos.MaterialCheckReport;
 
 public class MaterialCheckReportInfoDto
@@ -19,4 +22,7 @@ public class MaterialCheckReportInfoDto
     public string Operator { get; set; }
     public int Qualified { get; set; }
     public int MaterialCheckStatus { get; set; }
+    public string TempData { get; set; }
+    public List<Dictionary<string, object>> DataInfo { get; set; } = new List<Dictionary<string, object>>();
+    public string Data { get; set; }
 }

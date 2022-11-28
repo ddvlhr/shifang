@@ -64,7 +64,6 @@ public static class ServicesExtensions
         services.AddScoped<IFactorySiteService, FactorySiteService>();
         services.AddScoped<IMethodService, MethodService>();
         services.AddScoped<IAppearanceStatisticService, AppearanceStatisticService>();
-        services.AddScoped<IGroupRecordService, GroupRecordService>();
         services.AddScoped<IFilterMeasureQualityService, FilterMeasureQualityService>();
         services.AddScoped<IFilterStandardDeviationStatisticService, FilterStandardDeviationStatisticService>();
         services.AddScoped<IReportOrderService, ReportOrderService>();

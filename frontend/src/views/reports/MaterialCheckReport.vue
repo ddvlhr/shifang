@@ -2,7 +2,7 @@
  * @Author: ddvlhr 354874258@qq.com
  * @Date: 2022-11-02 16:51:59
  * @LastEditors: ddvlhr 354874258@qq.com
- * @LastEditTime: 2022-11-24 15:40:56
+ * @LastEditTime: 2022-11-25 11:52:49
  * @FilePath: /frontend/src/views/reports/MaterialCheckReport.vue
  * @Description: 
 -->
@@ -17,6 +17,8 @@
               :options="specificationOptions"
               v-model="queryInfo.specificationId"
               placeholder="牌号筛选"
+              @change="query"
+              @clear="query"
             />
           </el-col>
           <el-col :span="6">
@@ -24,6 +26,8 @@
               :options="teamOptions"
               v-model="queryInfo.teamId"
               placeholder="班组筛选"
+              @change="query"
+              @clear="query"
             />
           </el-col>
           <el-col :span="6">
@@ -31,6 +35,8 @@
               :options="turnOptions"
               v-model="queryInfo.turnId"
               placeholder="班次筛选"
+              @change="query"
+              @clear="query"
             />
           </el-col>
           <el-col :span="6">
@@ -38,15 +44,28 @@
               :options="machineOptions"
               v-model="queryInfo.machineId"
               placeholder="机台筛选"
+              @change="query"
+              @clear="query"
             />
           </el-col>
         </el-row>
         <el-row :gutter="20" class="mt-3">
+          <el-col :span="6" :offset="0">
+            <query-date-picker
+              v-model="daterange"
+              picker-type="daterange"
+              @change="query"
+              @clear="query"
+            />
+          </el-col>
+
           <el-col :span="6">
             <query-select
               :options="qualified"
               v-model="queryInfo.qualified"
               placeholder="判定状态筛选"
+              @change="query"
+              @clear="query"
             />
           </el-col>
           <el-col :span="6">
@@ -54,6 +73,8 @@
               :options="materialCheckStatus"
               v-model="queryInfo.state"
               placeholder="流程状态筛选"
+              @change="query"
+              @clear="query"
             />
           </el-col>
         </el-row>
@@ -78,6 +99,12 @@
         @closed="handleClosed"
       >
       </ele-form-dialog>
+      <measure-data-dialog
+        :dialogVisible.sync="measureDataDialogVisible"
+        :group="measureDataGroup"
+        :data="{}"
+        @submitData="submitData"
+      />
     </el-card>
   </div>
 </template>
@@ -94,8 +121,11 @@ export default {
         turnId: '',
         machineId: '',
         measureTypeId: '',
-        qualified: ''
+        qualified: '',
+        begin: '',
+        end: ''
       },
+      daterange: [],
       qualified: this.$store.state.app.dicts.qualified,
       materialCheckStatus: this.$store.state.app.dicts.materialCheckStatus,
       specificationOptions: [],
@@ -134,6 +164,8 @@ export default {
           options: this.$store.state.app.dicts.materialCheckStatusTypes
         }
       },
+      measureDataDialogVisible: false,
+      measureDataGroup: {},
       dialogFormVisible: false,
       formData: {},
       formError: {},
@@ -198,6 +230,13 @@ export default {
   },
   methods: {
     query() {
+      if (this.daterange !== null) {
+        this.queryInfo.begin = this.daterange[0]
+        this.queryInfo.end = this.daterange[1]
+      } else {
+        this.queryInfo.begin = ''
+        this.queryInfo.end = ''
+      }
       queryTable(this, this.getMaterialCheckReports)
     },
     async setRightButtons() {
@@ -235,6 +274,22 @@ export default {
     edit(data, that) {
       that.formData = data
       that.dialogFormVisible = true
+    },
+    submit(data, that) {
+      console.log(that.measureDataDialogVisible)
+      that.measureDataGroup = data
+      that.measureDataDialogVisible = true
+    },
+    async submitData(data) {
+      data.dataInfo = []
+      data.data = JSON.stringify(data.data)
+      const { data: res } = await this.$api.editMaterialCheckReport(data)
+      if (res.meta.code !== 0) {
+        return this.$message.error('提交失败: ' + res.meta.message)
+      }
+      this.query()
+      this.dialogFormVisible = false
+      this.$message.success('提交成功')
     },
     async handleSubmit(data) {
       const { data: res } = await this.$api.editMaterialCheckReport(data)

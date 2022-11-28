@@ -8,6 +8,8 @@ public class MetricalDataGroupEditDto
     public string DeliverTime { get; set; }
     public int SpecificationId { get; set; }
     public int TurnId { get; set; }
+    public int TeamId { get; set; }
+    public int MachineId { get; set; }
     public int MachineModelId { get; set; }
     public int MeasureTypeId { get; set; }
     public string OrderNo { get; set; }

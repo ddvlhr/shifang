@@ -147,13 +147,13 @@ public class FilterMeasureQualityService : IFilterMeasureQualityService
             data = data.Where(c => c.TurnId == turnId);
         }
 
-        if (!string.IsNullOrEmpty(dto.MachineId))
-        {
-            var machineIds = new List<int>();
-            foreach (var s in dto.MachineId.Split(",", StringSplitOptions.RemoveEmptyEntries))
-                machineIds.Add(int.Parse(s));
-            data = data.Where(c => machineIds.Contains(c.MachineModelId));
-        }
+        // if (!string.IsNullOrEmpty(dto.MachineId))
+        // {
+        //     var machineIds = new List<int>();
+        //     foreach (var s in dto.MachineId.Split(",", StringSplitOptions.RemoveEmptyEntries))
+        //         machineIds.Add(int.Parse(s));
+        //     data = data.Where(c => machineIds.Contains(c.MachineModelId));
+        // }
 
         var specificationGroups = data.Include(c => c.Specification).ToList().GroupBy(c => c.SpecificationId).ToList();
         foreach (var specificationGroup in specificationGroups)

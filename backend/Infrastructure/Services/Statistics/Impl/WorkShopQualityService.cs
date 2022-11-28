@@ -355,7 +355,7 @@ public class WorkShopQualityService : IWorkShopQualityService
                 WorkShopId = item.Group.MachineModel.WorkShopId,
                 WorkShopName = item.Group.MachineModel.WorkShop.Name,
                 MachineModelName = item.Group.MachineModel.Name,
-                TurnId = item.Group.TurnId,
+                // TurnId = item.Group.TurnId,
                 TurnName = item.Group.Turn.Name,
                 SpecificationTypeId = item.Group.Specification.SpecificationTypeId,
                 SpecificationTypeName = item.Group.Specification.SpecificationType.Name,
@@ -406,7 +406,7 @@ public class WorkShopQualityService : IWorkShopQualityService
                 WorkShopName = item.Group.MachineModel.WorkShop.Name,
                 MachineModelName = item.Group.MachineModel.Name,
                 TurnName = item.Group.Turn.Name,
-                TurnId = item.Group.TurnId,
+                // TurnId = item.Group.TurnId,
                 SpecificationTypeId = item.Group.Specification.SpecificationTypeId,
                 SpecificationTypeName = item.Group.Specification.SpecificationType.Name,
                 ProductQualityValue = 100 - item.PhyRetDeduction - score
@@ -456,7 +456,7 @@ public class WorkShopQualityService : IWorkShopQualityService
                 WorkShopName = item.Group.MachineModel.WorkShop.Name,
                 MachineModelName = item.Group.MachineModel.Name,
                 TurnName = item.Group.Turn.Name,
-                TurnId = item.Group.TurnId,
+                // TurnId = item.Group.TurnId,
                 SpecificationTypeId = item.Group.Specification.SpecificationTypeId,
                 SpecificationTypeName = item.Group.Specification.SpecificationType.Name,
                 PhysicalQualityValue = 100 - item.PhyRetDeduction - score

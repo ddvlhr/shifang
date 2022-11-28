@@ -59,7 +59,7 @@ public class MetricalDataController : BaseController
     [Route("metricalData")]
     public IActionResult UpdateGroup([FromBody] MetricalDataGroupEditDto dto)
     {
-        return _mdService.UpdateGroupInfo(dto, out var failReason) ? Success() : Error(failReason);
+        return _mdService.UpdateGroupInfo(dto, out var groupId, out var failReason) ? Success() : Error(failReason);
     }
 
     /// <summary>
@@ -72,13 +72,6 @@ public class MetricalDataController : BaseController
     public IActionResult AddData([FromBody] MetricalDataEditDataDto dto)
     {
         return _mdService.AddDataInfo(dto, out var failReason) ? Success() : Error(failReason);
-    }
-
-    [HttpPost]
-    [Route("metricalData/filterData")]
-    public IActionResult AddFilterData([FromBody] FilterDataAddDto dto)
-    {
-        return _mdService.AddFilterData(dto, out var failReason) ? Success() : Error(failReason);
     }
 
     /// <summary>

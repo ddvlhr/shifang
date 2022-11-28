@@ -17,13 +17,17 @@ public abstract class BaseGroup : Entity
     [Column("specification_id")] public int SpecificationId { get; set; }
 
     [ForeignKey(nameof(SpecificationId))] public Specification Specification { get; set; }
+    [ForeignKey(nameof(TeamId))]
+    public Team Team { get; set; }
+    [Column("team_id")]
+    public int TeamId { get; set; }
 
     [Column("turn_id")] public int TurnId { get; set; }
 
-    [ForeignKey(nameof(TurnId))] public Turn Turn { get; set; }
+    public Turn Turn { get; set; }
 
     [Column("machine_id")] public int MachineId { get; set; }
-
+    
     public Machine Machine { get; set; }
 
     [Column("measure_type_id")] public int MeasureTypeId { get; set; }
@@ -46,6 +50,9 @@ public abstract class BaseGroup : Entity
 
     [Column("from_records", TypeName = "text")]
     public string FromRecords { get; set; }
+    
+    [Column("count")]
+    public int Count { get; set; }
 }
 
 public enum PickUpWay

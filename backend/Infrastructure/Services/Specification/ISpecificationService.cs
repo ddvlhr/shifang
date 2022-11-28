@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using Core.Dtos;
 using Core.Dtos.Specification;
+using Core.Models;
 
 namespace Infrastructure.Services.Specification;
 
@@ -12,5 +13,5 @@ public interface ISpecificationService
     SpecificationEditDto GetInfo(int id);
     IEnumerable<BaseOptionDto> GetOptions();
     IEnumerable<BaseOptionDto> GetSpecificationsByTypeId(int id);
-    bool GetIndicatorsTableDescById(int id, out string result, out string message, int measureTypeId = 0, int machineModelId = 0);
+    bool GetIndicatorsTableDescById(int id, out TableEditor result, out string message, int measureTypeId = 0, int machineModelId = 0);
 }
