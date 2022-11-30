@@ -21,7 +21,6 @@ import Api from './api'
 import NProgress from 'nprogress'
 import 'bootstrap/dist/css/bootstrap.css'
 import Print from 'vue-print-nb'
-import './permission'
 // 引入 element-ui 插件
 import { setupElementUI } from '@/plugins/element-ui'
 // 引入 vue-ele-table 插件
@@ -34,7 +33,10 @@ import { setupRouterTab } from '@/plugins/router-tab'
 
 import { setupCustomComponents } from '@/plugins/custom-components'
 
+import { setupVueEcharts } from '@/plugins/vue-echarts'
+
 import 'windi.css'
+import './permission'
 
 Vue.prototype.$api = Api
 Vue.prototype.$np = NProgress
@@ -47,9 +49,12 @@ setupElementUI()
 setupEleForm()
 setupEleTable()
 setupRouterTab()
+setupVueEcharts()
 
-new Vue({
+let vueThis = new Vue({
   router,
   store,
-  render: h => h(App)
+  render: (h) => h(App)
 }).$mount('#app')
+
+export default vueThis

@@ -10,7 +10,6 @@ public class MetricalDataGroupEditDto
     public int TurnId { get; set; }
     public int TeamId { get; set; }
     public int MachineId { get; set; }
-    public int MachineModelId { get; set; }
     public int MeasureTypeId { get; set; }
     public string OrderNo { get; set; }
     public string Instance { get; set; }

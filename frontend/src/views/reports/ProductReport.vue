@@ -175,6 +175,7 @@ export default {
       turnOptions: [],
       machineModelOptions: [],
       appearanceIndicatorOptions: [],
+      defectOptions: [],
       statisticDialogVisible: false,
       statisticColumnsDesc: {},
       originColumnsDesc: {},
@@ -271,57 +272,36 @@ export default {
       },
       formData: {},
       formDesc: {
-        appearances: {
-          label: '外观缺陷',
+        defects: {
+          label: '滤棒',
           type: 'table-editor',
           attrs: {
             columns: [
               {
-                prop: 'dbId',
-                label: 'ID',
-                default: 0
+                type: 'index',
+                width: 100,
+                label: '#'
               },
               {
-                prop: 'indicatorId',
-                label: '外观指标',
-                width: 200,
+                prop: 'defectId',
+                label: '缺陷',
                 content: {
                   type: 'el-select',
-                  attrs: {
-                    filterable: 'filterable'
-                  },
-                  options: [],
-                  on: {
-                    change(val, row, col) {
-                      console.log('123', val, row, col)
-                    }
-                  }
+                  options: []
                 }
               },
               {
-                prop: 'frequency',
-                label: '频次',
+                prop: 'count',
+                label: '数量',
                 content: {
-                  type: 'el-input',
+                  type: 'el-input-number',
                   attrs: {
-                    type: 'number'
-                  }
-                }
-              },
-              {
-                prop: 'subScore',
-                label: '扣分',
-                content: {
-                  type: 'el-input',
-                  attrs: {
-                    type: 'number'
+                    min: 0,
+                    default: 0
                   }
                 }
               }
-            ],
-            newColumnValue: {
-              dbId: 0
-            }
+            ]
           }
         }
       },
@@ -332,6 +312,7 @@ export default {
   },
   created() {
     // 根据 router-tab 当前选中的页面重新设置当前路由
+    console.log('productReport: ', this.$tabs)
     reloadCurrentRoute(this.$tabs, this.$store)
     this.getOptions()
     this.setRightButtons()
@@ -360,7 +341,7 @@ export default {
       this.turnOptions = res.data.turns
       this.machineModelOptions = res.data.machineModels
       this.appearanceIndicatorOptions = res.data.appearanceIndicators
-      console.log(res.data)
+      this.defectOptions = res.data.defects
     },
     async getProductReports(params) {
       const { data: res } = await this.$api.getProductReports(
@@ -401,7 +382,13 @@ export default {
     getWaterDataInfo() {
       return this.waterDataInfo
     },
-    edit(data, that) {},
+    edit(data, that) {
+      that.formData = data
+      that.dialogFormVisible = true
+      console.log(that.formDesc)
+      that.formDesc.defects.attrs.columns[1].content.options =
+        that.defectOptions
+    },
     async statistic(data, that) {
       const id = data.id
       const { data: res } = await that.$api.getProductStatistic(id)
@@ -419,11 +406,14 @@ export default {
     },
     async handleSubmit(data) {
       this.formError = false
-      const { data: res } = await this.$api.updateProductReportAppearance(data)
+      const { data: res } = await this.$api.submitProductReportDefects(data)
       if (res.meta.code !== 0) {
         this.formError = true
         return this.$message.error('提交失败: ' + res.meta.message)
       }
+      this.query()
+      this.$message.success(res.meta.message)
+      this.dialogFormVisible = false
     },
     async download() {
       const selectedData = this.$refs.table.selectedData

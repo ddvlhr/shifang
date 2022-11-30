@@ -24,17 +24,17 @@ public abstract class BaseGroup : Entity
 
     [Column("turn_id")] public int TurnId { get; set; }
 
-    public Turn Turn { get; set; }
+    public virtual Turn Turn { get; set; }
 
     [Column("machine_id")] public int MachineId { get; set; }
     
-    public Machine Machine { get; set; }
+    public virtual Machine Machine { get; set; }
 
     [Column("measure_type_id")] public int MeasureTypeId { get; set; }
 
     [ForeignKey(nameof(MeasureTypeId))] public MeasureType MeasureType { get; set; }
 
-    public MachineModel MachineModel { get; set; }
+    public virtual MachineModel MachineModel { get; set; }
 
     [Column("machine_model_id")] public int MachineModelId { get; set; }
 

@@ -376,7 +376,7 @@ public class InspectionReportService : IInspectionReportService
         if (_gRepo.All().Any(c => c.BeginTime == Convert.ToDateTime(dto.TestTime[0]) &&
                                   c.EndTime == Convert.ToDateTime(dto.TestTime[1]) &&
                                   c.SpecificationId == dto.SpecificationId &&
-                                  c.TurnId == dto.TurnId && c.MachineModelId == dto.MachineModelId &&
+                                  c.TurnId == dto.TurnId && c.MachineId == dto.MachineId &&
                                   c.MeasureTypeId == dto.MeasureTypeId))
         {
             failReason = "该组数据已存在, 请修改选项后再提交";
@@ -388,7 +388,7 @@ public class InspectionReportService : IInspectionReportService
         {
             SpecificationId = dto.SpecificationId,
             TurnId = dto.TurnId,
-            MachineModelId = dto.MachineModelId,
+            MachineId = dto.MachineId,
             MeasureTypeId = inspectionTypeId,
             BeginTime = Convert.ToDateTime(dto.TestTime[0]),
             EndTime = Convert.ToDateTime(dto.TestTime[1]),

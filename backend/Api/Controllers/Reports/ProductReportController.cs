@@ -63,4 +63,10 @@ public class ProductReportController : BaseController
         var contentType = provider.Mappings[".xlsx"];
         return File(file, contentType, $"成品报表{DateTime.Now:yyyy-MM-dd_HH-mm-ss}.xlsx");
     }
+
+    [HttpPost("report/product/defect")]
+    public IActionResult SubmitDefect([FromBody] ReportTableDto dto)
+    {
+        return _prService.SubmitDefects(dto, out var message) ? Success(msg: message) : Error(message);
+    }
 }

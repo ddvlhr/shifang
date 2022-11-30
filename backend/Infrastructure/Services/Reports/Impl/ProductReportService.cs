@@ -33,6 +33,8 @@ public class ProductReportService : IProductReportService
     private readonly IRepository<ProductReportAppearance> _praRepo;
     private readonly IRepository<ProductReport> _prRepo;
     private readonly IRepository<Role> _rRepo;
+    private readonly IRepository<ProductReportDefect> _prdRepo;
+    private readonly IRepository<Core.Entities.Defect> _defectRepo;
     private readonly IServiceProvider _services;
     private readonly Settings _settings;
     private readonly IRepository<Core.Entities.Specification> _spRepo;
@@ -46,7 +48,9 @@ public class ProductReportService : IProductReportService
         IRepository<Turn> tRepo, IServiceProvider services,
         IRepository<WaterRecord> wrRepo, IRepository<Core.Entities.Indicator> iRepo,
         IOptionsSnapshot<Settings> settings,
-        IHttpContextAccessor accessor, IRepository<Role> rRepo)
+        IHttpContextAccessor accessor, IRepository<Role> rRepo,
+        IRepository<ProductReportDefect> prdRepo,
+        IRepository<Core.Entities.Defect> defectRepo)
     {
         _prRepo = prRepo;
         _gRepo = gRepo;
@@ -61,6 +65,8 @@ public class ProductReportService : IProductReportService
         _iRepo = iRepo;
         _accessor = accessor;
         _rRepo = rRepo;
+        _prdRepo = prdRepo;
+        _defectRepo = defectRepo;
         _settings = settings.Value;
     }
 
@@ -506,6 +512,17 @@ public class ProductReportService : IProductReportService
                     UserName = c.Group.UserName
                 }).ToList();
 
+        var reportIds = list.Select(c => c.Id).ToList();
+        var defectList = _prdRepo.All().Where(c => reportIds.Contains(c.ReportId)).ToList();
+        foreach (var item in list)
+        {
+            var defects = defectList.Where(c => c.ReportId == item.Id).Select(c=> new ReportDefectDto()
+            {
+                Id = c.Id, DefectId = c.DefectId, Count = c.Count
+            }).ToList();
+            item.Defects = defects;
+        }
+
         return list;
     }
 
@@ -696,6 +713,28 @@ public class ProductReportService : IProductReportService
 
         file.Seek(0, SeekOrigin.Begin);
         return file;
+    }
+
+    public bool SubmitDefects(ReportTableDto dto, out string message)
+    {
+        var hasDefects = dto.Defects.Count > 0 || dto.Defects != null;
+        var result = true;
+        var existDefects = _prdRepo.All().Where(c => c.ReportId == dto.Id).ToList();
+        _prdRepo.DeleteRange(existDefects);
+        if (hasDefects)
+        {
+            var defectIds = dto.Defects.Select(c => c.DefectId).ToList();
+            var defects = dto.Defects.Select(c => new ProductReportDefect()
+            {
+                ReportId = dto.Id, DefectId = c.DefectId, Count = c.Count
+            }).ToList();
+            
+            _prdRepo.AddRange(defects);
+            result = _uow.Save() > 0;
+        }
+
+        message = result ? "删除成功" : "删除失败";
+        return result;
     }
 
     private IEnumerable<ReportDownloadDto> getDownloadInfo(List<int> reportIds, out List<string> meaColumns,

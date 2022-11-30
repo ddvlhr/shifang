@@ -11,5 +11,6 @@ public interface IProductReportService
     bool Add(MetricalDataEditDataDto dto);
     IEnumerable<ReportTableDto> GetTable(QueryInfoDto dto, out int total);
     ReportStatisticDto GetStatisticInfo(int id, out string failReason);
+    bool SubmitDefects(ReportTableDto dto, out string message);
     MemoryStream Download(List<int> ids);
 }

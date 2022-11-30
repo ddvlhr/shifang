@@ -45,6 +45,13 @@
           <el-col :span="6" :offset="0">
             <query-date-picker v-model="dateRange" picker-type="daterange" />
           </el-col>
+          <el-col :span="6" :offset="0">
+            <query-select
+              v-model="queryInfo.measureTypeId"
+              :options="measureTypeOptions"
+              placeholder="测量类型筛选"
+            />
+          </el-col>
         </el-row>
       </div>
       质量分析
@@ -64,13 +71,15 @@ export default {
         specificationId: '',
         turnId: '',
         machineId: '',
-        teamId: ''
+        teamId: '',
+        measureTypeId: ''
       },
       dateRange: [],
       specificationOptions: [],
       turnOptions: [],
       teamOptions: [],
-      machineOptions: []
+      machineOptions: [],
+      measureTypeOptions: []
     }
   },
   created() {
@@ -93,12 +102,14 @@ export default {
         this.$api.getSpecificationOptions(),
         this.$api.getTurnOptions(),
         this.$api.getTeamOptions(),
-        this.$api.getMachineOptions()
+        this.$api.getMachineOptions(),
+        this.$api.getMeasureTypeOptions()
       ]).then((res) => {
         this.specificationOptions = res[0].data.data
         this.turnOptions = res[1].data.data
         this.teamOptions = res[2].data.data
         this.machineOptions = res[3].data.data
+        this.measureTypeOptions = res[4].data.data
       })
     }
   }

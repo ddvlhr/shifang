@@ -121,11 +121,20 @@ public class DefectService: IDefectService
         return result;
     }
 
-    public IEnumerable<BaseOptionDto> GetOptions()
+    public IEnumerable<BaseOptionDto> GetOptions(bool sort = false)
     {
-        return _dRepo.All().Where(c => c.Status == Status.Enabled).Select(c => new BaseOptionDto()
+        var options = new List<BaseOptionDto>();
+        if (sort)
         {
-            Value = c.Id, Text = c.DefectShortName
-        }).ToList();
+            
+        }
+        else
+        {
+            options = _dRepo.All().Where(c => c.Status == Status.Enabled).Select(c => new BaseOptionDto()
+            {
+                Value = c.Id, Text = c.DefectShortName
+            }).ToList();
+        }
+        return options;
     }
 }

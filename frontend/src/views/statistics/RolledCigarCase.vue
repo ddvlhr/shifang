@@ -8,6 +8,7 @@
 -->
 <template>
   <div class="main-container">
+    <function-button />
     <el-card shadow="never">
       <div slot="header">
         <el-row :gutter="20">

@@ -2,6 +2,7 @@
 using Core.Enums;
 using Infrastructure.Extensions;
 using Infrastructure.Services.BaseData;
+using Infrastructure.Services.Defect;
 using Infrastructure.Services.Indicator;
 using Infrastructure.Services.Specification;
 using Infrastructure.Services.System;
@@ -23,6 +24,7 @@ public class OptionsController : BaseController
     private readonly IMeasureTypeService _mtService;
     private readonly IRoleService _roleService;
     private readonly IReportOrderService _roService;
+    private readonly IDefectService _defectService;
     private readonly ISpecificationService _speService;
     private readonly ISpecificationTypeService _stService;
     private readonly ITurnService _turnService;
@@ -33,7 +35,8 @@ public class OptionsController : BaseController
         IMeasureTypeService mtService, IIndicatorService iService, ISpecificationTypeService stService,
         IUserService uService, IMachineModelService mmService, IWorkShopService wsService,
         IManufacturerService mService, IModelService modelService, IRoleService roleService,
-        IFactorySiteService fsService, IMethodService methodService, IReportOrderService roService)
+        IFactorySiteService fsService, IMethodService methodService, IReportOrderService roService,
+        IDefectService defectService)
     {
         _speService = speService;
         _turnService = turnService;
@@ -49,6 +52,7 @@ public class OptionsController : BaseController
         _fsService = fsService;
         _methodService = methodService;
         _roService = roService;
+        _defectService = defectService;
         _wsService = wsService;
     }
 
@@ -94,6 +98,8 @@ public class OptionsController : BaseController
 
         var reportOrders = _roService.GetOptions();
 
+        var defects = _defectService.GetOptions();
+
         return Success(new
         {
             specifications,
@@ -114,7 +120,8 @@ public class OptionsController : BaseController
             factorySites,
             methods,
             filterStatisticPlotTypes,
-            reportOrders
+            reportOrders,
+            defects
         });
     }
 }

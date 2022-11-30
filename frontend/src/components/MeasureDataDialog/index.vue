@@ -59,7 +59,13 @@ export default {
           type: 'text',
           label: '测量类型'
         },
-        data: {}
+        data: {},
+        qualified: {
+          type: 'select',
+          label: '是否合格',
+          options: this.$store.state.app.dicts.qualifiedTypes,
+          default: 2
+        }
       },
       formDesc: {},
       formError: {},

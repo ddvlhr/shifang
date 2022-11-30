@@ -29,6 +29,7 @@ public class MetricalDataService : IMetricalDataService
     private readonly IRepository<CraftReport> _crRepo;
     private readonly IRepository<TestReport> _trRepo;
     private readonly ITestReportService _trService;
+    private readonly ApplicationDbContext _context;
     private readonly ICraftReportService _crService;
     private readonly IRepository<Data> _dRepo;
     private readonly IRepository<DataRecord> _drRepo;
@@ -64,7 +65,8 @@ public class MetricalDataService : IMetricalDataService
         IRepository<FactoryReport> frRepo,
         IRepository<CraftReport> crRepo,
         IRepository<TestReport> trRepo,
-        ITestReportService trService)
+        ITestReportService trService,
+        ApplicationDbContext context)
     {
         _gRepo = gRepo;
         _spRepo = spRepo;
@@ -91,6 +93,7 @@ public class MetricalDataService : IMetricalDataService
         _crRepo = crRepo;
         _trRepo = trRepo;
         _trService = trService;
+        _context = context;
         _settings = settings.Value;
     }
 
@@ -136,7 +139,7 @@ public class MetricalDataService : IMetricalDataService
         if (_gRepo.All().Any(c => c.BeginTime == Convert.ToDateTime(dto.TestTime) &&
                                   c.EndTime == Convert.ToDateTime(dto.TestTime) &&
                                   c.SpecificationId == dto.SpecificationId &&
-                                  c.TurnId == dto.TurnId && c.MachineModelId == dto.MachineModelId &&
+                                  c.TurnId == dto.TurnId && c.MachineId == dto.MachineId &&
                                   c.MeasureTypeId == dto.MeasureTypeId))
         {
             failReason = "该组数据已存在, 请修改选项后再提交";
@@ -496,7 +499,8 @@ public class MetricalDataService : IMetricalDataService
                 SpecificationName = c.Specification.Name,
                 SpecificationTypeId = c.Specification.SpecificationTypeId,
                 TurnName = c.Turn.Name,
-                MachineModelName = c.MachineModel.Name,
+                MachineId = c.Machine == null ? 0 : c.MachineId,
+                MachineName = c.Machine == null ? "": c.Machine.Name,
                 MeasureTypeName = c.MeasureType.Name,
                 BeginTime = c.BeginTime.ToString("yyyy-MM-dd HH:mm:ss"),
                 EndTime = c.EndTime.ToString("yyyy-MM-dd HH:mm:ss"),
@@ -505,7 +509,6 @@ public class MetricalDataService : IMetricalDataService
                     : Convert.ToDateTime(c.ProductionTime).ToString("yyyy-MM-dd"),
                 SpecificationId = c.SpecificationId,
                 TurnId = c.TurnId,
-                MachineModelId = c.MachineModelId,
                 MeasureTypeId = c.MeasureTypeId,
                 DeliverTime = c.DeliverTime == null ? "" : Convert.ToDateTime(c.DeliverTime).ToString("yyyy-MM-dd"),
                 OrderNo = c.OrderNo ?? "",

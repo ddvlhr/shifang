@@ -119,6 +119,9 @@ public class MaterialCheckReportService: IMaterialCheckReportService
         } 
         else if (report.Status is MaterialCheckStatus.Undetected or MaterialCheckStatus.Rejected)
         {
+            report.OperatingUser = dto.Operator;
+            report.Qualified = (QualifiedStatus)dto.Qualified;
+            report.Status = MaterialCheckStatus.Detected;
             if (!string.IsNullOrEmpty(dto.Data))
             {
                 var groupInfo = new MetricalDataGroupEditDto()
@@ -131,7 +134,7 @@ public class MaterialCheckReportService: IMaterialCheckReportService
                     TeamId = dto.TeamId,
                     MachineId = dto.MachineId,
                     ProductionTime = "",
-                    DeliverTime = ""
+                    DeliverTime = "",
                 };
                 if (dto.GroupId > 0)
                 {

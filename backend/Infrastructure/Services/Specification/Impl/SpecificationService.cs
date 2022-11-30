@@ -9,8 +9,6 @@ using Infrastructure.DataBase;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using NotImplementedException = System.NotImplementedException;
 
 namespace Infrastructure.Services.Specification.Impl;
 
@@ -322,8 +320,6 @@ public class SpecificationService : ISpecificationService
                     {
                         "attrs", new Dictionary<string, object>()
                         {
-                            { "precision", 3 },
-                            { "step", 0.001 },
                             { "width", "200" }
                         }
                     }

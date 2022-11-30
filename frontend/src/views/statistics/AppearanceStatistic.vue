@@ -129,9 +129,13 @@ export default {
       chart.setOption(this.option)
     },
     async download() {
-      const res = await this.$api.downloadAppearanceStatisticInfo(this.queryInfo)
+      const res = await this.$api.downloadAppearanceStatisticInfo(
+        this.queryInfo
+      )
       const { data, headers } = res
-      const fileName = headers['content-disposition'].split(';')[1].split('filename=')[1]
+      const fileName = headers['content-disposition']
+        .split(';')[1]
+        .split('filename=')[1]
       const blob = new Blob([data], { type: headers['content-type'] })
       const dom = document.createElement('a')
       const url = window.URL.createObjectURL(blob)

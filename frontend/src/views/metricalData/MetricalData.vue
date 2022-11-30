@@ -59,10 +59,19 @@
         </el-row>
         <el-row :gutter="20" class="mt-3">
           <el-col :span="6" :offset="0">
-            <query-date-picker v-model="daterange" picker-type="daterange" @change="query" @clear="query" />
+            <query-date-picker
+              v-model="daterange"
+              picker-type="daterange"
+              @change="query"
+              @clear="query"
+            />
           </el-col>
           <el-col :span="6" :offset="0">
-            <query-input v-model="queryInfo.query" @click="query" @clear="query" />
+            <query-input
+              v-model="queryInfo.query"
+              @click="query"
+              @clear="query"
+            />
           </el-col>
         </el-row>
       </div>
@@ -425,14 +434,14 @@ export default {
           },
           required: true
         },
-        machineModelId: {
+        machineId: {
           type: 'select',
           label: '机台',
           attrs: {
             filterable: 'filterable'
           },
           options: async () => {
-            return await this.machineModelOptions
+            return await this.machineOptions
           },
           required: true
         },

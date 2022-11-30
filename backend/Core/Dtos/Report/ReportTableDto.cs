@@ -1,4 +1,8 @@
-﻿namespace Core.Dtos.Report;
+﻿using System.Collections.Generic;
+using Core.Dtos.ProductReport;
+using Core.Entities;
+
+namespace Core.Dtos.Report;
 
 public class ReportTableDto
 {
@@ -15,4 +19,5 @@ public class ReportTableDto
     public string Remark { get; set; }
     public int PhyScore { get; set; }
     public int TypeId { get; set; }
+    public List<ReportDefectDto> Defects { get; set; }
 }

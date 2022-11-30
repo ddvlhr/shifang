@@ -55,6 +55,7 @@
         <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="6.15.0" />
         <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
         <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="6.0.0" />
+        <PackageReference Include="SqlSugarCore" Version="5.1.3.35" />
         <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.15.0" />
     </ItemGroup>
 
