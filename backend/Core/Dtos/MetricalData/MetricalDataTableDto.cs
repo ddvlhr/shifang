@@ -8,6 +8,8 @@ public class MetricalDataTableDto
     public int SpecificationTypeId { get; set; }
     public int? TurnId { get; set; }
     public string TurnName { get; set; }
+    public int TeamId { get; set; }
+    public string TeamName { get; set; }
     public int? MachineModelId { get; set; }
     public string MachineModelName { get; set; }
     public int? MachineId { get; set; }

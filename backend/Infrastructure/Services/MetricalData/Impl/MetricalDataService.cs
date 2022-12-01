@@ -8,6 +8,7 @@ using Core.Dtos.Specification;
 using Core.Dtos.MetricalData;
 using Core.Entities;
 using Core.Models;
+using Core.SugarEntities;
 using Infrastructure.DataBase;
 using Infrastructure.Extensions;
 using Infrastructure.Helper;
@@ -20,6 +21,12 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using OfficeOpenXml;
 using OfficeOpenXml.Style;
+using SqlSugar;
+using Machine = Core.SugarEntities.Machine;
+using MeasureType = Core.SugarEntities.MeasureType;
+using SpecificationType = Core.SugarEntities.SpecificationType;
+using Team = Core.SugarEntities.Team;
+using Turn = Core.SugarEntities.Turn;
 
 namespace Infrastructure.Services.MetricalData.Impl;
 
@@ -31,6 +38,7 @@ public class MetricalDataService : IMetricalDataService
     private readonly IRepository<TestReport> _trRepo;
     private readonly ITestReportService _trService;
     private readonly ApplicationDbContext _context;
+    private readonly ISqlSugarClient _db;
     private readonly ICraftReportService _crService;
     private readonly IRepository<Data> _dRepo;
     private readonly IRepository<DataRecord> _drRepo;
@@ -67,7 +75,8 @@ public class MetricalDataService : IMetricalDataService
         IRepository<CraftReport> crRepo,
         IRepository<TestReport> trRepo,
         ITestReportService trService,
-        ApplicationDbContext context)
+        ApplicationDbContext context,
+        ISqlSugarClient db)
     {
         _gRepo = gRepo;
         _spRepo = spRepo;
@@ -95,6 +104,7 @@ public class MetricalDataService : IMetricalDataService
         _trRepo = trRepo;
         _trService = trService;
         _context = context;
+        _db = db;
         _settings = settings.Value;
     }
 
@@ -106,6 +116,7 @@ public class MetricalDataService : IMetricalDataService
     /// <returns></returns>
     public bool AddDataInfo(MetricalDataEditDataDto dto, out string failReason)
     {
+        //TODO 添加测量数据时会重复添加
         failReason = string.Empty;
         var items = (JArray)JsonConvert.DeserializeObject(dto.DataInfo);
         var dataList = new List<Data>();
@@ -123,7 +134,7 @@ public class MetricalDataService : IMetricalDataService
 
         _dRepo.AddRange(dataList);
 
-        if (!_prService.Add(dto)) failReason = "生成报表失败";
+        // if (!_prService.Add(dto)) failReason = "生成报表失败";
 
         return _uow.Save() > 0;
     }
@@ -308,24 +319,21 @@ public class MetricalDataService : IMetricalDataService
         // }
 
         var modify = dto.Id > 0;
-        var group = new Group();
-        if (modify)
+        var group = new MetricalGroup()
         {
-            group = _gRepo.Get(dto.Id);
-        }
-        group.SpecificationId = dto.SpecificationId;
-        group.TurnId = dto.TurnId;
-        group.TeamId = dto.TeamId;
-        group.MachineId = dto.MachineId;
-        // group.MachineModelId = dto.MachineModelId;
-        group.MeasureTypeId = dto.MeasureTypeId;
-        group.BeginTime = Convert.ToDateTime(dto.TestTime);
-        group.EndTime = Convert.ToDateTime(dto.TestTime);
-        group.OrderNo = dto.OrderNo;
-        group.Instance = dto.Instance;
-        group.UserId = _accessor.HttpContext.getUserId();
-        group.UserName = _accessor.HttpContext.getUserName();
-
+            Id = dto.Id,
+            BeginTime = Convert.ToDateTime(dto.TestTime),
+            EndTime = Convert.ToDateTime(dto.TestTime),
+            SpecificationId = dto.SpecificationId,
+            TeamId = dto.TeamId,
+            TurnId = dto.TurnId,
+            MachineId = dto.MachineId,
+            MeasureTypeId = dto.MeasureTypeId,
+            OrderNo = dto.OrderNo,
+            Instance = dto.Instance,
+            UserName = _accessor.HttpContext.getUserName()
+        };
+        
         if (!string.IsNullOrEmpty(dto.ProductionTime))
             group.ProductionTime = Convert.ToDateTime(dto.ProductionTime);
         else
@@ -336,13 +344,45 @@ public class MetricalDataService : IMetricalDataService
         else
             group.DeliverTime = null;
 
-        if (modify)
-            _gRepo.Update(group);
-        else
-            _gRepo.Add(group);
-        var ret = modify ? _uow.Save() >= 0 : _uow.Save() > 0;
+        var ret = _db.Storageable<MetricalGroup>(group).ExecuteCommand() > 0;
         if (ret) groupId = group.Id;
         return ret;
+
+
+        // if (modify)
+        // {
+        //     group = _gRepo.Get(dto.Id);
+        // }
+        // group.SpecificationId = dto.SpecificationId;
+        // group.TurnId = dto.TurnId;
+        // group.TeamId = dto.TeamId;
+        // group.MachineId = dto.MachineId;
+        // // group.MachineModelId = dto.MachineModelId;
+        // group.MeasureTypeId = dto.MeasureTypeId;
+        // group.BeginTime = Convert.ToDateTime(dto.TestTime);
+        // group.EndTime = Convert.ToDateTime(dto.TestTime);
+        // group.OrderNo = dto.OrderNo;
+        // group.Instance = dto.Instance;
+        // group.UserId = _accessor.HttpContext.getUserId();
+        // group.UserName = _accessor.HttpContext.getUserName();
+        //
+        // if (!string.IsNullOrEmpty(dto.ProductionTime))
+        //     group.ProductionTime = Convert.ToDateTime(dto.ProductionTime);
+        // else
+        //     group.ProductionTime = null;
+        //
+        // if (!string.IsNullOrEmpty(dto.DeliverTime))
+        //     group.DeliverTime = Convert.ToDateTime(dto.DeliverTime);
+        // else
+        //     group.DeliverTime = null;
+        //
+        // if (modify)
+        //     _gRepo.Update(group);
+        // else
+        //     _gRepo.Add(group);
+        // var ret = modify ? _uow.Save() >= 0 : _uow.Save() > 0;
+        // if (ret) groupId = group.Id;
+        // return ret;
     }
 
     /// <summary>
@@ -438,87 +478,135 @@ public class MetricalDataService : IMetricalDataService
     /// <returns></returns>
     public IEnumerable<MetricalDataTableDto> GetTable(MetricalDataQueryDto dto, out int total)
     {
-        var data = _gRepo.All().AsNoTracking();
-        var roleId = _accessor.HttpContext.getUserRoleId();
-        var canSeeOtherData = _accessor.HttpContext.getCanSeeOtherData();
-        if (roleId != _settings.AdminTypeId)
-            if (!canSeeOtherData)
-            {
-                var userId = _accessor.HttpContext.getUserId();
-                data = data.Where(c => c.UserId == userId || c.UserId == 0);
-            }
-
-        if (!string.IsNullOrEmpty(dto.BeginTime) && !string.IsNullOrEmpty(dto.EndTime))
-        {
-            var beginTime = Convert.ToDateTime(dto.BeginTime);
-            var endTime = Convert.ToDateTime(dto.EndTime);
-            data = data.Where(c => c.BeginTime >= beginTime && c.EndTime <= endTime);
-        }
-
-        if (!string.IsNullOrEmpty(dto.Query))
-            data = data.Where(c => c.Specification.Name.Contains(dto.Query) || c.Turn.Name.Contains(dto.Query) ||
-                                   c.MachineModel.Name.Contains(dto.Query) || c.MeasureType.Name.Contains(dto.Query) ||
-                                   c.UserName.Contains(dto.Query));
-
-        if (!string.IsNullOrEmpty(dto.SpecificationId))
-        {
-            var specificationId = int.Parse(dto.SpecificationId);
-            data = data.Where(c => c.SpecificationId == specificationId);
-        }
-
-        if (!string.IsNullOrEmpty(dto.SpecificationTypeId))
-        {
-            var typeId = Convert.ToInt32(dto.SpecificationTypeId);
-            data = data.Where(c => c.Specification.SpecificationTypeId == typeId);
-        }
-
-        if (!string.IsNullOrEmpty(dto.TurnId))
-        {
-            var turnId = int.Parse(dto.TurnId);
-            data = data.Where(c => c.TurnId == turnId);
-        }
-
-        if (!string.IsNullOrEmpty(dto.MachineModelId))
-        {
-            var machineModelId = int.Parse(dto.MachineModelId);
-            data = data.Where(c => c.MachineModelId == machineModelId);
-        }
-
-        if (!string.IsNullOrEmpty(dto.MeasureTypeId))
-        {
-            var typeId = int.Parse(dto.MeasureTypeId);
-            data = data.Where(c => c.MeasureTypeId == typeId);
-        }
-
-        total = data.Count();
-
-        var result = data.Include(c => c.Specification).Include(c => c.Turn).Include(c => c.MachineModel)
-            .Include(c => c.MeasureType).OrderByDescending(c => c.BeginTime).Skip(dto.Skip()).Take(dto.PageSize)
-            .Select(c => new MetricalDataTableDto
+        total = 0;
+        var exp = Expressionable.Create<MetricalGroup>()
+            .AndIF(dto.SpecificationId != null, c => c.SpecificationId == int.Parse(dto.SpecificationId))
+            .AndIF(dto.BeginTime != null && dto.EndTime != null, c => c.BeginTime.Date >= Convert.ToDateTime(dto.BeginTime).Date && c.BeginTime.Date <= Convert.ToDateTime(dto.EndTime).Date)
+            .AndIF(dto.SpecificationTypeId != null, c=>c.Specification.SpecificationTypeId == int.Parse(dto.SpecificationTypeId))
+            .AndIF(dto.TurnId != null, c=>c.TurnId == int.Parse(dto.TurnId))
+            .AndIF(dto.MeasureTypeId != null, c=>c.MeasureTypeId == int.Parse(dto.MeasureTypeId))
+            .ToExpression();
+        var list = _db.Queryable<MetricalGroup>()
+            .LeftJoin<Core.SugarEntities.Specification>((c, s) => c.SpecificationId == s.Id)
+            .LeftJoin<Team>((c, s, team) => c.TeamId == team.Id)
+            .LeftJoin<Turn>((c, s, team, turn) => c.TurnId == turn.Id)
+            .LeftJoin<Machine>((c, s, team, turn, mac) => c.MachineId == mac.Id)
+            .LeftJoin<MeasureType>((c, s, team, turn, mac, mt) => c.MeasureTypeId == mt.Id)
+            .Where(exp)
+            .OrderByDescending(c=>c.BeginTime)
+            .Select((c, s, team, turn, mac, mt) => new MetricalDataTableDto()
             {
                 Id = c.Id,
-                SpecificationName = c.Specification.Name,
+                SpecificationId = c.SpecificationId,
+                SpecificationName = s.Name,
                 SpecificationTypeId = c.Specification.SpecificationTypeId,
-                TurnName = c.Turn.Name,
-                MachineId = c.Machine == null ? 0 : c.MachineId,
-                MachineName = c.Machine == null ? "": c.Machine.Name,
-                MeasureTypeName = c.MeasureType.Name,
+                TeamId = c.TeamId,
+                TeamName = team.Name,
+                TurnName = turn.Name,
+                MachineId = c.MachineId,
+                MachineName = mac.Name,
+                MeasureTypeName = mt.Name,
                 BeginTime = c.BeginTime.ToString("yyyy-MM-dd HH:mm:ss"),
                 EndTime = c.EndTime.ToString("yyyy-MM-dd HH:mm:ss"),
                 ProductionTime = c.ProductionTime == null
                     ? ""
                     : Convert.ToDateTime(c.ProductionTime).ToString("yyyy-MM-dd"),
-                SpecificationId = c.SpecificationId,
                 TurnId = c.TurnId,
                 MeasureTypeId = c.MeasureTypeId,
                 DeliverTime = c.DeliverTime == null ? "" : Convert.ToDateTime(c.DeliverTime).ToString("yyyy-MM-dd"),
                 OrderNo = c.OrderNo ?? "",
                 Instance = c.Instance,
-                UserId = c.UserId,
                 UserName = c.UserName
-            }).ToList();
+            })
+            .ToPageList(dto.PageNum, dto.PageSize, ref total);
 
-        return result;
+        return list;
+
+        #region 原有
+
+        // var roleId = _accessor.HttpContext.getUserRoleId();
+        // var canSeeOtherData = _accessor.HttpContext.getCanSeeOtherData();
+        // if (roleId != _settings.AdminTypeId)
+        //     if (!canSeeOtherData)
+        //     {
+        //         var userId = _accessor.HttpContext.getUserId();
+        //         data = data.Where(c => c.UserId == userId || c.UserId == 0);
+        //     }
+        //
+        // if (!string.IsNullOrEmpty(dto.BeginTime) && !string.IsNullOrEmpty(dto.EndTime))
+        // {
+        //     var beginTime = Convert.ToDateTime(dto.BeginTime);
+        //     var endTime = Convert.ToDateTime(dto.EndTime);
+        //     data = data.Where(c => c.BeginTime >= beginTime && c.EndTime <= endTime);
+        // }
+        //
+        // if (!string.IsNullOrEmpty(dto.Query))
+        //     data = data.Where(c => c.Specification.Name.Contains(dto.Query) || c.Turn.Name.Contains(dto.Query) ||
+        //                            c.MachineModel.Name.Contains(dto.Query) || c.MeasureType.Name.Contains(dto.Query) ||
+        //                            c.UserName.Contains(dto.Query));
+        //
+        // if (!string.IsNullOrEmpty(dto.SpecificationId))
+        // {
+        //     var specificationId = int.Parse(dto.SpecificationId);
+        //     data = data.Where(c => c.SpecificationId == specificationId);
+        // }
+        //
+        // if (!string.IsNullOrEmpty(dto.SpecificationTypeId))
+        // {
+        //     var typeId = Convert.ToInt32(dto.SpecificationTypeId);
+        //     data = data.Where(c => c.Specification.SpecificationTypeId == typeId);
+        // }
+        //
+        // if (!string.IsNullOrEmpty(dto.TurnId))
+        // {
+        //     var turnId = int.Parse(dto.TurnId);
+        //     data = data.Where(c => c.TurnId == turnId);
+        // }
+        //
+        // if (!string.IsNullOrEmpty(dto.MachineModelId))
+        // {
+        //     var machineModelId = int.Parse(dto.MachineModelId);
+        //     data = data.Where(c => c.MachineModelId == machineModelId);
+        // }
+        //
+        // if (!string.IsNullOrEmpty(dto.MeasureTypeId))
+        // {
+        //     var typeId = int.Parse(dto.MeasureTypeId);
+        //     data = data.Where(c => c.MeasureTypeId == typeId);
+        // }
+
+            #endregion
+            
+
+        // var ret = list;
+        //
+        // var result = data.Include(c => c.Specification).Include(c => c.Turn).Include(c => c.MachineModel)
+        //     .Include(c => c.MeasureType).OrderByDescending(c => c.BeginTime).Skip(dto.Skip()).Take(dto.PageSize)
+        //     .Select(c => new MetricalDataTableDto
+        //     {
+        //         Id = c.Id,
+        //         SpecificationName = c.Specification.Name,
+        //         SpecificationTypeId = c.Specification.SpecificationTypeId,
+        //         TurnName = c.Turn.Name,
+        //         MachineId = c.Machine == null ? 0 : c.MachineId,
+        //         MachineName = c.Machine == null ? "": c.Machine.Name,
+        //         MeasureTypeName = c.MeasureType.Name,
+        //         BeginTime = c.BeginTime.ToString("yyyy-MM-dd HH:mm:ss"),
+        //         EndTime = c.EndTime.ToString("yyyy-MM-dd HH:mm:ss"),
+        //         ProductionTime = c.ProductionTime == null
+        //             ? ""
+        //             : Convert.ToDateTime(c.ProductionTime).ToString("yyyy-MM-dd"),
+        //         SpecificationId = c.SpecificationId,
+        //         TurnId = c.TurnId,
+        //         MeasureTypeId = c.MeasureTypeId,
+        //         DeliverTime = c.DeliverTime == null ? "" : Convert.ToDateTime(c.DeliverTime).ToString("yyyy-MM-dd"),
+        //         OrderNo = c.OrderNo ?? "",
+        //         Instance = c.Instance,
+        //         UserId = c.UserId,
+        //         UserName = c.UserName
+        //     }).ToList();
+
+        // return result;
     }
 
     public string GetIndicators(int id)

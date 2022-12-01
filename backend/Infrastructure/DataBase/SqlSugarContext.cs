@@ -17,8 +17,7 @@ public static class SqlSugarContext
             IsAutoCloseConnection = true,
             InitKeyType = InitKeyType.Attribute
         });
-        
-        sqlSugar.CodeFirst.InitTables<MetricalGroup, MetricalData>();
+        // sqlSugar.CodeFirst.InitTables<MetricalGroup, MetricalData>();
         sqlSugar.Aop.OnLogExecuting = (sql, pars) => { Console.WriteLine(sql + "\r"); };
         services.AddSingleton<ISqlSugarClient>(sqlSugar);
     }

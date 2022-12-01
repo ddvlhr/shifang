@@ -1,9 +1,9 @@
 ﻿using System;
 using SqlSugar;
 
-namespace Core.Entities;
+namespace Core.SugarEntities;
 
-[SugarTable("t_metrical_group")]
+[SugarTable("t_group")]
 public class MetricalGroup: SugarEntity
 {
     [SugarColumn(ColumnName = "begin_time")] 
@@ -17,28 +17,33 @@ public class MetricalGroup: SugarEntity
     [SugarColumn(ColumnName = "specification_id")] 
     public int SpecificationId { get; set; }
     [SugarColumn(IsIgnore = true)]
+    [Navigate(NavigateType.OneToOne, nameof(SpecificationId))]
     public Specification Specification { get; set; }
     [SugarColumn(IsIgnore = true)]
+    [Navigate(NavigateType.OneToOne, nameof(TeamId))]
     public Team Team { get; set; }
     [SugarColumn(ColumnName = "team_id", IsNullable = true)]
     public int TeamId { get; set; }
     [SugarColumn(ColumnName = "turn_id", IsNullable = true)]
     public int TurnId { get; set; }
     [SugarColumn(IsIgnore = true)]
+    [Navigate(NavigateType.OneToOne, nameof(TurnId))]
     public Turn Turn { get; set; }
     [SugarColumn(ColumnName = "machine_id", IsNullable = true)]
     public int MachineId { get; set; }
     [SugarColumn(IsIgnore = true)]
+    [Navigate(NavigateType.OneToOne, nameof(MachineId))]
     public Machine Machine { get; set; }
     [SugarColumn(ColumnName = "measure_type_id", IsNullable = true)]
     public int MeasureTypeId { get; set; }
     [SugarColumn(IsIgnore = true)]
+    [Navigate(NavigateType.OneToOne, nameof(MeasureTypeId))]
     public MeasureType MeasureType { get; set; }
     [SugarColumn(ColumnName = "order_no", Length = 128)]
     public string OrderNo { get; set; }
     [SugarColumn(ColumnName = "instance", Length = 64)]
     public string Instance { get; set; }
-    [SugarColumn(ColumnName = "pick_up_way")]
+    [SugarColumn(ColumnName = "pickup_way")]
     public int PickUpWay { get; set; }
     [SugarColumn(ColumnName = "user_name", Length = 64)]
     public string UserName { get; set; }

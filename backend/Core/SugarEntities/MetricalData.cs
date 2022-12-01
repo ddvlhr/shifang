@@ -1,7 +1,7 @@
 ﻿using System;
 using SqlSugar;
 
-namespace Core.Entities;
+namespace Core.SugarEntities;
 
 [SugarTable("t_metrical_data", TableDescription = "测量数据详情表")]
 public class MetricalData: SugarEntity
@@ -9,7 +9,7 @@ public class MetricalData: SugarEntity
     [SugarColumn(ColumnName = "group_id")]
     public int GroupId { get; set; }
     [SugarColumn(IsIgnore = true)]
-    public Group Group { get; set; }
+    public MetricalGroup Group { get; set; }
     [SugarColumn(ColumnName = "test_time")]
     public DateTime TestTime { get; set; }
     [SugarColumn(ColumnName = "data", ColumnDataType = "text")]

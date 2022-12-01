@@ -149,6 +149,14 @@
       :visible.sync="waterDialogFormVisible"
       @request-success="handleWaterSuccess"
     />
+    <measure-data-dialog
+      ref="measureDataDialogRef"
+      :dialogVisible.sync="measureDataDialogVisible"
+      :group="selectedGroup"
+      :data="dataFormData"
+      @submitData="handleSubmitData"
+      :desc="dataFormDescTemp1"
+    />
   </div>
 </template>
 
@@ -185,8 +193,20 @@ export default {
       specifications: [],
       reportOrderOptions: [],
       dataInfo: {},
+      selectedGroup: {},
       dataFormData: {},
       dataFormError: false,
+      measureDataDialogVisible: false,
+      dataFormDescTemp1: {
+        specificationName: {
+          type: 'text',
+          label: '牌号'
+        },
+        testTime: {
+          type: 'text',
+          label: '测量时间'
+        }
+      },
       dataFormDescTemp: {
         specificationName: {
           type: 'text',
@@ -349,7 +369,7 @@ export default {
         turnName: {
           text: '班次'
         },
-        machineModelName: {
+        machineName: {
           text: '机台'
         },
         measureTypeName: {
@@ -626,33 +646,32 @@ export default {
     },
     // 编辑测量数据方法
     async editData(data, that) {
-      await that.loadDataDesc(data, that)
-      that.isEdit = true
-      // if (!this.user.showSettings) {
-      //   if (this.user.id !== selectedData.userId) {
-      //     return this.$message.error('非管理员只能编辑自己的数据')
-      //   }
-      // }
-      that.selectedData = data
-      that.selectedGroupId = data.id
       const { data: res } = await that.$api.getData(data.id)
       if (res.meta.code !== 0) {
         return that.$message.error('获取测量数据失败: ' + res.meta.message)
       }
       var dataInfo = JSON.parse(res.data)
-      if (
-        data.specificationTypeId === that.systemSettings.filterTypeId &&
-        dataInfo.data.length === 0 &&
-        !this.systemSettings.craftTypeIds.includes(data.measureTypeId)
-      ) {
-        that.getGroupRecords()
-        that.filterDataSelectFormData = data
-        that.filterDataSelectDialog = true
-      } else {
-        that.dataFormData.groupId = data.id
-        that.dataInfo = dataInfo
-        that.dataDialogVisible = true
-      }
+      dataInfo.dataInfo = dataInfo.data
+      dataInfo.specificationId = data.specificationId
+      that.selectedGroup = dataInfo
+      that.measureDataDialogVisible = true
+      // await that.loadDataDesc(data, that)
+      // that.isEdit = true
+      // if (!this.user.showSettings) {
+      //   if (this.user.id !== selectedData.userId) {
+      //     return this.$message.error('非管理员只能编辑自己的数据')
+      //   }
+      // }
+      // that.selectedData = data
+      // that.selectedGroupId = data.id
+      // const { data: res } = await that.$api.getData(data.id)
+      // if (res.meta.code !== 0) {
+      //   return that.$message.error('获取测量数据失败: ' + res.meta.message)
+      // }
+      // var dataInfo = JSON.parse(res.data)
+      // that.dataFormData.groupId = data.id
+      // that.dataInfo = dataInfo
+      // that.dataDialogVisible = true
     },
     async getDataInfo() {
       const { data: res } = await this.$api.getData(this.selectedData.id)
@@ -680,10 +699,11 @@ export default {
     },
     // 测量数据 Dialog 提交方法
     async handleSubmitData(data) {
+      console.log(data)
       this.dataFormError = false
       var datas = JSON.stringify(data.data)
       var post = {
-        groupId: this.selectedGroupId,
+        groupId: data.groupId,
         dataInfo: datas
       }
       if (!this.isEdit) {
@@ -699,6 +719,10 @@ export default {
           return this.$message.error('提交失败：' + res.meta.message)
         }
       }
+      this.query()
+      this.dataFormData = {}
+      this.$refs.measureDataDialogRef.handleClose()
+      this.$message.success('提交成功')
     },
     // 删除测量数据功能
     async remove() {

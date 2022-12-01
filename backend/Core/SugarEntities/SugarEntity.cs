@@ -1,7 +1,7 @@
 ﻿using System;
 using SqlSugar;
 
-namespace Core.Entities;
+namespace Core.SugarEntities;
 
 public abstract class SugarEntity
 {

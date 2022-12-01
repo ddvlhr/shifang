@@ -98,6 +98,7 @@ public class OperatingLoggingMiddleware
         {
             _stopwatch.Stop();
             log.ExecutionTime = _stopwatch.ElapsedMilliseconds + " ms";
+            operating.AppendLine($"response time: {log.ExecutionTime}");
             // var user = context.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             // log.UserName = "";
             // _logRepo.Add(log);

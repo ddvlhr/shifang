@@ -61,7 +61,6 @@ export default {
   },
   methods: {
     async getIndicatorTableDesc() {
-      console.log(this.group)
       const { data: res } = await this.$api.getSpecificationIndicators(
         this.group.specificationId
       )
