@@ -170,4 +170,10 @@ public class MetricalDataController : BaseController
     {
         return Success(_mdService.GetMeasureDataBySpecificationIdAndMeasureTypeId(specificationId, measureTypeId));
     }
+
+    [HttpGet("metricalData/statistic/{id}")]
+    public IActionResult GetStatisticInfo(int id)
+    {
+        return Success(_mdService.GetStatisticInfo(id, out var message));
+    }
 }

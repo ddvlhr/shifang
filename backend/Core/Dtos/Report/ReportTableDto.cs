@@ -7,6 +7,7 @@ namespace Core.Dtos.Report;
 public class ReportTableDto
 {
     public int Id { get; set; }
+    public int GroupId { get; set; }
     public string BeginTime { get; set; }
     public string SpecificationName { get; set; }
     public int SpecificationId { get; set; }

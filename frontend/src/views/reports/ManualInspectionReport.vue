@@ -243,7 +243,10 @@ export default {
     },
     handleSuccess() {},
     handleClosed() {
-      this.formData = {}
+      this.formData = {
+        time: new Date(),
+        operation: this.$store.state.user.userInfo.nickName
+      }
     }
   }
 }

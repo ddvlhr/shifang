@@ -13,6 +13,7 @@ import QuerySelect from '@/components/QuerySelect'
 import QueryInput from '@/components/QueryInput'
 import QueryDatePicker from '@/components/QueryDatePicker'
 import MeasureDataDialog from '@/components/MeasureDataDialog'
+import StatisticDialog from '@/components/StatisticDialog'
 
 export const setupCustomComponents = () => {
   Vue.component('function-button', FunctionButton)
@@ -21,4 +22,5 @@ export const setupCustomComponents = () => {
   Vue.component('query-input', QueryInput)
   Vue.component('query-date-picker', QueryDatePicker)
   Vue.component('measure-data-dialog', MeasureDataDialog)
+  Vue.component('statistic-dialog', StatisticDialog)
 }

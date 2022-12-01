@@ -112,6 +112,7 @@ public class Startup
         services.AddLazyResolution();
         services.ConfigureWriteAble<Core.Models.Settings>(_appConfiguration.GetSection("Settings"));
         services.AddDataServices(_appConfiguration);
+        services.AddSqlSugarSetup(_appConfiguration);
         services.AddAutoDi();
         services.LoadServices();
     }

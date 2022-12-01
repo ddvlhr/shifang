@@ -100,10 +100,12 @@
       >
       </ele-form-dialog>
       <measure-data-dialog
+        ref="measureDataDialogRef"
         :dialogVisible.sync="measureDataDialogVisible"
         :group="measureDataGroup"
         :data="{}"
         @submitData="submitData"
+        :desc="submitDesc"
       />
     </el-card>
   </div>
@@ -221,6 +223,34 @@ export default {
             readonly: true
           }
         }
+      },
+      submitDesc: {
+        specificationName: {
+          type: 'text',
+          label: '牌号'
+        },
+        teamName: {
+          type: 'text',
+          label: '班组'
+        },
+        turnName: {
+          type: 'text',
+          label: '班次'
+        },
+        machineName: {
+          type: 'text',
+          label: '机台'
+        },
+        measureTypeName: {
+          type: 'text',
+          label: '测量类型'
+        },
+        qualified: {
+          type: 'select',
+          label: '是否合格',
+          options: this.$store.state.app.dicts.qualifiedTypes,
+          default: 2
+        }
       }
     }
   },
@@ -276,7 +306,6 @@ export default {
       that.dialogFormVisible = true
     },
     submit(data, that) {
-      console.log(that.measureDataDialogVisible)
       that.measureDataGroup = data
       that.measureDataDialogVisible = true
     },
@@ -288,7 +317,7 @@ export default {
         return this.$message.error('提交失败: ' + res.meta.message)
       }
       this.query()
-      this.dialogFormVisible = false
+      this.$refs.measureDataDialogRef.handleClose()
       this.$message.success('提交成功')
     },
     async handleSubmit(data) {

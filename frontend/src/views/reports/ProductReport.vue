@@ -22,7 +22,7 @@
               placeholder="牌号类型筛选"
             />
           </el-col>
-          <el-col :span="4" :offset="0">
+          <el-col :span="6" :offset="0">
             <query-select
               v-model="queryInfo.turnId"
               :options="turnOptions"
@@ -31,7 +31,7 @@
               placeholder="班次筛选"
             />
           </el-col>
-          <el-col :span="4" :offset="0">
+          <el-col :span="6" :offset="0">
             <query-select
               v-model="queryInfo.machineModelId"
               :options="machineModelOptions"
@@ -56,7 +56,7 @@
               value-format="yyyy-MM-dd"
             ></el-date-picker>
           </el-col>
-          <el-col :span="4">
+          <el-col :span="6">
             <query-select
               v-model="queryInfo.state"
               placeholder="报表状态筛选"
@@ -160,6 +160,10 @@
         <el-button @click="statisticDialogVisible = false">关 闭</el-button>
       </span>
     </el-dialog>
+    <statistic-dialog
+      :showDialog.sync="showStatisticDialog"
+      :groupId="statisticGroupId"
+    />
   </div>
 </template>
 
@@ -180,6 +184,8 @@ export default {
       statisticColumnsDesc: {},
       originColumnsDesc: {},
       originDataInfo: [],
+      showStatisticDialog: false,
+      statisticGroupId: 0,
       statisticDataInfo: [],
       statisticInfo: {
         specificationName: ''
@@ -390,19 +396,22 @@ export default {
         that.defectOptions
     },
     async statistic(data, that) {
-      const id = data.id
-      const { data: res } = await that.$api.getProductStatistic(id)
-      if (res.meta.code !== 0) {
-        return that.$message.error('获取统计信息失败: ' + res.meta.message)
-      }
-      that.statisticInfo = res.data
-      that.statisticColumnsDesc = JSON.parse(res.data.statisticColumns)
-      that.originColumnsDesc = JSON.parse(res.data.originColumns)
-      that.originDataInfo = JSON.parse(res.data.originData)
-      that.statisticDataInfo = JSON.parse(res.data.statisticData)
-      that.waterDataInfo = res.data.waterInfos
-      that.statisticKey = id
-      that.statisticDialogVisible = true
+      console.log(data)
+      that.statisticGroupId = data.groupId
+      that.showStatisticDialog = true
+      // const id = data.id
+      // const { data: res } = await that.$api.getProductStatistic(id)
+      // if (res.meta.code !== 0) {
+      //   return that.$message.error('获取统计信息失败: ' + res.meta.message)
+      // }
+      // that.statisticInfo = res.data
+      // that.statisticColumnsDesc = JSON.parse(res.data.statisticColumns)
+      // that.originColumnsDesc = JSON.parse(res.data.originColumns)
+      // that.originDataInfo = JSON.parse(res.data.originData)
+      // that.statisticDataInfo = JSON.parse(res.data.statisticData)
+      // that.waterDataInfo = res.data.waterInfos
+      // that.statisticKey = id
+      // that.statisticDialogVisible = true
     },
     async handleSubmit(data) {
       this.formError = false

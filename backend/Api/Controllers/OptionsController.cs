@@ -31,11 +31,22 @@ public class OptionsController : BaseController
     private readonly IUserService _uService;
     private readonly IWorkShopService _wsService;
 
-    public OptionsController(ISpecificationService speService, ITurnService turnService, IMachineService macService,
-        IMeasureTypeService mtService, IIndicatorService iService, ISpecificationTypeService stService,
-        IUserService uService, IMachineModelService mmService, IWorkShopService wsService,
-        IManufacturerService mService, IModelService modelService, IRoleService roleService,
-        IFactorySiteService fsService, IMethodService methodService, IReportOrderService roService,
+    public OptionsController(
+        ISpecificationService speService,
+        ITurnService turnService,
+        IMachineService macService,
+        IMeasureTypeService mtService,
+        IIndicatorService iService,
+        ISpecificationTypeService stService,
+        IUserService uService,
+        IMachineModelService mmService,
+        IWorkShopService wsService,
+        IManufacturerService mService,
+        IModelService modelService,
+        IRoleService roleService,
+        IFactorySiteService fsService,
+        IMethodService methodService,
+        IReportOrderService roService,
         IDefectService defectService)
     {
         _speService = speService;

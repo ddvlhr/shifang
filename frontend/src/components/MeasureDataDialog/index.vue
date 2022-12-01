@@ -26,6 +26,11 @@ export default {
       type: Boolean,
       default: false
     },
+    // 除table-editor之外的其他组件
+    desc: {
+      type: Object,
+      default: {}
+    },
     data: {
       type: Object,
       required: true
@@ -39,33 +44,7 @@ export default {
     return {
       formData: {},
       formDescTemp: {
-        specificationName: {
-          type: 'text',
-          label: '牌号'
-        },
-        teamName: {
-          type: 'text',
-          label: '班组'
-        },
-        turnName: {
-          type: 'text',
-          label: '班次'
-        },
-        machineName: {
-          type: 'text',
-          label: '机台'
-        },
-        measureTypeName: {
-          type: 'text',
-          label: '测量类型'
-        },
-        data: {},
-        qualified: {
-          type: 'select',
-          label: '是否合格',
-          options: this.$store.state.app.dicts.qualifiedTypes,
-          default: 2
-        }
+        data: {}
       },
       formDesc: {},
       formError: {},
@@ -91,7 +70,8 @@ export default {
           '获取指标表格描述信息失败: ' + res.meta.message
         )
       }
-      this.formDesc = this.formDescTemp
+      const desc = Object.assign(this.desc, this.formDescTemp)
+      this.formDesc = desc
       this.formDesc.data = res.data
       this.formData = this.group
       this.formData.data = this.group.dataInfo
@@ -99,6 +79,9 @@ export default {
     },
     handleSubmit(data) {
       this.$emit('submitData', data)
+    },
+    handleClose() {
+      this.dialogFormVisible = false
     },
     handleClosed() {
       this.$emit('update:dialogVisible', false)

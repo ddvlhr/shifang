@@ -497,6 +497,7 @@ public class ProductReportService : IProductReportService
                 new ReportTableDto
                 {
                     Id = c.Id,
+                    GroupId = c.GroupId,
                     BeginTime =
                         c.Group.BeginTime.ToString("yyyy-MM-dd HH:mm:ss"),
                     ProductDate = c.Group.ProductionTime == null

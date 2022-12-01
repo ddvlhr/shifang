@@ -20,6 +20,7 @@ public interface IMetricalDataService
     string GetDataInfo(int id);
     string GetSpecifications();
     string GetSpecification(int id);
+    BaseStatisticInfoDto GetStatisticInfo(int groupId, out string failReason);
     MetricalDataStatisticDto GetStatistic(int id, out string failReason);
     IEnumerable<BaseOptionDto> GetOptions();
     IEnumerable<BaseOptionDto> GetOptions(int specificationId, DateTime testDate, int type);

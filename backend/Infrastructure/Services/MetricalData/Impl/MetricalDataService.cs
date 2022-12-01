@@ -15,6 +15,7 @@ using Infrastructure.Services.Reports;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using NetTaste;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using OfficeOpenXml;
@@ -606,6 +607,121 @@ public class MetricalDataService : IMetricalDataService
             data = dataInfo
         };
         return JsonConvert.SerializeObject(temp);
+    }
+
+    public BaseStatisticInfoDto GetStatisticInfo(int groupId, out string failReason)
+    {
+        var info = new BaseStatisticInfoDto();
+        failReason = "";
+        var indicators = _iRepo.All().ToList();
+        var statisticItems = new[] { "平均值", "最大值", "最小值", "SD", "CV", "CPK", "Offs", "上超", "下超", "合格数", "合格率" };
+        var group = _gRepo.Get(groupId);
+        if (group == null)
+        {
+            failReason = "没有找到对应的测试组";
+            return info;
+        }
+        var specification = _spRepo.Get(group.SpecificationId);
+        if (specification == null)
+        {
+            failReason = "没有找到对应的牌号";
+            return info;
+        }
+        var rules = JsonConvert.DeserializeObject<List<Rule>>(specification.SingleRules);
+        if (rules == null)
+        {
+            failReason = "没有找到对应的牌号规则";
+            return info;
+        }
+        
+        var data = _dRepo.All().Where(c=>c.GroupId == group.Id).Select(c=>c.Data).ToList();
+        if (data.Count == 0)
+        {
+            failReason = "没有找到对应的测试数据";
+            return info;
+        }
+        var columns = new Dictionary<string, object>();
+        var statisticColumns = new Dictionary<string, object>();
+        var dataInfo = new List<Dictionary<string, object>>();
+        var statisticDataInfo = statisticItems.ToDictionary<string, string, object>(statisticItem => "itemName", statisticItem => statisticItem);
+
+        var index = 0;
+        foreach (var rule in rules)
+        {
+            var firstDataStr = data.FirstOrDefault();
+            if(firstDataStr == null) continue;
+            var firstData = JsonConvert.DeserializeObject<JObject>(firstDataStr);
+            if (firstData == null) continue;
+            
+            if (rule.Standard == "0") continue;
+
+            var indicatorValue = firstData[$"{rule.Id}"];
+            if (indicatorValue != null && indicatorValue.ToString() != "")
+            {
+                var indicatorName = rule.Name;
+                if (string.IsNullOrEmpty(rule.Name)) indicatorName = indicators.FirstOrDefault(c=>c.Id == rule.Id)?.Name;
+                var columnItem = new Dictionary<string, object>()
+                {
+                    {"text", indicatorName}
+                };
+                columns.Add($"a{rule.Id}", columnItem);
+                statisticColumns.Add($"a{rule.Id}", columnItem);
+            }
+
+            var dataList = new List<double>();
+            foreach (var item in data)
+            {
+                var dataItem = JsonConvert.DeserializeObject<JObject>(item);
+                if (dataItem == null) continue;
+                if (index == 0)
+                {
+                    var temp = new Dictionary<string, object>();
+                    foreach (var di in dataItem)
+                    {
+                        if (di.Key == "testTime") temp[di.Key] = di.Value;
+                        if (di.Key != "testTime" && di.Key != "id") temp[$"a{di.Key}"] = di.Value;
+                    }
+                    dataInfo.Add(temp);
+                }
+                
+                // 由于测量数据中可能会有没有填写所有指标的情况, 所以先判断是否存在该指标
+                var currentDataItem = dataItem[$"{rule.Id}"];
+                if (currentDataItem == null) continue;
+                var value = currentDataItem.ToString();
+                if (!string.IsNullOrEmpty(value))
+                    dataList.Add(double.Parse(value));
+            }
+            var statistic = dataList.toStatistic(Convert.ToDouble(rule.Standard), Convert.ToDouble(rule.Upper),
+                Convert.ToDouble(rule.Lower));
+            foreach (var item in statisticItems)
+            {
+                //var currentObj = statisticDataInfo.Where(c => c.Value == item);
+                var currentItem = item switch
+                {
+                    "平均值" => statistic.Mean.ToString("F3"),
+                    "最大值" => statistic.Max.ToString("F3"),
+                    "最小值" => statistic.Min.ToString("F3"),
+                    "SD" => statistic.Sd.ToString("F3"),
+                    "CV" => statistic.Cv.ToString("F3"),
+                    "CPK" => statistic.Cpk.ToString("F3"),
+                    "Offs" => statistic.Offset.ToString("F3"),
+                    "上超" => statistic.HighCnt.ToString(),
+                    "下超" => statistic.LowCnt.ToString(),
+                    "合格数" => statistic.Quality,
+                    "合格率" => statistic.QualityRate,
+                    _ => ""
+                };
+
+                //currentObj[$"a{rule.Id}"] = currentItem;
+                index++;
+            }
+        }
+        info.Columns = columns;
+        info.StatisticColumns = statisticColumns;
+        info.DataInfo = dataInfo;
+        //info.StatisticDataInfo = statisticDataInfo;
+
+        return info;
     }
 
     public MetricalDataStatisticDto GetStatistic(int id, out string failReason)
