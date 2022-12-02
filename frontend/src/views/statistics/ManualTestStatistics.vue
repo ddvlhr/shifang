@@ -89,15 +89,10 @@ export default {
           {
             name: '手工检验情况',
             type: 'pie',
-            radius: ['50%'],
-            avoidLabelOverlap: false,
+            radius: '50%',
             label: {
               show: true,
-              position: 'outside',
-              formatter: '{b} : {c} ({d}%)'
-            },
-            labelLine: {
-              show: true
+              formatter: '{b}: {c} ({d}%)'
             },
             emphasis: {
               label: {

@@ -140,15 +140,6 @@
         <el-button @click="statisticDialogVisible = false">取 消</el-button>
       </span>
     </el-dialog>
-    <ele-form-dialog
-      width="60%"
-      title="编辑水分检测数据"
-      :form-data="waterFormData"
-      :form-desc="waterFormDesc"
-      :request-fn="handleWaterSubmit"
-      :visible.sync="waterDialogFormVisible"
-      @request-success="handleWaterSuccess"
-    />
     <measure-data-dialog
       ref="measureDataDialogRef"
       :dialogVisible.sync="measureDataDialogVisible"
@@ -156,6 +147,10 @@
       :data="dataFormData"
       @submitData="handleSubmitData"
       :desc="dataFormDescTemp1"
+    />
+    <statistic-dialog
+      :visible.sync="statisticDialogVisible"
+      :groupId="statisticGroupId"
     />
   </div>
 </template>
@@ -182,6 +177,8 @@ export default {
         turnId: '',
         machineModelId: ''
       },
+      statisticDialogVisible: false,
+      statisticGroupId: 0,
       daterange: [],
       testTime: [],
       specificationOptions: [],
@@ -225,137 +222,10 @@ export default {
       dataDialogVisible: false,
       selectedGroupId: '',
       statisticKey: '',
-      waterFormData: {
-        groupId: '',
-        testDateTime: '',
-        infos: []
-      },
-      // 水分记录 DialogForm
-      waterFormError: false,
-      waterFormDesc: {
-        info: {
-          label: '水分检测记录',
-          type: 'table-editor',
-          attrs: {
-            columns: [
-              {
-                prop: 'id',
-                label: 'ID'
-              },
-              {
-                prop: 'before',
-                label: '烘前重(g)',
-                content: {
-                  type: 'el-input',
-                  attrs: {
-                    type: 'number',
-                    step: '0.001'
-                  },
-                  change(val, row, col) {
-                    if (row.after === '') {
-                      return self.$message.error('请输入烘后重(g)')
-                    } else {
-                      const result = getWater(val, row.after)
-                      self.$set(row, 'water', result)
-                    }
-                  }
-                }
-              },
-              {
-                prop: 'after',
-                label: '烘后重(g)',
-                content: {
-                  type: 'el-input',
-                  attrs: {
-                    type: 'number',
-                    step: '0.001'
-                  },
-                  change(val, row, col) {
-                    if (row.before === '') {
-                      return self.$message.error('请输入烘前重(g)')
-                    } else {
-                      const result = getWater(row.before, val)
-                      self.$set(row, 'water', result)
-                    }
-                  }
-                }
-              },
-              {
-                prop: 'water',
-                label: '水分(%)',
-                content: {
-                  type: 'el-input',
-                  attrs: {
-                    type: 'number',
-                    step: '0.001'
-                  }
-                }
-              }
-            ]
-          }
-        }
-      },
-      waterDialogFormVisible: false,
       currentDataIndex: 0,
       currentDataTestTime: '',
-      waterId: '',
-      addWaterMethod: {
-        change: async function (val, row, index) {
-          if (row.testTime === undefined) {
-            return self.$message.error('请先填写测量时间')
-          }
-          const { data: res } = await self.$api.getWaterRecordByGroupId(
-            self.selectedGroupId
-          )
-          if (res.meta.code !== 0) {
-            return this.$message.error(
-              '获取水分测量数据失败: ' + res.meta.message
-            )
-          } else {
-            if (res.data != null) {
-              self.waterFormData.info = res.data.infos
-            } else {
-              self.waterFormData.info = []
-            }
-            self.currentDataTestTime = row.testTime
-            self.currentDataIndex = index
-            self.waterDialogFormVisible = true
-          }
-        }
-      },
       tabSelected: 'statistic',
-      tableDesc: {
-        on: {
-          'selection-change': async function selectionChange(data) {
-            if (data.length > 0) {
-              const item = data[data.length - 1]
-              const id = data[data.length - 1].id
-              const { data: res } = await self.$api.getDataInfo(id)
-              if (res.meta.code !== 0) {
-                return this.$message.error(
-                  '获取牌号指标信息失败: ' + res.meta.message
-                )
-              }
-              const desc = JSON.parse(res.data)
-              const columns = desc.desc.data.attrs.columns
-              const water = columns.find((c) => c.label === '水分')
-              if (water !== undefined) {
-                water.content.change = self.addWaterMethod.change
-                self.waterId = water.prop
-              }
-              self.dataFormDesc = self.dataFormDescTemp
-              if (
-                item.specificationTypeId !== self.systemSettings.filterTypeId
-              ) {
-                self.dataFormDesc.choose.attrs.disabled = true
-              }
-              self.dataFormDesc.data = desc.desc.data
-              console.log(self.dataFormDesc)
-              self.$message.success('数据表格加载成功, 可以开始编辑数据')
-            }
-          }
-        }
-      },
+      tableDesc: {},
       columnsDesc: {
         beginTime: {
           text: '测量时间'
@@ -612,17 +482,19 @@ export default {
       that.dialogFormVisible = true
     },
     async statistic(data, that) {
-      const { data: res } = await that.$api.getStatistic(data.id)
-      if (res.meta.code !== 0) {
-        return that.$message.error('获取统计信息失败: ' + res.meta.message)
-      }
-      that.clearStatisticInfo()
-      that.statisticColumnsDesc = JSON.parse(res.data.statisticColumns)
-      that.originColumnsDesc = JSON.parse(res.data.originColumns)
-      that.originDataInfo = JSON.parse(res.data.originDataInfo)
-      that.statisticDataInfo = JSON.parse(res.data.dataInfo)
-      that.statisticKey = data.id
+      that.statisticGroupId = data.id
       that.statisticDialogVisible = true
+      // const { data: res } = await that.$api.getStatistic(data.id)
+      // if (res.meta.code !== 0) {
+      //   return that.$message.error('获取统计信息失败: ' + res.meta.message)
+      // }
+      // that.clearStatisticInfo()
+      // that.statisticColumnsDesc = JSON.parse(res.data.statisticColumns)
+      // that.originColumnsDesc = JSON.parse(res.data.originColumns)
+      // that.originDataInfo = JSON.parse(res.data.originDataInfo)
+      // that.statisticDataInfo = JSON.parse(res.data.dataInfo)
+      // that.statisticKey = data.id
+      // that.statisticDialogVisible = true
     },
     // 获取表格中选中的数据
     getSelectedData(multi) {
@@ -656,23 +528,6 @@ export default {
       dataInfo.specificationId = data.specificationId
       that.selectedGroup = dataInfo
       that.measureDataDialogVisible = true
-      // await that.loadDataDesc(data, that)
-      // that.isEdit = true
-      // if (!this.user.showSettings) {
-      //   if (this.user.id !== selectedData.userId) {
-      //     return this.$message.error('非管理员只能编辑自己的数据')
-      //   }
-      // }
-      // that.selectedData = data
-      // that.selectedGroupId = data.id
-      // const { data: res } = await that.$api.getData(data.id)
-      // if (res.meta.code !== 0) {
-      //   return that.$message.error('获取测量数据失败: ' + res.meta.message)
-      // }
-      // var dataInfo = JSON.parse(res.data)
-      // that.dataFormData.groupId = data.id
-      // that.dataInfo = dataInfo
-      // that.dataDialogVisible = true
     },
     async getDataInfo() {
       const { data: res } = await this.$api.getData(this.selectedData.id)

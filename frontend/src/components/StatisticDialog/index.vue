@@ -69,30 +69,21 @@
                   scope.row[col.key]?.text === 0 ? '' : scope.row[col.key]?.text
                 }}
               </p>
-              <!-- <p
-                v-else-if="
-                  scope.row[col.key]?.high &&
-                  scope.row[col.key]?.text > scope.row[col.key]?.high
-                "
-                class="text-red-600"
-              >
-                {{ scope.row[col.key]?.text }}
-              </p>
-              <p
-                v-else-if="
-                  scope.row[col.key]?.high &&
-                  scope.row[col.key]?.text < scope.row[col.key]?.low
-                "
-                class="text-blue-600"
-              >
-                {{ scope.row[col.key]?.text }}
-              </p>
-              <p v-else class="text-green-600">
-                {{ scope.row[col.key]?.text }}
-              </p> -->
             </template>
           </el-table-column>
         </el-table>
+      </el-tab-pane>
+      <el-tab-pane v-if="showChart" label="数据图表" name="chart">
+        <el-tabs tab-position="top">
+          <el-tab-pane
+            v-for="col in measureColumns"
+            :label="col.text"
+            :name="col.key"
+            :key="col.key"
+          >
+            <v-chart />
+          </el-tab-pane>
+        </el-tabs>
       </el-tab-pane>
     </el-tabs>
     <span slot="footer" class="dialog-footer">
@@ -102,7 +93,14 @@
 </template>
 
 <script>
+import VChart, { THEME_KEY } from 'vue-echarts'
 export default {
+  components: {
+    VChart
+  },
+  provide: {
+    [THEME_KEY]: 'light'
+  },
   props: {
     visible: {
       type: Boolean,
@@ -111,6 +109,10 @@ export default {
     groupId: {
       type: Number,
       requried: true
+    },
+    showChart: {
+      type: Boolean,
+      default: false
     }
   },
   data() {
@@ -119,6 +121,7 @@ export default {
       tabSelected: 'statistic',
       statisticKey: 123,
       columns: {},
+      measureColumns: [],
       statisticColumns: {},
       dataInfo: [],
       statisticDataInfo: []
@@ -145,6 +148,9 @@ export default {
         if (Object.hasOwnProperty.call(columns, key)) {
           const element = columns[key]
           tempColumns.push({ key, text: element.text })
+          if (key !== 'testTime') {
+            this.measureColumns.push({ key, text: element.text, init: false })
+          }
         }
       }
       this.columns = tempColumns
