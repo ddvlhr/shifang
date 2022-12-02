@@ -7,5 +7,5 @@ public class BaseStatisticInfoDto
     public Dictionary<string, object> Columns { get; set; }
     public Dictionary<string, object> StatisticColumns { get; set; }
     public List<Dictionary<string, object>> DataInfo { get; set; }
-    public List<Dictionary<string, object>> StatisticDataInfo { get; set; }
+    public List<Dictionary<string, Dictionary<string, object>>> StatisticDataInfo { get; set; }
 }

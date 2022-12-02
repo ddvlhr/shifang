@@ -646,6 +646,7 @@ export default {
     },
     // 编辑测量数据方法
     async editData(data, that) {
+      that.isEdit = true
       const { data: res } = await that.$api.getData(data.id)
       if (res.meta.code !== 0) {
         return that.$message.error('获取测量数据失败: ' + res.meta.message)

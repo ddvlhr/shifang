@@ -3,7 +3,7 @@ using SqlSugar;
 
 namespace Core.SugarEntities;
 
-[SugarTable("t_metrical_data", TableDescription = "测量数据详情表")]
+[SugarTable("t_data", TableDescription = "测量数据详情表")]
 public class MetricalData: SugarEntity
 {
     [SugarColumn(ColumnName = "group_id")]

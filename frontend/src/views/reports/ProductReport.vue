@@ -161,7 +161,7 @@
       </span>
     </el-dialog>
     <statistic-dialog
-      :showDialog.sync="showStatisticDialog"
+      :visible.sync="showStatisticDialog"
       :groupId="statisticGroupId"
     />
   </div>
