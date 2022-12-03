@@ -13,7 +13,7 @@ public static class SqlSugarContext
         var sqlSugar = new SqlSugarScope(new ConnectionConfig()
         {
             ConnectionString = configuration.GetConnectionString("tencent"),
-            DbType = DbType.MySql,
+            DbType = DbType.MySqlConnector,
             IsAutoCloseConnection = true,
             InitKeyType = InitKeyType.Attribute
         });
