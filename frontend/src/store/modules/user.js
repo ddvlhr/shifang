@@ -10,7 +10,8 @@ export default {
   namespaced: true,
   state: {
     userInfo: {},
-    token: ''
+    token: '',
+    serverMessages: []
   },
   mutations: {
     setUserInfo(state, userInfo) {
@@ -21,6 +22,21 @@ export default {
     },
     clearToken(state) {
       state.token = ''
+    },
+    addServerMessage(state, message) {
+      state.serverMessages.push(message)
+    }
+  },
+  actions: {
+    addServerMessage({ commit }, message) {
+      console.log('user store: ' + message)
+      const msg = {
+        time: new Date().getTime(),
+        message: message
+      }
+      console.log(msg)
+      commit('addServerMessage', msg)
+      // state.serverMessages.push(message)
     }
   }
 }

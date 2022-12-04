@@ -2,6 +2,7 @@
 using System.IO;
 using System.Reflection;
 using System.Text;
+using Api.Hubs;
 using Api.Settings;
 using Core.Models;
 using Infrastructure.DataBase;
@@ -30,7 +31,7 @@ public class Startup
     public void ConfigureServices(IServiceCollection services)
     {
         services.AddControllers();
-
+        
         services.AddSwaggerGen(c =>
         {
             c.SwaggerDoc("v1",
@@ -115,6 +116,7 @@ public class Startup
         services.AddSqlSugarSetup(_appConfiguration);
         services.AddAutoDi();
         services.LoadServices();
+        services.AddSignalR();
     }
 
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILogger<Startup> logger)
@@ -145,6 +147,10 @@ public class Startup
 
         app.UseAuthorization();
 
-        app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
+        app.UseEndpoints(endpoints =>
+        {
+            endpoints.MapControllers();
+            endpoints.MapHub<ServerHub>("/ServerHub");
+        });
     }
 }

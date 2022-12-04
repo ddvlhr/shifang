@@ -19,6 +19,7 @@
     }
   },
   "dependencies": {
+    "@microsoft/signalr": "^7.0.0",
     "axios": "^0.21.1",
     "bootstrap": "^5.1.0",
     "core-js": "^3.17.1",

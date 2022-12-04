@@ -5,6 +5,8 @@ using System.Text.Json.Nodes;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
+using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace Api.Settings.Impl;
 
@@ -36,7 +38,6 @@ public class WriteAbleOptions<T> : IWriteAbleOptions<T> where T : class, new()
         var fileProvider = _env.ContentRootFileProvider;
         var fileInfo = fileProvider.GetFileInfo(_file);
         var physicalPath = fileInfo.PhysicalPath;
-        // var jObject = JsonConvert.DeserializeObject<JObject>(File.ReadAllText(physicalPath));
         var jsonObj = JsonSerializer.Deserialize<JsonObject>(File.ReadAllText(physicalPath));
         if (jsonObj != null)
         {
@@ -50,14 +51,12 @@ public class WriteAbleOptions<T> : IWriteAbleOptions<T> where T : class, new()
                 jsonObj[_section] = JsonNode.Parse(JsonSerializer.Serialize(sectionObj));
             }
         }
-
-        // var sectionObject = jObject.TryGetValue(_section, out JToken section)
-        //     ? JsonConvert.DeserializeObject<T>(section.ToString())
-        //     : (Value ?? new T());
-        // applyChanges(sectionObject);
-        // jObject[_section] = JObject.Parse(JsonConvert.SerializeObject(sectionObject));
-        // File.WriteAllText(physicalPath, JsonConvert.SerializeObject(jObject, Formatting.Indented));
-        File.WriteAllText(physicalPath, JsonSerializer.Serialize(jsonObj));
+        
+        var serializeOptions = new JsonSerializerOptions()
+        {
+            WriteIndented = true
+        };
+        File.WriteAllText(physicalPath, JsonSerializer.Serialize(jsonObj, serializeOptions));
         _configuration.Reload();
     }
 

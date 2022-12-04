@@ -4,11 +4,11 @@
  * @LastEditors: ddvlhr 354874258@qq.com
  * @LastEditTime: 2022-10-26 22:29:39
  * @FilePath: /frontend/src/plugins/element-ui/index.js
- * @Description: 
+ * @Description:
  */
 import Vue from 'vue'
 import ElementUI from 'element-ui'
-import { Loading, MessageBox, Message } from 'element-ui'
+import { Loading, MessageBox, Message, Notification } from 'element-ui'
 import '@/styles/element-variables.scss'
 
 export const setupElementUI = () => {
@@ -19,6 +19,6 @@ export const setupElementUI = () => {
   Vue.prototype.$alert = MessageBox.alert
   Vue.prototype.$confirm = MessageBox.confirm
   Vue.prototype.$prompt = MessageBox.prompt
-  // Vue.promptype.$notify = Notification
+  Vue.prototype.$notify = Notification
   Vue.prototype.$message = Message
 }

@@ -7,19 +7,30 @@
  * @Description: Dashboard
 -->
 <template>
-  <div class="main-container">
-    Dashboard
-  </div>
+  <div class="main-container">Dashboard</div>
 </template>
 
 <script>
 export default {
   data() {
-    return {}
+    return {
+      user: '',
+      message: '',
+      connection: '',
+      receiveMessage: ''
+    }
   },
   created() {},
+  mounted() {},
   methods: {}
 }
 </script>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+#message {
+  overflow-y: auto;
+  text-align: left;
+  border: #42b983 solid 1px;
+  height: 500px;
+}
+</style>

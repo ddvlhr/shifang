@@ -22,6 +22,7 @@
 <script>
 import TopHeader from '@/components/TopHeader'
 import Menu from '@/components/Menu'
+import sr from '@/utils/signalR'
 export default {
   components: {
     TopHeader,
@@ -90,6 +91,7 @@ export default {
       process.env.NODE_ENV === 'development'
         ? 'https://localhost:5001'
         : window.location.protocol + '//' + window.location.hostname + ':81'
+    sr.init(this.serverAddr + '/ServerHub', this.$store.state.user.userInfo)
   },
   computed: {
     asideWidth() {
@@ -168,8 +170,7 @@ export default {
         this.imageUploadFormVisible = false
         this.$message.success('提交成功')
       }
-    },
-    
+    }
   }
 }
 </script>
