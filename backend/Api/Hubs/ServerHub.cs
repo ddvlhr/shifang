@@ -4,13 +4,11 @@ using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Core.Dtos.User;
-using Infrastructure.Helper;
 using Infrastructure.Response;
 using Infrastructure.Services.System;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Http;
-// using Response = Infrastructure.Response.Response;
 
 namespace Api.Hubs;
 

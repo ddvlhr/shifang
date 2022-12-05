@@ -11,7 +11,7 @@ export default {
   state: {
     userInfo: {},
     token: '',
-    serverMessages: []
+    notice: []
   },
   mutations: {
     setUserInfo(state, userInfo) {
@@ -23,20 +23,24 @@ export default {
     clearToken(state) {
       state.token = ''
     },
-    addServerMessage(state, message) {
-      state.serverMessages.push(message)
+    addNotice(state, message) {
+      state.notice.push(message)
+    },
+    deleteNotice(state, time) {
+      let index = state.notice.findIndex((item) => item.time === time)
+      state.notice.splice(index, 1)
     }
   },
   actions: {
-    addServerMessage({ commit }, message) {
-      console.log('user store: ' + message)
+    addNotice({ commit }, message) {
       const msg = {
         time: new Date().getTime(),
         message: message
       }
-      console.log(msg)
-      commit('addServerMessage', msg)
-      // state.serverMessages.push(message)
+      commit('addNotice', msg)
+    },
+    deleteNotice({ commit }, time) {
+      commit('deleteNotice', time)
     }
   }
 }

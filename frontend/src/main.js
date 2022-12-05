@@ -38,8 +38,11 @@ import { setupVueEcharts } from '@/plugins/vue-echarts'
 import 'windi.css'
 import './permission'
 
+const dayjs = require('dayjs')
+
 Vue.prototype.$api = Api
 Vue.prototype.$np = NProgress
+Vue.prototype.dayjs = dayjs
 
 setupCustomComponents()
 
@@ -50,6 +53,11 @@ setupEleForm()
 setupEleTable()
 setupRouterTab()
 setupVueEcharts()
+
+Vue.filter('dateToString', function (value) {
+  if (!value) return ''
+  return dayjs(value).format('YYYY-MM-DD HH:mm:ss')
+})
 
 let vueThis = new Vue({
   router,

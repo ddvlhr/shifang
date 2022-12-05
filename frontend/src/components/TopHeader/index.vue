@@ -11,6 +11,7 @@
     <div class="title">数据采集与分析系统</div>
     <Collapse />
     <div class="right-menu">
+      <Notice />
       <Setting v-if="showSetting" />
       <UserInfo />
     </div>
@@ -21,11 +22,13 @@
 import Collapse from '@/components/Collapse'
 import Setting from '@/components/Setting'
 import UserInfo from '@/components/UserInfo'
+import Notice from '@/components/Notice'
 export default {
   components: {
     Collapse,
     Setting,
-    UserInfo
+    UserInfo,
+    Notice
   },
   data() {
     return {}

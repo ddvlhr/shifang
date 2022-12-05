@@ -37,7 +37,7 @@ sr.init = (url, token) => {
 
   sr.connection.on('ReceiveMessage', (data) => {
     const res = JSON.parse(data)
-    store.dispatch('user/addServerMessage', res.meta.message)
+    store.dispatch('user/addNotice', res.meta.message)
     Notification({
       title: '系统消息',
       message: res.meta.message,
