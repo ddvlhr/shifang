@@ -17,7 +17,6 @@ public class SettingController : BaseController
     private readonly IRepository<SystemSetting> _ssRepo;
     private readonly IUnitOfWork _uow;
     private readonly IWriteAbleOptions<Core.Models.Settings> _writeAbleSettings;
-    private ApplicationManager appManager = ApplicationManager.Load();
 
     public SettingController(IWriteAbleOptions<Core.Models.Settings> writeAbleSettings,
         IConfiguration configuration, IRepository<SystemSetting> ssRepo, IUnitOfWork uow)

@@ -11,7 +11,7 @@
     <div class="title">数据采集与分析系统</div>
     <Collapse />
     <div class="right-menu">
-      <!-- <Setting v-if="showSetting" /> -->
+      <Setting v-if="showSetting" />
       <UserInfo />
     </div>
   </el-header>
