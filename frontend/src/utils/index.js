@@ -55,7 +55,7 @@ export const getPermissionButtons = (routes, rootId, path) => {
  * 初始化表格右边按钮
  * @param {*} methods 当前页面 methods
  * @param {*} that 当前页面 this
- * @returns 
+ * @returns
  */
 export const initRightButtons = async (that) => {
   const buttons = await store.dispatch('permission/getMenuButtons')
@@ -81,4 +81,31 @@ export const queryTable = (that, func) => {
   const page = that.$refs.table.page
   func({ size, page })
   that.$refs.table.getData()
+}
+
+/**
+ * 获取当前存储使用空间
+ * @param {String} cache 存储类型
+ * @returns {String} 存储使用空间-KB
+ */
+export const getCacheSize = (cache) => {
+  cache = cache === undefined ? 'sessionStorage' : cache
+  let storage = ''
+  let size = 0
+  if (cache === 'localStorage') {
+    if (!window.localStorage) return '浏览器不支持localStorage'
+    storage = window.localStorage
+  } else {
+    if (!window.sessionStorage) return '浏览器不支持sessionStorage'
+    storage = window.sessionStorage
+  }
+  if (storage !== '') {
+    for (let item in storage) {
+      if (storage.hasOwnProperty(item)) {
+        size += storage.getItem(item).length
+      }
+    }
+  }
+
+  return (size / 1024).toFixed(2) + 'KB'
 }

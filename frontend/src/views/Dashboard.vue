@@ -7,20 +7,50 @@
  * @Description: Dashboard
 -->
 <template>
-  <div class="main-container">Dashboard</div>
+  <div class="main-container">
+    <el-row :gutter="20">
+      <el-col :span="18" :offset="0" class="border border-dark-500">
+        Dashboard
+      </el-col>
+      <el-col :span="6" :offset="0">
+        <el-row :gutter="20">
+          <el-col :span="24" :offset="0">
+            <el-card shadow="never" :body-style="{ padding: '20px' }">
+              <div slot="header">
+                <span>LocalStorage 使用存储空间</span>
+              </div>
+              {{ localStorageSize }} / 5101 KB
+            </el-card>
+          </el-col>
+        </el-row>
+        <el-row :gutter="20" class="mt-3">
+          <el-col :span="24" :offset="0">
+            <el-card shadow="never" :body-style="{ padding: '20px' }">
+              <div slot="header">
+                <span>SessionStorage 存储使用空间</span>
+              </div>
+              {{ sessionStorageSize }} / 5101 KB
+            </el-card></el-col
+          >
+        </el-row>
+      </el-col>
+    </el-row>
+  </div>
 </template>
 
 <script>
+import { getCacheSize } from '@/utils'
 export default {
   data() {
     return {
-      user: '',
-      message: '',
-      connection: '',
-      receiveMessage: ''
+      localStorageSize: '',
+      sessionStorageSize: ''
     }
   },
-  created() {},
+  created() {
+    this.localStorageSize = getCacheSize('localStorage')
+    this.sessionStorageSize = getCacheSize('sessionStorage')
+  },
   mounted() {},
   methods: {}
 }
