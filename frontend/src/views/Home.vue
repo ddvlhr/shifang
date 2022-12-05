@@ -91,7 +91,10 @@ export default {
       process.env.NODE_ENV === 'development'
         ? 'https://localhost:5001'
         : window.location.protocol + '//' + window.location.hostname + ':81'
-    sr.init(this.serverAddr + '/ServerHub', this.$store.state.user.userInfo)
+
+    // 初始化SignalR, 在登录和刷新页面时调用, 判断是否需要初始化, 防止重复初始化
+    if (!sr.connection || sr.connection.state === 'Disconnected')
+      sr.init(this.serverAddr + '/ServerHub', this.$store.state.user.userInfo)
   },
   computed: {
     asideWidth() {

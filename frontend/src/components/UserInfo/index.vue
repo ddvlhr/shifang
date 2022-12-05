@@ -31,6 +31,7 @@
 </template>
 
 <script>
+import sr from '@/utils/signalR'
 export default {
   data() {
     return {
@@ -55,7 +56,7 @@ export default {
         }
       },
       dialogFormVisible: false,
-      formError: false,
+      formError: false
     }
   },
   created() {
@@ -69,6 +70,8 @@ export default {
     },
     handleCommand(command) {
       if (command === 'logOut') {
+        sr.off()
+        console.log(sr.connection)
         this.logOut()
       } else {
         this.dialogFormVisible = true
@@ -88,7 +91,7 @@ export default {
         this.$message.success('密码修改成功, 请重新登录')
         this.logOut()
       }
-    },
+    }
   }
 }
 </script>

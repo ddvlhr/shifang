@@ -3,6 +3,7 @@ import { Notification } from 'element-ui'
 import store from '@/store'
 
 let sr = {
+  name: 'ReceiveMessage',
   connection: null
 }
 
@@ -71,6 +72,10 @@ sr.init = (url, token) => {
       type: 'success'
     })
   })
+}
+
+sr.off = () => {
+  sr.connection.stop()
 }
 
 export default sr
