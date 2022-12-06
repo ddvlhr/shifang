@@ -29,6 +29,9 @@ export default {
     deleteNotice(state, time) {
       let index = state.notice.findIndex((item) => item.time === time)
       state.notice.splice(index, 1)
+    },
+    clearNotice(state) {
+      state.notice = []
     }
   },
   actions: {
@@ -41,6 +44,9 @@ export default {
     },
     deleteNotice({ commit }, time) {
       commit('deleteNotice', time)
+    },
+    clearNotice({ commit }) {
+      commit('clearNotice')
     }
   }
 }

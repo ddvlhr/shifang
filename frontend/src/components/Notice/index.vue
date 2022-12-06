@@ -19,6 +19,13 @@
       <el-card shadow="always" class="notice-can-click">
         <div slot="header" class="clearfix notice-can-click">
           <span>通知</span>
+          <el-button
+            style="float: right; padding: 22px 33px"
+            type="text"
+            class="notice-can-click"
+            @click="clearNoticeList"
+            >清空</el-button
+          >
         </div>
         <div
           class="show-notice-list notice-can-click"
@@ -89,6 +96,9 @@ export default {
   methods: {
     deleteNotice(time) {
       this.$store.dispatch('user/deleteNotice', time)
+    },
+    clearNoticeList() {
+      this.$store.dispatch('user/clearNotice')
     }
   }
 }
