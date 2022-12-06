@@ -4,7 +4,7 @@
  * @LastEditors: ddvlhr 354874258@qq.com
  * @LastEditTime: 2022-10-29 11:16:31
  * @FilePath: /frontend/src/store/modules/app.js
- * @Description: 
+ * @Description:
  */
 export default {
   namespaced: true,
@@ -14,7 +14,8 @@ export default {
     rootMenuName: '',
     activePath: '',
     settings: {},
-    dicts: []
+    dicts: [],
+    onlineUsers: 0
   },
   getters: {},
   mutations: {
@@ -35,7 +36,14 @@ export default {
     },
     setDicts(state, dicts) {
       state.dicts = dicts
+    },
+    setOnlineUsers(state, num) {
+      state.onlineUsers = num
     }
   },
-  actions: {}
+  actions: {
+    setOnlineUsers({ commit }, num) {
+      commit('setOnlineUsers', num)
+    }
+  }
 }

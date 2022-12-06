@@ -1,5 +1,6 @@
 ﻿using System;
 using Core.Entities;
+using Core.SugarEntities;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using SqlSugar;
@@ -17,7 +18,7 @@ public static class SqlSugarContext
             IsAutoCloseConnection = true,
             InitKeyType = InitKeyType.Attribute
         });
-        // sqlSugar.CodeFirst.InitTables<MetricalGroup, MetricalData>();
+        sqlSugar.CodeFirst.InitTables<ShiFangSettings>();
         sqlSugar.Aop.OnLogExecuting = (sql, pars) => { Console.WriteLine(sql + "\r"); };
         services.AddSingleton<ISqlSugarClient>(sqlSugar);
     }

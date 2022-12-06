@@ -1,7 +1,9 @@
 ﻿using System;
 using System.IO;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text;
+using Api.BackgroundServices;
 using Api.Hubs;
 using Api.Settings;
 using Core.Models;
@@ -24,6 +26,10 @@ builder.Host.ConfigureLogging(logging =>
 {
     logging.SetMinimumLevel(LogLevel.Warning);
     logging.AddFile();
+}).ConfigureServices(services =>
+{
+    services.AddHostedService<OnlineUserBackgroundService>();
+    services.AddHostedService<ServerInfoBackgroundService>();
 });
 
 var configuration = builder.Configuration;
@@ -34,7 +40,7 @@ services.AddSignalR();
 services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1",
-        new OpenApiInfo {Title = "数据采集与分析系统 API", Version = "v1"});
+        new OpenApiInfo { Title = "数据采集与分析系统 API", Version = "v1" });
 
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
@@ -110,7 +116,7 @@ services.AddAuthentication(c =>
 
 services.AddHttpContextAccessor();
 services.AddLazyResolution();
-services.ConfigureWriteAble<Core.Models.Settings>(configuration.GetSection("Settings"));
+services.ConfigureWriteAble<ShiFangSettings>(configuration.GetSection("Settings"));
 services.AddDataServices(configuration);
 services.AddSqlSugarSetup(configuration);
 services.AddAutoDi();
@@ -150,7 +156,7 @@ app.UseCors("FuYang");
 app.UseAuthentication();
 
 app.UseAuthorization();
-        
+
 app.UseWatchDog(opt =>
 {
     opt.WatchPageUsername = "admin";

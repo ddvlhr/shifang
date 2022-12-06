@@ -6,6 +6,7 @@ using Core.Entities;
 using Core.Enums;
 using Infrastructure.Extensions;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 
 namespace Api.Controllers;
 
@@ -14,6 +15,12 @@ namespace Api.Controllers;
 /// </summary>
 public class DictionaryController : BaseController
 {
+    private readonly IConfiguration _configuration;
+
+    public DictionaryController(IConfiguration configuration)
+    {
+        _configuration = configuration;
+    }
     [HttpGet, Route("dict")]
     public IActionResult GetDictionary()
     {
@@ -68,6 +75,12 @@ public class DictionaryController : BaseController
                 { Value = MaterialCheckStatus.Done, Text = MaterialCheckStatus.Done.toDescription(), Type = "success" }
         };
 
+        var dataBaseOptions =
+            _configuration.GetSection("ConnectionStrings").GetChildren().Select(c=> new BaseOptionDto()
+            {
+                Value = c.Key, Text = c.Key
+            }).ToList();
+
         return Success(new
         {
             permissionTypes,
@@ -82,7 +95,8 @@ public class DictionaryController : BaseController
             qualified,
             qualifiedTypes,
             materialCheckStatus,
-            materialCheckStatusTypes
+            materialCheckStatusTypes,
+            dataBaseOptions
         });
     }
 }

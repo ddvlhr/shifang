@@ -53,6 +53,7 @@
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
         <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="6.15.0" />
+        <PackageReference Include="MiniExcel" Version="1.29.0" />
         <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
         <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="6.0.0" />
         <PackageReference Include="SqlSugar.MySqlConnectorCore" Version="5.10.3.32" />

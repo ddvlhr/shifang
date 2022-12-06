@@ -10,7 +10,7 @@ public static class ServiceCollectionExtensions
 {
     public static void ConfigureWriteAble<T>(this IServiceCollection services,
         IConfigurationSection section,
-        string file = "appsettings.json") where T : class, new()
+        string file = "appsettings.shifang.json") where T : class, new()
     {
         services.Configure<T>(section);
         services.AddTransient<IWriteAbleOptions<T>>(provider =>

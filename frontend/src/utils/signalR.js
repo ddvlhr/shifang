@@ -45,6 +45,11 @@ sr.init = (url, token) => {
     })
   })
 
+  sr.connection.on('OnlineUserMessage', (data) => {
+    const res = JSON.parse(data)
+    store.dispatch('app/setOnlineUsers', res.data)
+  })
+
   sr.connection
     .start()
     .then(() => {

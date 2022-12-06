@@ -11,6 +11,9 @@
     <div class="title">数据采集与分析系统</div>
     <Collapse />
     <div class="right-menu">
+      <div class="top-header-tool-item hover-trigger">
+        在线用户: {{ onlineUserCount }}
+      </div>
       <Notice />
       <Setting v-if="showSetting" />
       <UserInfo />
@@ -37,6 +40,9 @@ export default {
     showSetting() {
       const userInfo = this.$store.state.user.userInfo
       return userInfo.showSettings
+    },
+    onlineUserCount() {
+      return this.$store.state.app.onlineUsers
     }
   },
   created() {},

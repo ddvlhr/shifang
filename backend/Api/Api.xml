@@ -270,12 +270,6 @@
                 天气
             </summary>
         </member>
-        <member name="M:Api.Controllers.WeatherForecastController.Get">
-            <summary>
-                获取天气信息
-            </summary>
-            <returns>随机天气数据</returns>
-        </member>
         <member name="M:Api.Controllers.WeatherForecastController.Error">
             <summary>
                 测试错误接口
