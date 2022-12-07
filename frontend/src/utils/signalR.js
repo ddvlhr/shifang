@@ -38,6 +38,7 @@ sr.init = (url, token) => {
   sr.connection.on('ReceiveMessage', (data) => {
     const res = JSON.parse(data)
     store.dispatch('user/addNotice', res.meta.message)
+    store.dispatch('app/setSystemCacheSize')
     Notification({
       title: '系统消息',
       message: res.meta.message,
@@ -48,6 +49,11 @@ sr.init = (url, token) => {
   sr.connection.on('OnlineUserMessage', (data) => {
     const res = JSON.parse(data)
     store.dispatch('app/setOnlineUsers', res.data)
+  })
+
+  sr.connection.on('ServerInfoMessage', (data) => {
+    const res = JSON.parse(data)
+    store.dispatch('app/setServerInfo', res.data)
   })
 
   sr.connection

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.IO;
 using System.Reflection;
-using System.Runtime.InteropServices;
 using System.Text;
 using Api.BackgroundServices;
 using Api.Hubs;
@@ -22,6 +21,9 @@ using WatchDog;
 using WatchDog.src.Enums;
 
 var builder = WebApplication.CreateBuilder(args);
+var configuration = builder.Configuration;
+var services = builder.Services;
+
 builder.Host.ConfigureLogging(logging =>
 {
     logging.SetMinimumLevel(LogLevel.Warning);
@@ -30,10 +32,13 @@ builder.Host.ConfigureLogging(logging =>
 {
     services.AddHostedService<OnlineUserBackgroundService>();
     services.AddHostedService<ServerInfoBackgroundService>();
+}).ConfigureAppConfiguration((hostingContext, config) =>
+{
+    config.AddJsonFile("appsettings.shifang.json", optional: true, reloadOnChange: true);
+    config.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+    config.AddEnvironmentVariables();
+    config.AddCommandLine(args);
 });
-
-var configuration = builder.Configuration;
-var services = builder.Services;
 
 services.AddControllers();
 services.AddSignalR();
@@ -75,10 +80,11 @@ services.AddSwaggerGen(c =>
 
 services.AddCors(options =>
 {
-    options.AddPolicy("FuYang", b =>
+    options.AddPolicy("ShiFang", b =>
     {
         var allowOrigins = configuration.GetSection("allowOrigins").Get<string[]>();
-        b.WithOrigins(allowOrigins)
+        // b.WithOrigins(allowOrigins)
+        b.SetIsOriginAllowed(_ => true)
             .AllowAnyHeader()
             .AllowAnyMethod()
             .AllowCredentials();
@@ -116,7 +122,7 @@ services.AddAuthentication(c =>
 
 services.AddHttpContextAccessor();
 services.AddLazyResolution();
-services.ConfigureWriteAble<ShiFangSettings>(configuration.GetSection("Settings"));
+services.ConfigureWriteAble<ShiFangSettings>(configuration.GetSection("ShiFangSettings"));
 services.AddDataServices(configuration);
 services.AddSqlSugarSetup(configuration);
 services.AddAutoDi();
@@ -128,6 +134,9 @@ services.AddWatchDogServices(opt =>
 });
 
 var app = builder.Build();
+
+// 将跨域配置放在 UseHttpsRedirection 之前, 保证非 HTTPS 请求也能通过跨域
+app.UseCors("ShiFang");
 
 app.UseHttpsRedirection();
 
@@ -150,8 +159,6 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
-
-app.UseCors("FuYang");
 
 app.UseAuthentication();
 

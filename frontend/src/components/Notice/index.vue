@@ -96,9 +96,11 @@ export default {
   methods: {
     deleteNotice(time) {
       this.$store.dispatch('user/deleteNotice', time)
+      this.$store.dispatch('app/setSystemCacheSize')
     },
     clearNoticeList() {
       this.$store.dispatch('user/clearNotice')
+      this.$store.dispatch('app/setSystemCacheSize')
     }
   }
 }

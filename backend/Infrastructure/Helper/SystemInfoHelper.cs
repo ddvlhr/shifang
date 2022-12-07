@@ -87,14 +87,17 @@ public static class SystemInfoHelper
         var memory = GetMemoryStatus();
         return (ulong)memory.ullTotalPhys;
     }
-    public static SystemInfo GetSystemInfo()
+    public static async Task<SystemInfo> GetSystemInfo()
     {
         var systemInfo = new SystemInfo()
         {
             Version = Environment.OSVersion.VersionString,
         };
 
-        systemInfo.CpuCounter = 0;
+        var cpuInfo = Masuit.Tools.Hardware.CpuInfo.Locals;
+        // var cpuLoad = Masuit.Tools.Hardware.SystemInfo.GetProcessorData();
+        // systemInfo.Cpu = cpuLoad;
+        systemInfo.CpuCounter = GetCpuLoad();
         var allRam = GetTotalPhys();
         var usedRam = GetUsedPhys();
         var ramUseage = Math.Round((((double)usedRam / allRam) * 100), 2);
@@ -103,6 +106,24 @@ public static class SystemInfoHelper
         systemInfo.RamUseage = ramUseage;
 
         return systemInfo;
+    }
+
+    public static double GetCpuLoad()
+    {
+        using (var p = new Process())
+        {
+            p.StartInfo.FileName = "wmic.exe";
+            p.StartInfo.Arguments = "cpu get loadpercentage";
+            p.StartInfo.UseShellExecute = false;
+            p.StartInfo.RedirectStandardOutput = true;
+            p.Start();
+            int load = -1;
+            var m = System.Text.RegularExpressions.Regex.Match(
+                p.StandardOutput.ReadToEnd(), @"\d+");
+            if (m.Success) load = int.Parse(m.Value);
+            p.WaitForExit();
+            return load;
+        }
     }
 
     public static async Task<double> GetCpuUseage()

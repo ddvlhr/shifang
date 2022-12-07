@@ -6,6 +6,7 @@
  * @FilePath: /frontend/src/store/modules/app.js
  * @Description:
  */
+import { getCacheSize } from '@/utils'
 export default {
   namespaced: true,
   state: {
@@ -15,7 +16,10 @@ export default {
     activePath: '',
     settings: {},
     dicts: [],
-    onlineUsers: 0
+    onlineUsers: 0,
+    localStorageSize: '',
+    sessionStorageSize: '',
+    serverInfo: {}
   },
   getters: {},
   mutations: {
@@ -39,11 +43,24 @@ export default {
     },
     setOnlineUsers(state, num) {
       state.onlineUsers = num
+    },
+    setSystemCacheSize(state) {
+      state.localStorageSize = getCacheSize('localStorage')
+      state.sessionStorageSize = getCacheSize('sessionStorage')
+    },
+    setServerInfo(state, info) {
+      state.serverInfo = info
     }
   },
   actions: {
     setOnlineUsers({ commit }, num) {
       commit('setOnlineUsers', num)
+    },
+    setSystemCacheSize({ commit }) {
+      commit('setSystemCacheSize')
+    },
+    setServerInfo({ commit }, info) {
+      commit('setServerInfo', info)
     }
   }
 }

@@ -107,7 +107,7 @@ export const getCacheSize = (cache) => {
     }
   }
 
-  return (size / 1024).toFixed(2) + 'KB'
+  return (size / 1024).toFixed(2) + ' KB'
 }
 
 export const sortBy = (props) => {

@@ -34,12 +34,6 @@
           <el-divider content-positon="center" class="text-center"
             >系统设置</el-divider
           >
-          <el-form-item label="数据库">
-            <query-select
-              v-model="formData.dataSource"
-              :options="databaseOptions"
-            />
-          </el-form-item>
           <el-form-item label="是否启用错误消息推送">
             <el-switch
               v-model="formData.enableErrorPush"
@@ -76,7 +70,6 @@ export default {
       roleOptions: [],
       workShopOptions: [],
       indicatorOptions: [],
-      databaseOptions: this.$store.state.app.dicts.dataBaseOptions,
       formData: {}
     }
   },

@@ -3,6 +3,7 @@ namespace Core.Models;
 public class SystemInfo
 {
     public string Version { get; set; }
+    public string Cpu { get; set; }
     public double CpuCounter { get; set; }
     public double RamCounter { get; set; }
     public double RamUseage { get; set; }

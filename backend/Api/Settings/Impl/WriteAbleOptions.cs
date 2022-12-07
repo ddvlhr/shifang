@@ -5,7 +5,6 @@ using System.Text.Json.Nodes;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
-using Newtonsoft.Json;
 using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace Api.Settings.Impl;
@@ -51,9 +50,10 @@ public class WriteAbleOptions<T> : IWriteAbleOptions<T> where T : class, new()
                 jsonObj[_section] = JsonNode.Parse(JsonSerializer.Serialize(sectionObj));
             }
         }
-        
+
         var serializeOptions = new JsonSerializerOptions()
         {
+            // 保留 Json 格式
             WriteIndented = true
         };
         File.WriteAllText(physicalPath, JsonSerializer.Serialize(jsonObj, serializeOptions));
