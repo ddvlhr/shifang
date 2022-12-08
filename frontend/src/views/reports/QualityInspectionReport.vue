@@ -4,7 +4,7 @@
  * @LastEditors: ddvlhr 354874258@qq.com
  * @LastEditTime: 2022-11-24 15:43:07
  * @FilePath: /frontend/src/views/reports/QualityInspectionReport.vue
- * @Description: 
+ * @Description:
 -->
 <template>
   <div class="main-container">
@@ -112,7 +112,6 @@
 </template>
 
 <script>
-import { initRightButtons, queryTable } from '@/utils'
 export default {
   data() {
     return {
@@ -330,10 +329,10 @@ export default {
         this.queryInfo.beginTime = ''
         this.queryInfo.endTime = ''
       }
-      queryTable(this, this.getQualityInspectionReports)
+      this.$utils.queryTable(this, this.getQualityInspectionReports)
     },
     async setRightButtons() {
-      this.rightButtons = await initRightButtons(this)
+      this.rightButtons = await this.$utils.initRightButtons(this)
     },
     async getOptions() {
       Promise.all([

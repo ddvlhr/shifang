@@ -6,7 +6,7 @@
  * @FilePath: /frontend/src/store/modules/permission.js
  * @Description: 权限存储
  */
-import { initAsyncRoutes, getPermissionButtons } from '@/utils'
+import utils from '@/utils'
 import router from '@/router'
 import api from '@/api'
 const state = {
@@ -34,7 +34,7 @@ const actions = {
       return this.$message.error('获取权限树失败')
     }
     commit('permission/setAddRoutes', res.data, { root: true })
-    const accessRoutes = initAsyncRoutes(res.data)
+    const accessRoutes = utils.initAsyncRoutes(res.data)
     commit('permission/setRoutes', accessRoutes, { root: true })
     accessRoutes.forEach((item) => {
       router.addRoute('Home', item)
@@ -46,7 +46,7 @@ const actions = {
     const rootMenuName = rootState.app.rootMenuName
     const activePath = rootState.app.activePath
     const path = activePath.substring(1, activePath.length)
-    const buttons = getPermissionButtons(routes, rootMenuName, path)
+    const buttons = utils.getPermissionButtons(routes, rootMenuName, path)
     return buttons
   }
 }

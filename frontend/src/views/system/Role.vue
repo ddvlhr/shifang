@@ -56,9 +56,6 @@
 </template>
 
 <script>
-import { stateList, boolStateList } from '../../assets/js/constant'
-import { reloadCurrentRoute } from '@/utils/utils'
-import { initRightButtons, queryTable } from '@/utils'
 export default {
   data() {
     return {
@@ -150,14 +147,14 @@ export default {
   },
   created() {
     // 根据 router-tab 当前选中的页面重新设置当前路由
-    reloadCurrentRoute(this.$tabs, this.$store)
+    this.$utils.reloadCurrentRoute(this.$tabs, this.$store)
     this.getMenuFunctions()
     this.getOptions()
     this.setRightButtons()
   },
   methods: {
     async setRightButtons() {
-      this.rightButtons = await initRightButtons(this)
+      this.rightButtons = await this.$utils.initRightButtons(this)
     },
     async getOptions() {
       const { data: res } = await this.$api.getOptions()
@@ -167,7 +164,7 @@ export default {
       this.userOptions = res.data.users
     },
     query() {
-      queryTable(this, this.getRoleList)
+      this.$utils.queryTable(this, this.getRoleList)
     },
     async getRoleList(params) {
       const { data: res } = await this.$api.getRoleList(

@@ -4,7 +4,7 @@
  * @LastEditors: ddvlhr 354874258@qq.com
  * @LastEditTime: 2022-11-24 15:41:41
  * @FilePath: /frontend/src/views/reports/ManualInspectionReport.vue
- * @Description: 
+ * @Description:
 -->
 <template>
   <div class="main-container">
@@ -79,7 +79,6 @@
 </template>
 
 <script>
-import { queryTable, initRightButtons } from '@/utils'
 export default {
   data() {
     return {
@@ -196,7 +195,7 @@ export default {
       })
     },
     async setRightButtons() {
-      this.rightButtons = await initRightButtons(this)
+      this.rightButtons = await this.$utils.initRightButtons(this)
     },
     query() {
       if (this.dateRange !== null) {
@@ -206,7 +205,7 @@ export default {
         this.queryInfo.begin = ''
         this.queryInfo.end = ''
       }
-      queryTable(this, this.getReports)
+      this.$utils.queryTable(this, this.getReports)
     },
     async getReports(params) {
       const { data: res } = await this.$api.getManualInspectionReports(

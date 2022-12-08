@@ -37,12 +37,14 @@ import { setupVueEcharts } from '@/plugins/vue-echarts'
 
 import 'windi.css'
 import './permission'
+import utils from '@/utils'
 
 const dayjs = require('dayjs')
 
 Vue.prototype.$api = Api
 Vue.prototype.$np = NProgress
 Vue.prototype.dayjs = dayjs
+Vue.prototype.$utils = utils
 
 setupCustomComponents()
 

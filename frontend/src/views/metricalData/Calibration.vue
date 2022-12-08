@@ -4,7 +4,7 @@
  * @LastEditors: ddvlhr 354874258@qq.com
  * @LastEditTime: 2022-11-24 22:36:52
  * @FilePath: /frontend/src/views/metricalData/Calibration.vue
- * @Description: 
+ * @Description:
 -->
 <template>
   <div class="main-container">
@@ -13,13 +13,20 @@
       <div slot="header">
         <el-row :gutter="20">
           <el-col :span="6" :offset="0">
-            <query-date-picker v-model="daterange" @change="query" @clear="query" />
+            <query-date-picker
+              v-model="daterange"
+              @change="query"
+              @clear="query"
+            />
           </el-col>
           <el-col :span="6" :offset="0">
-            <query-input v-model="queryInfo.query" @click="query" @clear="query" />
+            <query-input
+              v-model="queryInfo.query"
+              @click="query"
+              @clear="query"
+            />
           </el-col>
         </el-row>
-        
       </div>
       <ele-table
         :columns-desc="tableDesc"
@@ -35,7 +42,6 @@
 </template>
 
 <script>
-import { queryTable } from '@/utils'
 export default {
   data() {
     return {
@@ -81,7 +87,7 @@ export default {
         this.queryInfo.begin = ''
         this.queryInfo.end = ''
       }
-      queryTable(this, this.getCalibrations)
+      this.$utils.queryTable(this, this.getCalibrations)
     },
     async getCalibrations(params) {
       const { data: res } = await this.$api.getCalibrations(

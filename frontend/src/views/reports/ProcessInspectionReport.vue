@@ -4,7 +4,7 @@
  * @LastEditors: ddvlhr 354874258@qq.com
  * @LastEditTime: 2022-11-24 15:42:08
  * @FilePath: /frontend/src/views/reports/ProcessInspectionReport.vue
- * @Description: 
+ * @Description:
 -->
 <template>
   <div class="main-container">
@@ -91,7 +91,6 @@
 </template>
 
 <script>
-import { initRightButtons, queryTable } from '@/utils'
 export default {
   data() {
     return {
@@ -280,7 +279,7 @@ export default {
   },
   methods: {
     async setRightButtons() {
-      this.rightButtons = await initRightButtons(this)
+      this.rightButtons = await this.$utils.initRightButtons(this)
     },
     async getOptions() {
       Promise.all([
@@ -305,7 +304,7 @@ export default {
         this.queryInfo.begin = ''
         this.queryInfo.end = ''
       }
-      queryTable(this, this.getProcessInspectionReports)
+      this.$utils.queryTable(this, this.getProcessInspectionReports)
     },
     async getProcessInspectionReports(params) {
       const { data: res } = await this.$api.getWrapProcessInspectionReports(

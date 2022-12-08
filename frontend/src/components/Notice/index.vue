@@ -66,7 +66,6 @@
 </template>
 
 <script>
-import { sortBy } from '@/utils'
 export default {
   data() {
     return {
@@ -77,7 +76,7 @@ export default {
   computed: {
     noticeList() {
       const notice = this.$store.state.user.notice
-      const asc = notice.sort(sortBy('time'))
+      const asc = notice.sort(this.$utils.sortBy('time'))
       const desc = asc.reverse()
       return desc
     }

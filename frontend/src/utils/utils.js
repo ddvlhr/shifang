@@ -6,6 +6,7 @@ const menu_functions = 'MENU_FUNCTIONS'
 const root_menu = 'ROOT_MENU'
 const product_water_y_min = 'PRODUCT_WATER_Y_MIN'
 const can_see_other_data = 'CAN_SEE_OTHER_DATA'
+
 export const getUserInfo = () => {
   let user
   const str = localStorage.getItem(user_key)

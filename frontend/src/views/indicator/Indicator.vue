@@ -70,8 +70,6 @@ import {
   boolStateList,
   indicatorProjectList
 } from '@/assets/js/constant'
-import { initRightButtons } from '@/utils'
-import { reloadCurrentRoute } from '@/utils/utils'
 export default {
   data() {
     return {
@@ -146,12 +144,12 @@ export default {
   },
   created() {
     this.setRightButtons()
-    reloadCurrentRoute(this.$tabs, this.$store)
+    this.$utils.reloadCurrentRoute(this.$tabs, this.$store)
     this.getIndicatorParentOptions()
   },
   methods: {
     async setRightButtons() {
-      this.rightButtons = await initRightButtons(this)
+      this.rightButtons = await this.$utils.initRightButtons(this)
     },
     async getIndicatorParentOptions() {
       const { data: res } = await this.$api.getIndicatorParentOptions()
@@ -161,10 +159,7 @@ export default {
       this.indicatorParentOptions = res.data
     },
     query() {
-      const page = this.$refs.table.page
-      const size = this.$refs.table.size
-      this.getIndicatorList({ page, size })
-      this.$refs.table.getData()
+      this.$utils.queryTable(this, this.getIndicatorList)
     },
     async getIndicatorList(params) {
       const { data: res } = await this.$api.getIndicators(

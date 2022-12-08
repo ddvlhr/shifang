@@ -47,7 +47,6 @@
 </template>
 
 <script>
-import { initRightButtons, queryTable } from '@/utils'
 export default {
   data() {
     return {
@@ -99,14 +98,15 @@ export default {
     }
   },
   created() {
+    this.$utils.reloadCurrentRoute(this.$tabs, this.$store)
     this.setRightButtons()
   },
   methods: {
     async setRightButtons() {
-      this.rightButtons = await initRightButtons(this)
+      this.rightButtons = await this.$utils.initRightButtons(this)
     },
     query() {
-      queryTable(this, this.getUserList)
+      this.$utils.queryTable(this, this.getUserList)
     },
     async getUserList(params) {
       const { data: res } = await this.$api.getUsers(

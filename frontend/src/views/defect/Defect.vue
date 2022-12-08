@@ -56,7 +56,6 @@
 </template>
 
 <script>
-import { initRightButtons } from '@/utils'
 export default {
   data() {
     return {
@@ -157,12 +156,13 @@ export default {
     }
   },
   created() {
+    this.$utils.reloadCurrentRoute(this.$tabs, this.$store)
     this.getOptions()
     this.setRightButtons()
   },
   methods: {
     async setRightButtons() {
-      this.rightButtons = await initRightButtons(this)
+      this.rightButtons = await this.$utils.initRightButtons(this)
     },
     async getOptions() {
       Promise.all([
@@ -174,10 +174,7 @@ export default {
       })
     },
     query() {
-      const size = this.$refs.table.size
-      const page = this.$refs.table.page
-      this.getDefects({ size, page })
-      this.$refs.table.getData()
+      this.$utils.queryTable(this, this.getDefects)
     },
     async getDefects(params) {
       const { data: res } = await this.$api.getDefects(

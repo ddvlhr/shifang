@@ -6,7 +6,7 @@
  * @FilePath: /frontend/src/store/modules/app.js
  * @Description:
  */
-import { getCacheSize } from '@/utils'
+import utils from '@/utils'
 export default {
   namespaced: true,
   state: {
@@ -45,8 +45,8 @@ export default {
       state.onlineUsers = num
     },
     setSystemCacheSize(state) {
-      state.localStorageSize = getCacheSize('localStorage')
-      state.sessionStorageSize = getCacheSize('sessionStorage')
+      state.localStorageSize = utils.getCacheSize('localStorage')
+      state.sessionStorageSize = utils.getCacheSize('sessionStorage')
     },
     setServerInfo(state, info) {
       state.serverInfo = info

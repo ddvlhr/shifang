@@ -13,7 +13,11 @@
       <div slot="header">
         <el-row :gutter="20">
           <el-col :span="8">
-            <query-input v-model="queryInfo.query" @click="query" @clear="query" />
+            <query-input
+              v-model="queryInfo.query"
+              @click="query"
+              @clear="query"
+            />
           </el-col>
           <el-col :span="8">
             <query-select
@@ -54,7 +58,6 @@
 </template>
 
 <script>
-import { initRightButtons } from '@/utils'
 export default {
   data() {
     return {
@@ -96,6 +99,7 @@ export default {
   },
   created() {
     this.setRightButtons()
+    this.$utils.reloadCurrentRoute(this.$tabs, this.$store)
   },
   computed: {
     stateList() {
@@ -104,14 +108,10 @@ export default {
   },
   methods: {
     async setRightButtons() {
-      const buttons = await initRightButtons(this)
-      this.rightButtons = buttons
+      this.rightButtons = await this.$utils.initRightButtons(this)
     },
     query() {
-      const page = this.$refs.table.page
-      const size = this.$refs.table.size
-      this.getDepartments({ page, size })
-      this.$refs.table.getData()
+      this.$utils.queryTable(this, this.getDepartments)
     },
     async getDepartments(params) {
       const { data: res } = await this.$api.getDepartments(

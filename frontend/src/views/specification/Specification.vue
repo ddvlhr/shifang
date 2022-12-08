@@ -72,8 +72,6 @@
 
 <script>
 import { stateList, boolStateList, equalList } from '@/assets/js/constant'
-import { reloadCurrentRoute } from '@/utils/utils'
-import { initRightButtons } from '@/utils'
 export default {
   data() {
     // const self = this
@@ -540,20 +538,16 @@ export default {
   },
   created() {
     // 根据 router-tab 当前选中的页面重新设置当前路由
-    reloadCurrentRoute(this.$tabs, this.$store)
+    this.$utils.reloadCurrentRoute(this.$tabs, this.$store)
     this.setRightButtons()
     this.getOptions()
   },
   methods: {
     async setRightButtons() {
-      const buttons = await initRightButtons(this)
-      this.rightButtons = buttons
+      this.rightButtons = await this.$utils.initRightButtons(this)
     },
     query() {
-      const page = this.$refs.table.page
-      const size = this.$refs.table.size
-      this.getSpecifications({ page, size })
-      this.$refs.table.getData()
+      this.$utils.queryTable(this, this.getSpecifications)
     },
     async getOptions() {
       Promise.all([

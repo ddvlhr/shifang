@@ -36,3 +36,4 @@ bin/
 */obj/
 /backend/Api/obj/project.nuget.cache
 node_modules/
+*/watchdog.db

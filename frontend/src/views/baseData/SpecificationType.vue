@@ -50,8 +50,6 @@
 </template>
 
 <script>
-import { initRightButtons } from '@/utils'
-import { reloadCurrentRoute } from '@/utils/utils'
 export default {
   data() {
     return {
@@ -94,18 +92,15 @@ export default {
   },
   created() {
     // 根据 router-tab 当前选中的页面重新设置当前路由
-    reloadCurrentRoute(this.$tabs, this.$store)
+    this.$utils.reloadCurrentRoute(this.$tabs, this.$store)
     this.setRightButtons()
   },
   methods: {
     async setRightButtons() {
-      this.rightButtons = await initRightButtons(this)
+      this.rightButtons = await this.$utils.initRightButtons(this)
     },
     query() {
-      const page = this.$refs.table.page
-      const size = this.$refs.table.size
-      this.getSpecificationTypeList({ page, size })
-      this.$refs.table.getData()
+      this.$utils.queryTable(this, this.getSpecificationTypeList)
     },
     async getSpecificationTypeList(params) {
       const { data: res } = await this.$api.getSpecificationTypeList(

@@ -56,7 +56,6 @@
 </template>
 
 <script>
-import { initRightButtons } from '@/utils'
 export default {
   data() {
     return {
@@ -98,6 +97,7 @@ export default {
   },
   created() {
     this.setRightButtons()
+    this.$utils.reloadCurrentRoute(this.$tabs, this.$store)
   },
   computed: {
     stateList() {
@@ -106,14 +106,10 @@ export default {
   },
   methods: {
     async setRightButtons() {
-      const buttons = await initRightButtons(this)
-      this.rightButtons = buttons
+      this.rightButtons = await this.$utils.initRightButtons(this)
     },
     query() {
-      const page = this.$refs.table.page
-      const size = this.$refs.table.size
-      this.getTeams({ page, size })
-      this.$refs.table.getData()
+      this.$utils.queryTable(this, this.getTeams)
     },
     async getTeams(params) {
       const { data: res } = await this.$api.getTeams(

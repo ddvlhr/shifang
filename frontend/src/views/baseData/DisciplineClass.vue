@@ -1,28 +1,20 @@
-<!--
- * @Author: ddvlhr 354874258@qq.com
- * @Date: 2022-10-31 14:23:40
- * @LastEditors: ddvlhr 354874258@qq.com
- * @LastEditTime: 2022-11-24 23:03:24
- * @FilePath: /frontend/src/views/baseData/VolumePickUp.vue
- * @Description: 卷接机管理
--->
 <template>
   <div class="main-container">
     <function-button @add="add" />
     <el-card shadow="never">
       <div slot="header">
         <el-row :gutter="20">
-          <el-col :span="8">
+          <el-col :span="6" :offset="0">
             <query-input
               v-model="queryInfo.query"
               @click="query"
               @clear="query"
             />
           </el-col>
-          <el-col :span="8">
+          <el-col :span="6" :offset="0">
             <query-select
-              :options="stateList"
               v-model="queryInfo.state"
+              :options="stateList"
               placeholder="状态筛选"
               @change="query"
               @clear="query"
@@ -30,13 +22,12 @@
           </el-col>
         </el-row>
       </div>
-
       <ele-table
-        :columns-desc="tableDesc"
+        :columns-desc="columnsDesc"
         :is-show-index="true"
         :is-show-selection="false"
+        :request-fn="getDisciplineClassList"
         :right-buttons="rightButtons"
-        :request-fn="getVolumePickUps"
         :is-show-top-delete="false"
         :is-show-right-delete="false"
         ref="table"
@@ -44,13 +35,10 @@
       <ele-form-dialog
         v-model="formData"
         :form-desc="formDesc"
-        :form-error="formError"
-        :title="isEdit ? '编辑' : '新增'"
+        :title="dialogTitle"
         :request-fn="handleSubmit"
         :visible.sync="dialogFormVisible"
-        @request-success="handleSuccess"
-        @closed="handleClosed"
-        :rules="rules"
+        @close="handleClosed"
       >
       </ele-form-dialog>
     </el-card>
@@ -66,10 +54,9 @@ export default {
         state: ''
       },
       stateList: this.$store.state.app.dicts.stateList,
-      rightButtons: [],
-      tableDesc: {
+      columnsDesc: {
         name: {
-          text: '卷接机名称'
+          text: '名称'
         },
         state: {
           text: '状态',
@@ -77,31 +64,35 @@ export default {
           options: this.$store.state.app.dicts.boolStateList
         }
       },
-      isEdit: false,
+      rightButtons: [],
+      dialogTitle: '添加',
       dialogFormVisible: false,
-      formError: {},
-      formData: {},
       formDesc: {
         name: {
-          label: '卷接机名称',
-          type: 'input'
+          label: '名称',
+          type: 'input',
+          props: {
+            placeholder: '请输入名称'
+          },
+          rules: [
+            {
+              required: true,
+              message: '纪律分类名称不能为空',
+              trigger: 'blur'
+            }
+          ]
         },
         state: {
-          label: '状态',
           type: 'radio',
+          label: '状态',
           default: true,
           options: this.$store.state.app.dicts.boolStateList
         }
       },
-      rules: {
-        name: [
-          { required: true, message: '卷接机名称不能为空', trigger: 'blur' }
-        ]
-      }
+      formData: {}
     }
   },
   created() {
-    this.$utils.reloadCurrentRoute(this.$tabs, this.$store)
     this.setRightButtons()
   },
   methods: {
@@ -109,41 +100,40 @@ export default {
       this.rightButtons = await this.$utils.initRightButtons(this)
     },
     query() {
-      this.$utils.queryTable(this, this.getVolumePickUps)
+      this.$utils.queryTable(this, this.getDisciplineClassList)
     },
-    async getVolumePickUps(params) {
-      const { data: res } = await this.$api.getVolumePickUps(
-        Object.assign(params, this.queryInfo)
+    async getDisciplineClassList(params) {
+      const { data: res } = await this.$api.getDisciplineClassList(
+        Object.assign(this.queryInfo, params)
       )
       if (res.meta.code !== 0) {
-        return this.$message.error(
-          '获取卷接机列表信息失败: ' + res.meta.message
-        )
+        return this.$message.error('获取数据失败: ' + res.meta.message)
       }
       return res.data
     },
     add() {
-      this.isEdit = false
+      this.dialogTitle = '添加'
       this.dialogFormVisible = true
     },
-    edit(data, that) {
-      that.formData = data
-      that.isEdit = true
+    async edit(data, that) {
+      const { data: res } = await that.$api.getDisciplineClass(data.id)
+      if (res.meta.code !== 0) {
+        return that.$message.error('获取数据失败: ' + res.meta.message)
+      }
+      that.formData = res.data
+      that.dialogTitle = '编辑'
       that.dialogFormVisible = true
     },
     async handleSubmit(data) {
-      this.formError = {}
-      const { data: res } = await this.$api.editVolumePickUp(data)
+      const { data: res } = await this.$api.editDisciplineClass(data)
       if (res.meta.code !== 0) {
-        this.formError = { name: res.meta.message }
-        return this.$message.error(res.meta.message)
+        return this.$message.error('操作失败: ' + res.meta.message)
       }
+
       this.query()
-      this.formData = {}
       this.dialogFormVisible = false
       this.$message.success(res.meta.message)
     },
-    handleSuccess() {},
     handleClosed() {
       this.formData = { state: true }
     }

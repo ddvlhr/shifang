@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Security.Claims;
 using Core.Dtos;
 using Core.Dtos.Specification;
 using Core.Dtos.MetricalData;
@@ -16,7 +15,6 @@ using Infrastructure.Services.Reports;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
-using NetTaste;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using OfficeOpenXml;
@@ -24,7 +22,6 @@ using OfficeOpenXml.Style;
 using SqlSugar;
 using Machine = Core.SugarEntities.Machine;
 using MeasureType = Core.SugarEntities.MeasureType;
-using SpecificationType = Core.SugarEntities.SpecificationType;
 using Team = Core.SugarEntities.Team;
 using Turn = Core.SugarEntities.Turn;
 
@@ -118,7 +115,7 @@ public class MetricalDataService : IMetricalDataService
     {
         //TODO 添加测量数据时会重复添加
         failReason = string.Empty;
-        var items = (JArray) JsonConvert.DeserializeObject(dto.DataInfo);
+        var items = (JArray)JsonConvert.DeserializeObject(dto.DataInfo);
         var dataList = new List<Data>();
         foreach (var item in items)
         {
@@ -272,7 +269,7 @@ public class MetricalDataService : IMetricalDataService
             }
 
         var deleteIds = inDbIds.Where(c => !updateIds.Contains(c))
-            .Select(c => new Core.SugarEntities.MetricalData {Id = c}).ToList();
+            .Select(c => new Core.SugarEntities.MetricalData { Id = c }).ToList();
         // var deleteList = _dRepo.All().Where(c => deleteIds.Contains(c.Id));
 
         var ret = _db.Storageable(dataList).ExecuteCommand();
@@ -643,9 +640,9 @@ public class MetricalDataService : IMetricalDataService
         foreach (var rule in singleRules)
         {
             var indicator = _iRepo.Get(rule.Id);
-            var column = new JObject {{"prop", rule.Id}, {"label", indicator.Name}};
-            var content = new JObject {{"type", "el-input"}};
-            var attrs = new JObject {{"type", "number"}, {"step", "0.0000001"}};
+            var column = new JObject { { "prop", rule.Id }, { "label", indicator.Name } };
+            var content = new JObject { { "type", "el-input" } };
+            var attrs = new JObject { { "type", "number" }, { "step", "0.0000001" } };
             content.Add("attrs", attrs);
             column.Add("content", content);
             columns.Add(column);
@@ -705,7 +702,7 @@ public class MetricalDataService : IMetricalDataService
         var dataInfo = new JArray();
         foreach (var item in data)
         {
-            var info = (JObject) JsonConvert.DeserializeObject(item.Data);
+            var info = (JObject)JsonConvert.DeserializeObject(item.Data);
             if (!info.ContainsKey("id"))
                 info.Add("id", item.Id);
             else
@@ -728,7 +725,7 @@ public class MetricalDataService : IMetricalDataService
         var info = new BaseStatisticInfoDto();
         failReason = "";
         var indicators = _iRepo.All().ToList();
-        var statisticItems = new[] {"平均值", "最大值", "最小值", "SD", "CV", "CPK", "Offs", "上超", "下超", "合格数", "合格率"};
+        var statisticItems = new[] { "平均值", "最大值", "最小值", "SD", "CV", "CPK", "Offs", "上超", "下超", "合格数", "合格率" };
         var group = _gRepo.Get(groupId);
         if (group == null)
         {
@@ -807,7 +804,7 @@ public class MetricalDataService : IMetricalDataService
                     {
                         if (kv.Key == "testTime")
                         {
-                            temp.Add(kv.Key, new {text = kv.Value?.ToString(), high = 0, low = 0});
+                            temp.Add(kv.Key, new { text = kv.Value?.ToString(), high = 0, low = 0 });
                         }
 
                         if (kv.Key != "testTime" && kv.Key != "id")
@@ -861,7 +858,7 @@ public class MetricalDataService : IMetricalDataService
                     _ => ""
                 };
 
-                var baseInfoItems = new[] {"平均值", "最大值", "最小值"};
+                var baseInfoItems = new[] { "平均值", "最大值", "最小值" };
                 var itemInfo = new Dictionary<string, object>();
                 if (baseInfoItems.Contains(item))
                 {
@@ -896,7 +893,7 @@ public class MetricalDataService : IMetricalDataService
     {
         failReason = string.Empty;
         var dto = new MetricalDataStatisticDto();
-        var statisticItems = new[] {"平均值", "最大值", "最小值", "SD", "CV", "CPK", "Offs", "上超", "下超", "合格数", "合格率"};
+        var statisticItems = new[] { "平均值", "最大值", "最小值", "SD", "CV", "CPK", "Offs", "上超", "下超", "合格数", "合格率" };
         var group = _gRepo.Get(id);
         var specification = _spRepo.Get(group.SpecificationId);
         List<Rule> rules;
@@ -927,16 +924,16 @@ public class MetricalDataService : IMetricalDataService
             return dto;
         }
 
-        var columns = new JObject {{"itemName", new JObject {{"text", "统计项目"}}}};
-        var originColumns = new JObject {{"testTime", new JObject {{"text", "测量时间"}}}};
+        var columns = new JObject { { "itemName", new JObject { { "text", "统计项目" } } } };
+        var originColumns = new JObject { { "testTime", new JObject { { "text", "测量时间" } } } };
         var dataInfo = new JArray();
         var originDataInfo = new JArray();
-        foreach (var item in statisticItems) dataInfo.Add(new JObject {{"itemName", item}});
+        foreach (var item in statisticItems) dataInfo.Add(new JObject { { "itemName", item } });
 
         var index = 0;
         foreach (var rule in rules)
         {
-            var firstData = (JObject) JsonConvert.DeserializeObject(data.FirstOrDefault());
+            var firstData = (JObject)JsonConvert.DeserializeObject(data.FirstOrDefault());
             // 指标标准值为 0 的为外观指标, 不需要统计数据
             if (rule.Standard == "0") continue;
 
@@ -945,7 +942,7 @@ public class MetricalDataService : IMetricalDataService
             {
                 var indicatorName = rule.Name;
                 if (string.IsNullOrEmpty(rule.Name)) indicatorName = _iRepo.Get(rule.Id).Name;
-                var column = new JObject {{"text", indicatorName}};
+                var column = new JObject { { "text", indicatorName } };
                 columns.Add($"a{rule.Id}", column);
                 originColumns.Add($"a{rule.Id}", column);
             }
@@ -954,7 +951,7 @@ public class MetricalDataService : IMetricalDataService
 
             foreach (var item in data)
             {
-                var obj = (JObject) JsonConvert.DeserializeObject(item);
+                var obj = (JObject)JsonConvert.DeserializeObject(item);
                 if (index == 0)
                 {
                     var tempObj = new JObject();
@@ -1100,7 +1097,7 @@ public class MetricalDataService : IMetricalDataService
             .Include(c => c.Group).ThenInclude(c => c.MachineModel)
             .Include(c => c.Group).ThenInclude(c => c.MeasureType).ToList().GroupBy(c => c.Group.SpecificationId)
             .ToList();
-        var specifications = _spRepo.All().Select(c => new {c.Id, c.SingleRules}).ToList();
+        var specifications = _spRepo.All().Select(c => new { c.Id, c.SingleRules }).ToList();
         var indicators = _iRepo.All().ToList();
         using var package = new ExcelPackage();
 
@@ -1178,7 +1175,8 @@ public class MetricalDataService : IMetricalDataService
             .OrderByDescending(c => c.BeginTime).Select(c =>
                 new BaseOptionDto
                 {
-                    Value = c.Id, Text = $"{c.Specification.Name}( {c.BeginTime:yyyy-MM-dd HH:mm:ss} )"
+                    Value = c.Id,
+                    Text = $"{c.Specification.Name}( {c.BeginTime:yyyy-MM-dd HH:mm:ss} )"
                 }).ToList();
 
         return groups;
@@ -1188,7 +1186,7 @@ public class MetricalDataService : IMetricalDataService
     {
         var group = _gRepo.Get(id);
         var specification = _spRepo.Get(group.SpecificationId);
-        var label = new JObject {{"label", "原始数据"}, {"type", "table-editor"}};
+        var label = new JObject { { "label", "原始数据" }, { "type", "table-editor" } };
         var columns = new JArray();
         List<Rule> rules;
         if (group.MeasureTypeId == _settings.ChemicalTypeId)
@@ -1212,10 +1210,10 @@ public class MetricalDataService : IMetricalDataService
             rules = JsonConvert.DeserializeObject<List<Rule>>(specification.SingleRules);
         }
 
-        var idObj = new JObject {{"prop", "id"}, {"label", "ID"}, {"width", "150"}};
+        var idObj = new JObject { { "prop", "id" }, { "label", "ID" }, { "width", "150" } };
         columns.Add(idObj);
-        var testTime = new JObject {{"prop", "testTime"}, {"label", "测量时间"}, {"width", "300"}};
-        var testTimeContent = new JObject {{"type", "el-date-picker"}};
+        var testTime = new JObject { { "prop", "testTime" }, { "label", "测量时间" }, { "width", "300" } };
+        var testTimeContent = new JObject { { "type", "el-date-picker" } };
         var testTimeAttrs = new JObject
         {
             {"type", "datetime"}, {"value-format", "yyyy-MM-dd HH:mm:ss"},
@@ -1232,19 +1230,19 @@ public class MetricalDataService : IMetricalDataService
             if (indicator == null) continue;
             var indicatorName = indicator.Name;
             if (rule.Standard == "0") indicatorName += "(外观)";
-            var column = new JObject {{"prop", rule.Id.ToString()}, {"label", indicatorName}, {"width", 150}};
-            var content = new JObject {{"type", "el-input"}};
-            var attrs = new JObject {{"type", "number"}, {"step", "0.0000001"}};
+            var column = new JObject { { "prop", rule.Id.ToString() }, { "label", indicatorName }, { "width", 150 } };
+            var content = new JObject { { "type", "el-input" } };
+            var attrs = new JObject { { "type", "number" }, { "step", "0.0000001" } };
             content.Add("attrs", attrs);
             column.Add("content", content);
             columns.Add(column);
         }
 
-        var tableAttrs = new JObject {{"ref", "dataTable"}, {"height", "500"}};
-        var parentAttrs = new JObject {{"tableAttrs", tableAttrs}, {"columns", columns}};
+        var tableAttrs = new JObject { { "ref", "dataTable" }, { "height", "500" } };
+        var parentAttrs = new JObject { { "tableAttrs", tableAttrs }, { "columns", columns } };
         label.Add("attrs", parentAttrs);
-        var dataObj = new JObject {{"data", label}};
-        var specificationObj = new JObject {{"id", specification.Id}, {"desc", dataObj}};
+        var dataObj = new JObject { { "data", label } };
+        var specificationObj = new JObject { { "id", specification.Id }, { "desc", dataObj } };
 
         return specificationObj;
     }

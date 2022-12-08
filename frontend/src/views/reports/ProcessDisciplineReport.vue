@@ -67,7 +67,6 @@
 </template>
 
 <script>
-import { initRightButtons, queryTable } from '@/utils'
 export default {
   data() {
     return {
@@ -139,7 +138,7 @@ export default {
   },
   methods: {
     async setRightButtons() {
-      this.rightButtons = await initRightButtons(this)
+      this.rightButtons = await this.$utils.initRightButtons(this)
     },
     async getOptions() {
       Promise.all([this.$api.getDepartmentOptions()]).then((res) => {
@@ -154,7 +153,7 @@ export default {
         this.queryInfo.begin = ''
         this.queryInfo.end = ''
       }
-      queryTable(this, this.getProcessImplements)
+      this.$utils.queryTable(this, this.getProcessImplements)
     },
     async getProcessImplements(params) {
       const { data: res } = await this.$api.getProcessDisciplineReports(

@@ -46,8 +46,6 @@
 </template>
 
 <script>
-import { initRightButtons } from '@/utils'
-import { reloadCurrentRoute } from '@/utils/utils'
 export default {
   data() {
     return {
@@ -87,19 +85,15 @@ export default {
     }
   },
   created() {
-    reloadCurrentRoute(this.$tabs, this.$store)
+    this.$utils.reloadCurrentRoute(this.$tabs, this.$store)
     this.setRightButtons()
   },
   methods: {
     async setRightButtons() {
-      const methods = this.$options.methods
-      this.rightButtons = await initRightButtons(this)
+      this.rightButtons = await this.$utils.initRightButtons(this)
     },
     query() {
-      const page = this.$refs.table.page
-      const size = this.$refs.table.size
-      this.getIndicatorParentList({ page, size })
-      this.$refs.table.getData()
+      this.$utils.queryTable(this, this.getIndicatorParentList)
     },
     async getIndicatorParentList(params) {
       const { data: res } = await this.$api.getIndicatorParents(

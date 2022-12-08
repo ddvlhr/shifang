@@ -169,8 +169,6 @@
 
 <script>
 import { reportRetList } from '@/assets/js/constant'
-import { reloadCurrentRoute } from '@/utils/utils'
-import { initRightButtons, queryTable } from '@/utils'
 export default {
   data() {
     return {
@@ -318,14 +316,13 @@ export default {
   },
   created() {
     // 根据 router-tab 当前选中的页面重新设置当前路由
-    console.log('productReport: ', this.$tabs)
-    reloadCurrentRoute(this.$tabs, this.$store)
+    this.$utils.reloadCurrentRoute(this.$tabs, this.$store)
     this.getOptions()
     this.setRightButtons()
   },
   methods: {
     async setRightButtons() {
-      this.rightButtons = await initRightButtons(this)
+      this.rightButtons = await this.$utils.initRightButtons(this)
     },
     query() {
       if (this.dateRange !== null) {
@@ -335,7 +332,7 @@ export default {
         this.queryInfo.beginDate = ''
         this.queryInfo.endDate = ''
       }
-      queryTable(this, this.getProductReports)
+      this.$utils.queryTable(this, this.getProductReports)
     },
     async getOptions() {
       const { data: res } = await this.$api.getOptions()

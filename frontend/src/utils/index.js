@@ -9,12 +9,14 @@
 
 import store from '@/store'
 
+let utils = {}
+
 /**
  * 根据权限树初始化路由表
  * @param {Array} routes
  * @returns
  */
-export const initAsyncRoutes = (routes) => {
+utils.initAsyncRoutes = (routes) => {
   const res = []
   routes.forEach((root) => {
     if (root.children.length > 0) {
@@ -45,7 +47,7 @@ export const initAsyncRoutes = (routes) => {
  * @param {Number} rootId
  * @returns
  */
-export const getPermissionButtons = (routes, rootId, path) => {
+utils.getPermissionButtons = (routes, rootId, path) => {
   const root = routes.filter((c) => c.id == rootId)
   const item = root[0].children.filter((c) => c.path == path)
   return item[0].children
@@ -57,7 +59,7 @@ export const getPermissionButtons = (routes, rootId, path) => {
  * @param {*} that 当前页面 this
  * @returns
  */
-export const initRightButtons = async (that) => {
+utils.initRightButtons = async (that) => {
   const buttons = await store.dispatch('permission/getMenuButtons')
   const rightButtons = buttons.filter((c) => c.buttonPosition === 2)
   const result = []
@@ -76,7 +78,7 @@ export const initRightButtons = async (that) => {
   return result
 }
 
-export const queryTable = (that, func) => {
+utils.queryTable = (that, func) => {
   const size = that.$refs.table.size
   const page = that.$refs.table.page
   func({ size, page })
@@ -88,7 +90,7 @@ export const queryTable = (that, func) => {
  * @param {String} cache 存储类型
  * @returns {String} 存储使用空间-KB
  */
-export const getCacheSize = (cache) => {
+utils.getCacheSize = (cache) => {
   cache = cache === undefined ? 'sessionStorage' : cache
   let storage = ''
   let size = 0
@@ -110,8 +112,20 @@ export const getCacheSize = (cache) => {
   return (size / 1024).toFixed(2) + ' KB'
 }
 
-export const sortBy = (props) => {
+utils.sortBy = (props) => {
   return function (a, b) {
     return a[props] - b[props]
   }
 }
+
+/**
+ * 在页面加载时重新设置当前页面信息
+ * @param {Object} tabs 当前页面中的 $tabs
+ * @param {Object} store 当前页面获取的 $store
+ */
+utils.reloadCurrentRoute = (tabs, store) => {
+  const currentTab = tabs.activeTabId
+  store.commit('app/setActivePath', currentTab)
+}
+
+export default utils

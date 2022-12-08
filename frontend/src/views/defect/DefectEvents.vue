@@ -58,7 +58,6 @@
 </template>
 
 <script>
-import { initRightButtons } from '@/utils'
 export default {
   data() {
     return {
@@ -106,17 +105,15 @@ export default {
     }
   },
   created() {
+    this.$utils.realodCurrentRoute(this.$tabs, this.$store)
     this.setRightButtons()
   },
   methods: {
     async setRightButtons() {
-      this.rightButtons = await initRightButtons(this)
+      this.rightButtons = await this.$utils.initRightButtons(this)
     },
     query() {
-      const size = this.$refs.table.size
-      const page = this.$refs.table.page
-      this.getDefectEvents({ size, page })
-      this.$refs.table.getData()
+      this.$utils.queryTable(this, this.getDefectEvents)
     },
     async getDefectEvents(params) {
       const { data: res } = await this.$api.getDefectEvents(

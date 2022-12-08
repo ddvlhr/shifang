@@ -156,13 +156,7 @@
 </template>
 
 <script>
-import { initRightButtons, queryTable } from '@/utils'
-import {
-  getCurrentDay,
-  getWater,
-  getLastWeek,
-  reloadCurrentRoute
-} from '@/utils/utils'
+import { getCurrentDay } from '@/utils/utils'
 export default {
   data() {
     const self = this
@@ -381,7 +375,7 @@ export default {
   },
   created() {
     // 根据 router-tab 当前选中的页面重新设置当前路由
-    reloadCurrentRoute(this.$tabs, this.$store)
+    this.$utils.reloadCurrentRoute(this.$tabs, this.$store)
     this.setRightButtons()
     this.getOptions()
     this.user = this.$store.state.user.userInfo
@@ -389,7 +383,7 @@ export default {
   },
   methods: {
     async setRightButtons() {
-      this.rightButtons = await initRightButtons(this)
+      this.rightButtons = await this.$utils.initRightButtons(this)
     },
     setDataFormDesc(data) {
       this.dataFormDesc = data
@@ -426,7 +420,7 @@ export default {
         this.queryInfo.beginTime = ''
         this.queryInfo.endTime = ''
       }
-      queryTable(this, this.getMetricalData)
+      this.$utils.queryTable(this, this.getMetricalData)
     },
     getStatisticDataInfo() {
       return this.statisticDataInfo

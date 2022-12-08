@@ -44,7 +44,6 @@
 
 <script>
 import { equalList } from '@/assets/js/constant'
-import { reloadCurrentRoute } from '@/utils/utils'
 export default {
   data() {
     return {
@@ -154,16 +153,13 @@ export default {
   },
   created() {
     // 根据 router-tab 当前选中的页面重新设置当前路由
-    reloadCurrentRoute(this.$tabs, this.$store)
+    this.$utils.reloadCurrentRoute(this.$tabs, this.$store)
     this.getOptions()
     this.getCraftIndicatorOptions()
   },
   methods: {
     query() {
-      const page = this.$refs.table.page
-      const size = this.$refs.table.size
-      this.getCraftIndicatorRules({ page, size })
-      this.$refs.table.getData()
+      this.$utils.queryTable(this, this.getCraftIndicatorRules)
     },
     async getOptions() {
       const { data: res } = await this.$api.getOptions()

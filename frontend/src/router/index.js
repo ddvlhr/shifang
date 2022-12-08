@@ -4,7 +4,7 @@
  * @LastEditors: ddvlhr 354874258@qq.com
  * @LastEditTime: 2022-10-31 10:00:51
  * @FilePath: /frontend/src/router/index.js
- * @Description: 
+ * @Description:
  */
 import Vue from 'vue'
 import VueRouter from 'vue-router'
@@ -14,13 +14,13 @@ Vue.use(VueRouter)
 // push
 const VueRouterPush = VueRouter.prototype.push
 VueRouter.prototype.push = function push(to) {
-  return VueRouterPush.call(this, to).catch(err => err)
+  return VueRouterPush.call(this, to).catch((err) => err)
 }
 
 // replace
 const VueRouterReplace = VueRouter.prototype.replace
 VueRouter.prototype.replace = function replace(to) {
-  return VueRouterReplace.call(this, to).catch(err => err)
+  return VueRouterReplace.call(this, to).catch((err) => err)
 }
 
 export const constantRoutes = [
@@ -36,14 +36,6 @@ export const constantRoutes = [
         component: () => import('@/views/Dashboard.vue'),
         meta: {
           title: 'Dashboard'
-        }
-      },
-      {
-        path: '/menus',
-        name: 'Menu',
-        component: () => import('@/views/system/Menu.vue'),
-        meta: {
-          title: '菜单管理'
         }
       }
     ]
@@ -66,10 +58,11 @@ export const constantRoutes = [
 
 export const asyncRoutes = []
 
-const createRouter = () => new VueRouter({
-  routes: constantRoutes,
-  scrollBehavior: () => ({ y: 0 })
-})
+const createRouter = () =>
+  new VueRouter({
+    routes: constantRoutes,
+    scrollBehavior: () => ({ y: 0 })
+  })
 
 const router = createRouter()
 

@@ -13,7 +13,7 @@ let sr = {
  * @param {Object} token 用户信息
  */
 sr.init = (url, token) => {
-  console.log(url, token)
+  // console.log(url, token)
   const user = {
     userId: token.id,
     userName: token.userName
@@ -27,7 +27,7 @@ sr.init = (url, token) => {
     .build()
 
   sr.connection.onclose(() => {
-    console.log('SignalR connection closed')
+    // console.log('SignalR connection closed')
     Notification({
       title: 'SignalR',
       message: '与系统服务器已断开连接',
@@ -59,7 +59,7 @@ sr.init = (url, token) => {
   sr.connection
     .start()
     .then(() => {
-      console.log('SignalR connection started')
+      // console.log('SignalR connection started')
       Notification({
         title: 'SignalR',
         message: '与系统服务器连接成功',
@@ -67,7 +67,7 @@ sr.init = (url, token) => {
       })
     })
     .catch((err) => {
-      console.log(err)
+      // console.log(err)
       Notification({
         title: 'SignalR',
         message: '与系统服务器连接失败: ' + err,
@@ -76,7 +76,7 @@ sr.init = (url, token) => {
     })
 
   sr.connection.onreconnected((connectionId) => {
-    console.log('reconnected: ' + connectionId)
+    // console.log('reconnected: ' + connectionId)
     Notification({
       title: 'SignalR',
       message: '与系统服务器重新连接成功',
