@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Core.Dtos.Report;
 using Infrastructure.Services.Reports;
 using Microsoft.AspNetCore.Authorization;
@@ -10,7 +11,7 @@ namespace Api.Controllers.Reports;
 /// 工艺纪律执行情况
 /// </summary>
 [Authorize]
-public class ProcessDisciplineReportController: BaseController
+public class ProcessDisciplineReportController : BaseController
 {
     private readonly IProcessDisciplineReportService _pdrService;
 
@@ -25,10 +26,17 @@ public class ProcessDisciplineReportController: BaseController
     /// <param name="dto"></param>
     /// <returns></returns>
     [HttpGet, Route("report/processDiscipline")]
-    public IActionResult GetTable([FromQuery] ProcessDisciplineReportQueryInfoDto dto)
+    public async Task<IActionResult> GetTable([FromQuery] ProcessDisciplineReportQueryInfoDto dto)
     {
-        var list = _pdrService.GetTable(dto, out var total);
-        return Success(new { list, total });
+        var result = await _pdrService.GetTableAsync(dto);
+        return Success(result);
+    }
+
+    [HttpGet("report/processDiscipline/{id}")]
+    public async Task<IActionResult> GetById(int id)
+    {
+        var result = await _pdrService.GetByIdAsync(id);
+        return result.Success ? Success(result.Data) : Error(result.Message);
     }
 
     /// <summary>
@@ -37,9 +45,10 @@ public class ProcessDisciplineReportController: BaseController
     /// <param name="dto"></param>
     /// <returns></returns>
     [HttpPost, Route("report/processDiscipline")]
-    public IActionResult Edit([FromBody] ProcessDisciplineReportInfoDto dto)
+    public async Task<IActionResult> Edit([FromBody] ProcessDisciplineReportInfoDto dto)
     {
-        return _pdrService.Edit(dto, out var message) ? Success(msg: message) : Error(message);
+        var result = await _pdrService.EditAsync(dto);
+        return result.Success ? Success(msg: result.Message) : Error(result.Message);
     }
 
     /// <summary>
@@ -48,8 +57,9 @@ public class ProcessDisciplineReportController: BaseController
     /// <param name="ids"></param>
     /// <returns></returns>
     [HttpPost, Route("report/processDiscipline/remove")]
-    public IActionResult Remove(List<int> ids)
+    public async Task<IActionResult> Remove(List<int> ids)
     {
-        return _pdrService.Remove(ids, out var message) ? Success(msg: message) : Error(message);
+        var result = await _pdrService.RemoveAsync(ids);
+        return result.Success ? Success(msg: result.Message) : Error(result.Message);
     }
 }

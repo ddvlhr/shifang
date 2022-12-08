@@ -1,4 +1,5 @@
-﻿using Core.Entities;
+﻿using System.Threading.Tasks;
+using Core.Entities;
 using Core.Enums;
 using Infrastructure.Extensions;
 using Infrastructure.Services.BaseData;
@@ -30,6 +31,9 @@ public class OptionsController : BaseController
     private readonly ITurnService _turnService;
     private readonly IUserService _uService;
     private readonly IWorkShopService _wsService;
+    private readonly IDepartmentService _departmentService;
+    private readonly IDisciplineClassService _disciplineClassService;
+    private readonly IDisciplineClauseService _disciplineClauseService;
 
     public OptionsController(
         ISpecificationService speService,
@@ -47,7 +51,10 @@ public class OptionsController : BaseController
         IFactorySiteService fsService,
         IMethodService methodService,
         IReportOrderService roService,
-        IDefectService defectService)
+        IDefectService defectService,
+        IDisciplineClassService disciplineClassService,
+        IDisciplineClauseService disciplineClauseService,
+        IDepartmentService departmentService)
     {
         _speService = speService;
         _turnService = turnService;
@@ -65,11 +72,14 @@ public class OptionsController : BaseController
         _roService = roService;
         _defectService = defectService;
         _wsService = wsService;
+        _departmentService = departmentService;
+        _disciplineClassService = disciplineClassService;
+        _disciplineClauseService = disciplineClauseService;
     }
 
     [HttpGet]
     [Route("options")]
-    public IActionResult Get()
+    public async Task<IActionResult> Get()
     {
         var specifications = _speService.GetOptions();
 
@@ -111,6 +121,12 @@ public class OptionsController : BaseController
 
         var defects = _defectService.GetOptions();
 
+        var departments = _departmentService.GetOptions();
+
+        var disciplineClasses = await _disciplineClassService.GetOptionsAsync();
+
+        var disciplineClauses = await _disciplineClauseService.GetOptionsAsync();
+
         return Success(new
         {
             specifications,
@@ -132,7 +148,10 @@ public class OptionsController : BaseController
             methods,
             filterStatisticPlotTypes,
             reportOrders,
-            defects
+            defects,
+            departments,
+            disciplineClasses,
+            disciplineClauses
         });
     }
 }

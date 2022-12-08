@@ -12,6 +12,10 @@ export const getProcessDisciplineReports = (params) => {
   return http.request('/report/processDiscipline', 'get', {}, params)
 }
 
+export const getProcessDisciplineReport = (id) => {
+  return http.request(`/report/processDiscipline/${id}`, 'get')
+}
+
 export const editProcessDisciplineReport = (data) => {
   return http.request('/report/processDiscipline', 'post', data)
 }

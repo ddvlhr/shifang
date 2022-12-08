@@ -53,7 +53,7 @@ public class SettingController : BaseController
         {
             WriteIndented = true
         };
-        
+
         var dbSetting = new Core.SugarEntities.ShiFangSettings()
         {
             Time = DateTime.Now,

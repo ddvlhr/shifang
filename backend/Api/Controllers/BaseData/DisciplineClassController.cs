@@ -33,7 +33,7 @@ public class DisciplineClassController : BaseController
     public async Task<IActionResult> Edit([FromBody] BaseEditDto dto)
     {
         var result = await _disciplineClassService.EditAsync(dto);
-        return result.Success ? Success(result.Data) : Error(result.Message);
+        return result.Success ? Success(msg: result.Message) : Error(result.Message);
     }
 
     [HttpGet("disciplineClass/options")]

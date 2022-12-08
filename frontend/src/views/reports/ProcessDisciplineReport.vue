@@ -41,6 +41,26 @@
             />
           </el-col>
         </el-row>
+        <el-row :gutter="20" class="mt-3">
+          <el-col :span="8" :offset="0">
+            <query-select
+              v-model="queryInfo.classId"
+              :options="disciplineClassOptions"
+              placeholder="分类筛选"
+              @change="query"
+              @clear="query"
+            />
+          </el-col>
+          <el-col :span="8" :offset="0">
+            <query-select
+              v-model="queryInfo.clauseId"
+              :options="disciplineClauseOptions"
+              placeholder="条款筛选"
+              @change="query"
+              @clear="query"
+            />
+          </el-col>
+        </el-row>
       </div>
 
       <ele-table
@@ -75,16 +95,26 @@ export default {
         state: '',
         begin: '',
         end: '',
-        department: ''
+        department: '',
+        classId: '',
+        clauseId: ''
       },
       dateRange: [],
       departmentOptions: [],
+      disciplineClassOptions: [],
+      disciplineClauseOptions: [],
       tableDesc: {
         time: {
           text: '检查时间'
         },
         departmentName: {
           text: '涉及部门'
+        },
+        className: {
+          text: '分类'
+        },
+        clauseName: {
+          text: '条款'
         },
         description: {
           text: '现象描述'
@@ -115,6 +145,29 @@ export default {
           type: 'select',
           options: async () => {
             return await this.departmentOptions
+          },
+          attrs: {
+            filterable: true
+          }
+        },
+        classId: {
+          label: '分类',
+          type: 'select',
+          options: async () => {
+            return await this.disciplineClassOptions
+          },
+          attrs: {
+            filterable: true
+          }
+        },
+        clauseId: {
+          label: '条款',
+          type: 'select',
+          options: async () => {
+            return await this.disciplineClauseOptions
+          },
+          attrs: {
+            filterable: true
           }
         },
         description: {
@@ -141,9 +194,13 @@ export default {
       this.rightButtons = await this.$utils.initRightButtons(this)
     },
     async getOptions() {
-      Promise.all([this.$api.getDepartmentOptions()]).then((res) => {
-        this.departmentOptions = res[0].data.data
-      })
+      const { data: res } = await this.$api.getOptions()
+      if (res.meta.code !== 0) {
+        return this.$message.error('获取下拉选项失败: ' + res.meta.message)
+      }
+      this.departmentOptions = res.data.departments
+      this.disciplineClassOptions = res.data.disciplineClasses
+      this.disciplineClauseOptions = res.data.disciplineClauses
     },
     query() {
       if (this.dateRange !== null) {
@@ -170,8 +227,14 @@ export default {
       this.isEdit = false
       this.dialogFormVisible = true
     },
-    edit(data, that) {
-      that.formData = data
+    async edit(data, that) {
+      const { data: res } = await that.$api.getProcessDisciplineReport(data.id)
+      if (res.meta.code !== 0) {
+        return this.$message.error(
+          '获取工艺纪律执行情况失败: ' + res.meta.message
+        )
+      }
+      that.formData = res.data
       that.isEdit = true
       that.dialogFormVisible = true
     },
@@ -205,7 +268,6 @@ export default {
       }
     },
     async handleSubmit(data) {
-      this.formError = {}
       const { data: res } = await this.$api.editProcessDisciplineReport(data)
       if (res.meta.code !== 0) {
         return this.$message.error(res.meta.message)

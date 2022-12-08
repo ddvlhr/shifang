@@ -1,13 +1,17 @@
 using System.Collections.Generic;
 using System.IO;
+using System.Threading.Tasks;
 using Core.Dtos.Report;
+using Core.Models;
+using Core.SugarEntities;
 
 namespace Infrastructure.Services.Reports;
 
 public interface IProcessDisciplineReportService
 {
-    IEnumerable<ProcessDisciplineReportInfoDto> GetTable(ProcessDisciplineReportQueryInfoDto dto, out int total);
-    bool Edit(ProcessDisciplineReportInfoDto dto, out string message);
-    bool Remove(List<int> ids, out string message);
-    MemoryStream Download(ProcessDisciplineReportQueryInfoDto dto);
+    Task<PageViewModel<ProcessDisciplineReportInfoDto>> GetTableAsync(ProcessDisciplineReportQueryInfoDto dto);
+    Task<ResultViewModel<ProcessDisciplineReportInfoDto>> GetByIdAsync(int id);
+    Task<ResultViewModel<ProcessDisciplineReportInfoDto>> EditAsync(ProcessDisciplineReportInfoDto dto);
+    Task<ResultViewModel<ProcessDisciplineReport>> RemoveAsync(List<int> ids);
+    Task<MemoryStream> DownloadAsync(ProcessDisciplineReportQueryInfoDto dto);
 }

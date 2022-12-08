@@ -38,7 +38,7 @@
         :title="dialogTitle"
         :request-fn="handleSubmit"
         :visible.sync="dialogFormVisible"
-        @close="handleClosed"
+        @closed="handleClosed"
       >
       </ele-form-dialog>
     </el-card>
