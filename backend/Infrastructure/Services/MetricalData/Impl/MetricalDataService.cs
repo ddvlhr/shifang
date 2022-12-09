@@ -24,10 +24,11 @@ using Machine = Core.SugarEntities.Machine;
 using MeasureType = Core.SugarEntities.MeasureType;
 using Team = Core.SugarEntities.Team;
 using Turn = Core.SugarEntities.Turn;
+using System.Threading.Tasks;
 
 namespace Infrastructure.Services.MetricalData.Impl;
 
-public class MetricalDataService : IMetricalDataService
+public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalDataService
 {
     private readonly IHttpContextAccessor _accessor;
     private readonly IRepository<CraftIndicatorRule> _cirRepo;
@@ -1245,5 +1246,79 @@ public class MetricalDataService : IMetricalDataService
         var specificationObj = new JObject { { "id", specification.Id }, { "desc", dataObj } };
 
         return specificationObj;
+    }
+    
+    public async Task<IEnumerable<MetricalDataInfoDto>> GetMetricalDataInfoAsync(int type)
+    {
+        var dataRepository = base.ChangeRepository<SugarRepository<Core.SugarEntities.MetricalData>>();
+
+        var list = new List<MetricalDataInfoDto>();
+        var begin = DateTime.Now;
+        var end = DateTime.Now;
+
+        switch (type)
+        {
+            case 1:
+                begin = end.AddDays(-7);
+                break;
+            case 2:
+                begin = end.AddDays(-30);
+                break;
+            case 3:
+                begin = end.AddYears(-1);
+                break;
+        }
+
+        var filter = Expressionable.Create<Core.SugarEntities.MetricalData>()
+            .And(c => c.Group.BeginTime.Date >= begin && c.Group.EndTime.Date <= end)
+            .ToExpression();
+        var dataList = await dataRepository.Context.Queryable<Core.SugarEntities.MetricalData>()
+            .LeftJoin<MetricalGroup>((c, m) => c.GroupId == m.Id)
+            .Where(c=> c.Group.BeginTime.Date >= begin && c.Group.EndTime.Date <= end).ToListAsync();
+        var dataListGroupByGroup = dataList.GroupBy(c => c.Group).ToList();
+        if (type == 1)
+        {
+            var temp = dataListGroupByGroup.GroupBy(c => c.Key.BeginTime.Date.Hour).ToList();
+            foreach (var group in temp)
+            {
+                var item = new MetricalDataInfoDto();
+                var groupTotal = group.Count();
+                var dataTotal = group.Sum(data => data.Count());
+                item.Name = group.Key.ToString();
+                item.GroupTotal = groupTotal;
+                item.DataTotal = dataTotal;
+                list.Add(item);
+            }
+        }
+        else if (type == 2)
+        {
+            var temp = dataListGroupByGroup.GroupBy(c => c.Key.BeginTime.Date).ToList();
+            foreach (var group in temp)
+            {
+                var item = new MetricalDataInfoDto();
+                var groupTotal = group.Count();
+                var dataTotal = group.Sum(c => c.Count());
+                item.Name = group.Key.ToString();
+                item.GroupTotal = groupTotal;
+                item.DataTotal = dataTotal;
+                list.Add(item);
+            }
+        }
+        else if (type == 3)
+        {
+            var temp = dataListGroupByGroup.GroupBy(c => c.Key.BeginTime.Month).ToList();
+            foreach (var group in temp)
+            {
+                var item = new MetricalDataInfoDto();
+                var groupTotal = group.Count();
+                var dataTotal = group.Sum(c => c.Count());
+                item.Name = group.Key.ToString();
+                item.GroupTotal = groupTotal;
+                item.DataTotal = dataTotal;
+                list.Add(item);
+            }
+        }
+
+        return list;
     }
 }

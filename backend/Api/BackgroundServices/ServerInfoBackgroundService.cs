@@ -34,7 +34,7 @@ public class ServerInfoBackgroundService : BackgroundService
         _logger.LogInformation("online user service hosted service is working");
         while (!stoppingToken.IsCancellationRequested)
         {
-            var systemInfo = await SystemInfoHelper.GetSystemInfo();
+            var systemInfo = ComputerHelper.GetComputerInfo();
             var response = new Response(0, "success", systemInfo);
             await _hubContext.Clients.All.SendAsync("ServerInfoMessage", JsonConvert.SerializeObject(response), cancellationToken: stoppingToken);
             await Task.Delay(5000, stoppingToken);

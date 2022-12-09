@@ -67,3 +67,7 @@ export const getMetricalDataBySpecificationIdAndMeasureType = (data) => {
 export const getMetricalDataStatisticInfo = (data) => {
   return http.request('/metricalData/statistic/' + data, 'get')
 }
+
+export const getMetricalDataInfo = (type) => {
+  return http.request(`/metricalData/info/${type}`, 'get')
+}

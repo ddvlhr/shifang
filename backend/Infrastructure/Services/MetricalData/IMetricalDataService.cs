@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading.Tasks;
 using Core.Dtos;
 using Core.Dtos.MetricalData;
+using Core.Models;
 using Newtonsoft.Json.Linq;
 
 namespace Infrastructure.Services.MetricalData;
@@ -27,4 +29,6 @@ public interface IMetricalDataService
     MemoryStream Download(MetricalDataQueryDto dto);
     IEnumerable<BaseOptionDto> GetMeasureDataBySpecificationIdAndMeasureTypeId(int specificationId,
         int measureTypeId);
+
+    Task<IEnumerable<MetricalDataInfoDto>> GetMetricalDataInfoAsync(int type);
 }

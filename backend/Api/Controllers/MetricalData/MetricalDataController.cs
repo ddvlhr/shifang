@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Core.Dtos;
 using Core.Dtos.MetricalData;
 using Infrastructure.Services.MetricalData;
@@ -175,5 +176,12 @@ public class MetricalDataController : BaseController
     public IActionResult GetStatisticInfo(int id)
     {
         return Success(_mdService.GetStatisticInfo(id, out var message));
+    }
+
+    [HttpGet("metricalData/info/{id}")]
+    public async Task<IActionResult> GetInfo(int id)
+    {
+        var list = await _mdService.GetMetricalDataInfoAsync(id);
+        return Success(list);
     }
 }

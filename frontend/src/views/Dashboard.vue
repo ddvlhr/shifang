@@ -20,17 +20,31 @@
                 <span>系统信息</span>
               </div>
               <div class="text-center">
-                <p>系统版本: {{ serverInfo.Version }}</p>
-                <p>CPU使用率: {{ serverInfo.CpuCounter }}</p>
-                <p>系统内存: {{ serverInfo.AllRam }}</p>
-                <el-progress
-                  type="dashboard"
-                  :percentage="serverInfo.RamUseage"
-                  :color="colors"
-                  :stroke-width="12"
-                >
-                </el-progress>
-                <p>内存占用率</p>
+                <!-- <p>系统版本: {{ serverInfo.Version }}</p> -->
+                <p>CPU使用率: {{ serverInfo.CpuUsage }}</p>
+                <p>系统内存: {{ serverInfo.TotalRam }}</p>
+                <el-row :gutter="20">
+                  <el-col :span="12" :offset="0">
+                    <el-progress
+                      type="dashboard"
+                      :percentage="serverInfo.CpuRate"
+                      :color="colors"
+                      :stroke-width="12"
+                    >
+                    </el-progress>
+                    <p>CPU占用率</p>
+                  </el-col>
+                  <el-col :span="12" :offset="0">
+                    <el-progress
+                      type="dashboard"
+                      :percentage="serverInfo.RamRate"
+                      :color="colors"
+                      :stroke-width="12"
+                    >
+                    </el-progress>
+                    <p>内存占用率</p></el-col
+                  >
+                </el-row>
               </div>
             </el-card>
           </el-col>
@@ -76,6 +90,7 @@ export default {
   },
   created() {
     this.$store.dispatch('app/setSystemCacheSize')
+    this.getMetricalDataInfo(3)
   },
   computed: {
     localStorageSize() {
@@ -88,7 +103,15 @@ export default {
       return this.$store.state.app.serverInfo
     }
   },
-  methods: {}
+  methods: {
+    async getMetricalDataInfo(type) {
+      const { data: res } = await this.$api.getMetricalDataInfo(type)
+      if (res.meta.code !== 0) {
+        return this.$message.error('获取测量数据信息失败: ' + res.meta.message)
+      }
+      console.log(res.data)
+    }
+  }
 }
 </script>
 
