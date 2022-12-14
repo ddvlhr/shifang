@@ -1272,18 +1272,19 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
         var filter = Expressionable.Create<Core.SugarEntities.MetricalData>()
             .And(c => c.Group.BeginTime.Date >= begin && c.Group.EndTime.Date <= end)
             .ToExpression();
-        var dataList = await dataRepository.Context.Queryable<Core.SugarEntities.MetricalData>()
-            .LeftJoin<MetricalGroup>((c, m) => c.GroupId == m.Id)
-            .Where(c=> c.Group.BeginTime.Date >= begin && c.Group.EndTime.Date <= end).ToListAsync();
-        var dataListGroupByGroup = dataList.GroupBy(c => c.Group).ToList();
+        var groupList = await base.Context.Queryable<MetricalGroup>()
+            .Includes(c => c.DataList)
+            .Where(c => c.BeginTime.Date >= begin && c.EndTime.Date <= end)
+            .ToListAsync();
+        
         if (type == 1)
         {
-            var temp = dataListGroupByGroup.GroupBy(c => c.Key.BeginTime.Date.Hour).ToList();
+            var temp = groupList.GroupBy(c => c.BeginTime.Date.Hour).ToList();
             foreach (var group in temp)
             {
                 var item = new MetricalDataInfoDto();
                 var groupTotal = group.Count();
-                var dataTotal = group.Sum(data => data.Count());
+                var dataTotal = group.Sum(c => c.DataList.Count());
                 item.Name = group.Key.ToString();
                 item.GroupTotal = groupTotal;
                 item.DataTotal = dataTotal;
@@ -1292,12 +1293,12 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
         }
         else if (type == 2)
         {
-            var temp = dataListGroupByGroup.GroupBy(c => c.Key.BeginTime.Date).ToList();
+            var temp = groupList.GroupBy(c => c.BeginTime.Date.Day).ToList();
             foreach (var group in temp)
             {
                 var item = new MetricalDataInfoDto();
                 var groupTotal = group.Count();
-                var dataTotal = group.Sum(c => c.Count());
+                var dataTotal = group.Sum(c => c.DataList.Count());
                 item.Name = group.Key.ToString();
                 item.GroupTotal = groupTotal;
                 item.DataTotal = dataTotal;
@@ -1306,12 +1307,12 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
         }
         else if (type == 3)
         {
-            var temp = dataListGroupByGroup.GroupBy(c => c.Key.BeginTime.Month).ToList();
+            var temp = groupList.GroupBy(c => c.BeginTime.Month).ToList();
             foreach (var group in temp)
             {
                 var item = new MetricalDataInfoDto();
                 var groupTotal = group.Count();
-                var dataTotal = group.Sum(c => c.Count());
+                var dataTotal = group.Sum(c => c.DataList.Count());
                 item.Name = group.Key.ToString();
                 item.GroupTotal = groupTotal;
                 item.DataTotal = dataTotal;
@@ -1319,6 +1320,6 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
             }
         }
 
-        return list;
+        return list.OrderBy(c=> int.Parse(c.Name)).ToList();
     }
 }

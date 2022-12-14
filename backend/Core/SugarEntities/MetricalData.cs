@@ -9,7 +9,7 @@ public class MetricalData: SugarEntity
     [SugarColumn(ColumnName = "group_id")]
     public int GroupId { get; set; }
     [SugarColumn(IsIgnore = true)]
-    [Navigate(NavigateType.ManyToOne, nameof(GroupId))]
+    [Navigate(NavigateType.OneToOne, nameof(GroupId))]
     public MetricalGroup Group { get; set; }
     [SugarColumn(ColumnName = "test_time")]
     public DateTime TestTime { get; set; }

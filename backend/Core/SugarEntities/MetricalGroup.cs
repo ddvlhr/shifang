@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using SqlSugar;
 
 namespace Core.SugarEntities;
@@ -49,4 +50,6 @@ public class MetricalGroup: SugarEntity
     public string UserName { get; set; }
     [SugarColumn(ColumnName = "count")]
     public int Count { get; set; }
+    [Navigate(NavigateType.OneToMany, nameof(MetricalData.GroupId))]
+    public List<MetricalData> DataList { get; set; }
 }
