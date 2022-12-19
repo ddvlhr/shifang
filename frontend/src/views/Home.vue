@@ -7,15 +7,6 @@
         <router-tab :restore="user.id.toString()" />
       </div>
     </el-container>
-    <ele-form-drawer
-      v-model="homeImages"
-      :formDesc="imageUploadFormDesc"
-      :request-fn="handleImagesUploadSubmit"
-      :visible.sync="imageUploadFormVisible"
-      @request-success="handleImagesUploadSuccess"
-      title="首页图片设置"
-      class="imageUpload"
-    ></ele-form-drawer>
   </div>
 </template>
 
@@ -32,46 +23,6 @@ export default {
     return {
       homeImages: {},
       serverAddr: '',
-      imageUploadFormDesc: {
-        avatar: {
-          label: '欢迎页轮播图片',
-          type: 'image-uploader',
-          attrs: {
-            crop: true,
-            cropHeight: 900,
-            cropWidth: 1600,
-            action:
-              (process.env.NODE_ENV === 'development'
-                ? 'https://localhost:5001'
-                : window.location.protocol +
-                  '//' +
-                  window.location.hostname +
-                  ':81') + '/api/files/images',
-            headers: {
-              Authorization: 'Bearer ' + this.$store.getters.getToken
-            },
-            responseFn(response, file) {
-              return (
-                (process.env.NODE_ENV === 'development'
-                  ? 'https://localhost:5001'
-                  : window.location.protocol +
-                    '//' +
-                    window.location.hostname +
-                    ':81') +
-                '/UploadFiles/Images/' +
-                response.data
-              )
-            }
-          }
-        }
-      },
-      imageUploadFormVisible: false,
-      roleOptions: [],
-      measureTypeOptions: [],
-      indicatorOptions: [],
-      specificationTypeOptions: [],
-      workShopOptions: [],
-      userOptions: [],
       routerAliveHeight: 0,
       routerAliveWidth: 0
     }
@@ -89,8 +40,9 @@ export default {
     this.getDicts()
     this.serverAddr =
       process.env.NODE_ENV === 'development'
-        ? 'https://localhost:5001'
-        : window.location.protocol + '//' + window.location.hostname + ':81'
+        ? 'https://localhost:9527'
+        : // 'https://192.168.1.107:5001'
+          window.location.protocol + '//' + window.location.hostname + ':81'
 
     // 初始化SignalR, 在登录和刷新页面时调用, 判断是否需要初始化, 防止重复初始化
     if (!sr.connection || sr.connection.state === 'Disconnected')
@@ -108,26 +60,6 @@ export default {
   methods: {
     getServerAddr() {
       return this.serverAddr
-    },
-    async getOptions() {
-      Promise.all([
-        this.$api.getTurnOptions(),
-        this.$api.getSpecificationTypeOptions(),
-        this.$api.getMeasureTypeOptions(),
-        this.$api.getUserOptions(),
-        this.$api.getRoleOptions(),
-        this.$api.getWorkShopOptions(),
-        this.$api.getIndicatorOptions()
-      ]).then((value) => {
-        console.log(value)
-        this.turnOptions = value[0].data.data
-        this.specificationTypeOptions = value[1].data.data
-        this.measureTypeOptions = value[2].data.data
-        this.userOptions = value[3].data.data
-        this.roleOptions = value[4].data.data
-        this.workShopOptions = value[5].data.data
-        this.indicatorOptions = value[6].data.data
-      })
     },
     async getDicts() {
       const { data: res } = await this.$api.getDicts()
@@ -155,24 +87,6 @@ export default {
       }
       this.$store.commit('setSystemSettings', res.data)
       this.$store.commit('app/setSettings', res.data)
-    },
-    handleImageUpload() {
-      this.imageUploadFormVisible = true
-    },
-    async handleImagesUploadSubmit(data) {
-      this.settingFormError = false
-      const arr = [data.avatar]
-      const { data: res } = await this.$api.updateWelcomeImages(arr)
-      if (res.meta.code !== 0) {
-        this.settingFormError = true
-        return this.$message.error('提交失败: ' + res.meta.message)
-      }
-    },
-    handleImagesUploadSuccess() {
-      if (!this.settingFormError) {
-        this.imageUploadFormVisible = false
-        this.$message.success('提交成功')
-      }
     }
   }
 }

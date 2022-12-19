@@ -116,6 +116,7 @@ export default {
     z-index: 999;
     .notice-info {
       padding: 10px;
+      padding-left: 20px;
       cursor: auto;
       .content {
         line-height: 25px;

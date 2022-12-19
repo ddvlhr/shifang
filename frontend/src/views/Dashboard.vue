@@ -43,9 +43,12 @@
                 <span>系统信息</span>
               </div>
               <div class="text-center">
-                <!-- <p>系统版本: {{ serverInfo.Version }}</p> -->
+                <!-- <p>系统版本: {{ serverInfo.Version }}</p>
                 <p>CPU使用率: {{ serverInfo.CpuUsage }}</p>
-                <p>系统内存: {{ serverInfo.TotalRam }}</p>
+                <p>系统内存: {{ serverInfo.TotalRam }}</p> -->
+                <p>{{ serverInfo.SystemDescription }}</p>
+                <p>系统框架: {{ serverInfo.FrameworkDescription }}</p>
+                <p>系统运行时间: {{ serverInfo.SystemRuntimes }}</p>
                 <el-row :gutter="20">
                   <el-col :span="12" :offset="0">
                     <el-progress
