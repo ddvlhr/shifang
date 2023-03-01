@@ -16,12 +16,21 @@
       :default-active="activePath"
       :collapse-transition="false"
     >
-      <el-submenu :index="item.id.toString()" v-for="item in permissions" :key="item.id">
+      <el-submenu
+        :index="item.id.toString()"
+        v-for="item in permissions"
+        :key="item.id"
+      >
         <template slot="title">
           <i :class="item.icon"></i>
           <span>{{ item.name }}</span>
         </template>
-        <el-menu-item :index="'/' + child.path" v-for="child in item.children" :key="child.id" @click="saveNavState('/' + child.path, item.id)">
+        <el-menu-item
+          :index="'/' + child.path"
+          v-for="child in item.children"
+          :key="child.id"
+          @click="saveNavState('/' + child.path, item.id)"
+        >
           <template slot="title">
             <span>{{ child.name }}</span>
           </template>
@@ -63,7 +72,7 @@ export default {
   height: calc(100vh - 60px);
   border-right: 1px solid var(--app-content-bg-color);
   transition: width var(--transition-time-02);
-  overflow-x:hidden;
+  overflow-x: hidden;
   overflow-y: auto;
   .el-menu {
     height: 100%;

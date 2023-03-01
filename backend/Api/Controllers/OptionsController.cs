@@ -126,6 +126,8 @@ public class OptionsController : BaseController
         var disciplineClasses = await _disciplineClassService.GetOptionsAsync();
 
         var disciplineClauses = await _disciplineClauseService.GetOptionsAsync();
+        
+        var equipmentTypes = typeof(EquipmentType).ToOptions();
 
         return Success(new
         {
@@ -151,7 +153,8 @@ public class OptionsController : BaseController
             defects,
             departments,
             disciplineClasses,
-            disciplineClauses
+            disciplineClauses,
+            equipmentTypes
         });
     }
 }

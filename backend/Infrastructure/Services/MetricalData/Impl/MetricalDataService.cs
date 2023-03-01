@@ -25,6 +25,7 @@ using MeasureType = Core.SugarEntities.MeasureType;
 using Team = Core.SugarEntities.Team;
 using Turn = Core.SugarEntities.Turn;
 using System.Threading.Tasks;
+using Core.Enums;
 
 namespace Infrastructure.Services.MetricalData.Impl;
 
@@ -228,9 +229,6 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
     public bool UpdateDataInfo(MetricalDataEditDataDto dto, out string failReason)
     {
         failReason = string.Empty;
-        var group = _gRepo.All().Include(c => c.Specification).Include(c => c.MeasureType)
-            .FirstOrDefault(c => c.Id == dto.GroupId);
-        // var inDbIds = _dRepo.All().Where(c => c.GroupId == dto.GroupId).Select(c => c.Id);
         var items = JsonConvert.DeserializeObject<JArray>(dto.DataInfo);
         var inDbIds = _db.Queryable<Core.SugarEntities.MetricalData>().Where(c => c.GroupId == dto.GroupId)
             .Select(c => c.Id).ToList();
@@ -239,9 +237,7 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
             failReason = "数据格式不正确";
             return false;
         }
-
-        var addList = new List<Data>();
-        var updateList = new List<Data>();
+        
         var updateIds = new List<int>();
         var dataList = new List<Core.SugarEntities.MetricalData>();
         foreach (var item in items)
@@ -508,6 +504,7 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
                 c => c.Specification.SpecificationTypeId == int.Parse(dto.SpecificationTypeId))
             .AndIF(dto.TurnId != null, c => c.TurnId == int.Parse(dto.TurnId))
             .AndIF(dto.MeasureTypeId != null, c => c.MeasureTypeId == int.Parse(dto.MeasureTypeId))
+            .AndIF(dto.EquipmentTypeId != null, c=>c.EquipmentType == (EquipmentType)int.Parse(dto.EquipmentTypeId))
             .ToExpression();
         var list = _db.Queryable<MetricalGroup>()
             .LeftJoin<Core.SugarEntities.Specification>((c, s) => c.SpecificationId == s.Id)
@@ -539,9 +536,15 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
                 DeliverTime = c.DeliverTime == null ? "" : Convert.ToDateTime(c.DeliverTime).ToString("yyyy-MM-dd"),
                 OrderNo = c.OrderNo ?? "",
                 Instance = c.Instance,
-                UserName = c.UserName
+                UserName = c.UserName,
+                EquipmentType = c.EquipmentType
             })
             .ToPageList(dto.PageNum, dto.PageSize, ref total);
+
+        foreach (var item in list)
+        {
+            item.EquipmentTypeName = item.EquipmentType.toDescription();
+        }
 
         return list;
 
@@ -698,12 +701,21 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
 
     public string GetDataInfo(int id)
     {
-        var group = _gRepo.All().Include(c => c.Specification).FirstOrDefault(c => c.Id == id);
-        var data = _dRepo.All().Where(c => c.GroupId == id);
+        var group = _db.Queryable<MetricalGroup>()
+            .LeftJoin<Core.SugarEntities.Specification>((c, s) => c.SpecificationId == s.Id)
+            .Where(c => c.Id == id)
+            .Select((c, s)=> new
+            {
+                beginTime = c.BeginTime,
+                specificationName = s.Name
+            }).First();
+        var data = _db.Queryable<Core.SugarEntities.MetricalData>().Where(c => c.GroupId == id).ToList();
         var dataInfo = new JArray();
         foreach (var item in data)
         {
             var info = (JObject)JsonConvert.DeserializeObject(item.Data);
+            if (info == null)
+                continue;
             if (!info.ContainsKey("id"))
                 info.Add("id", item.Id);
             else
@@ -714,8 +726,8 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
         var temp = new
         {
             groupId = id,
-            specificationName = group.Specification.Name,
-            testTime = group.BeginTime.ToString("yyyy-MM-dd HH:mm:ss"),
+            specificationName = group.specificationName,
+            testTime = group.beginTime.ToString("yyyy-MM-dd HH:mm:ss"),
             data = dataInfo
         };
         return JsonConvert.SerializeObject(temp);
@@ -727,14 +739,14 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
         failReason = "";
         var indicators = _iRepo.All().ToList();
         var statisticItems = new[] { "平均值", "最大值", "最小值", "SD", "CV", "CPK", "Offs", "上超", "下超", "合格数", "合格率" };
-        var group = _gRepo.Get(groupId);
+        var group = _db.Queryable<MetricalGroup>().Single(c => c.Id == groupId);
         if (group == null)
         {
             failReason = "没有找到对应的测试组";
             return info;
         }
 
-        var specification = _spRepo.Get(group.SpecificationId);
+        var specification = _db.Queryable<Core.SugarEntities.Specification>().Single(c=>c.Id == group.SpecificationId);
         if (specification == null)
         {
             failReason = "没有找到对应的牌号";
@@ -748,7 +760,8 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
             return info;
         }
 
-        var data = _dRepo.All().Where(c => c.GroupId == group.Id).Select(c => c.Data).ToList();
+        var data = _db.Queryable<Core.SugarEntities.MetricalData>().Where(c=>c.GroupId == groupId)
+            .Select(c=>c.Data).ToList();
         if (data.Count == 0)
         {
             failReason = "没有找到对应的测试数据";
@@ -782,9 +795,7 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
             var indicatorValue = firstData[$"{rule.Id}"];
             if (indicatorValue != null && indicatorValue.ToString() != "")
             {
-                var indicatorName = rule.Name;
-                if (string.IsNullOrEmpty(rule.Name))
-                    indicatorName = indicators.FirstOrDefault(c => c.Id == rule.Id)?.Name;
+                var indicatorName= indicators.FirstOrDefault(c => c.Id == rule.Id)?.Name;
                 var columnItem = new Dictionary<string, object>()
                 {
                     {"text", indicatorName}

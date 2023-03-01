@@ -8,6 +8,8 @@
   },
   "scripts": {
     "serve": "vue-cli-service serve",
+    "dev": "vue-cli-service serve --mode dev",
+    "prod": "vue-cli-service build --mode prod",
     "build": "vue-cli-service build",
     "lint": "vue-cli-service lint",
     "svgo": "svgo -f src/assets/icons/svg --config=src/assets/icons/svg.config.js",

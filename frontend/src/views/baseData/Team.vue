@@ -24,6 +24,8 @@
               :options="stateList"
               v-model="query.state"
               placeholder="状态筛选"
+              @change="query"
+              @clear="query"
             />
           </el-col>
         </el-row>

@@ -3,19 +3,17 @@
   "profiles": {
     "Api": {
       "commandName": "Project",
-      "launchBrowser": false,
       "launchUrl": "index.html",
+      "applicationUrl": "https://*:9527;http://*:9528",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
-      },
-      "applicationUrl": "https://*:5001;http://*:5000"
+      }
     },
     "Docker": {
       "commandName": "Docker",
       "launchBrowser": true,
       "launchUrl": "{Scheme}://{ServiceHost}:{ServicePort}/index.html",
-      "publishAllPorts": true,
-      "useSSL": true
+      "environmentVariables": {}
     }
   }
 }

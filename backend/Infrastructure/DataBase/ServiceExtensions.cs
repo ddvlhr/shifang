@@ -20,11 +20,11 @@ public static class ServiceExtensions
     {
         var builder = new ConfigurationBuilder()
             .SetBasePath(Directory.GetCurrentDirectory())
-            .AddJsonFile("appsettings.json", true, true);
+            .AddJsonFile("appsettings.shifang.json", true, true);
         var config = builder.Build();
-        var settings = config.GetSection("Settings").Get<Settings>();
+        var settings = config.GetSection(nameof(ShiFangSettings)).Get<ShiFangSettings>();
         var connectionString = NormalizeConnectionString(
-            configuration.GetConnectionString(settings.MySqlServerName),
+            configuration.GetConnectionString(settings.DataSource),
             out var createTemporary);
         if (createTemporary)
         {

@@ -1,13 +1,5 @@
-/*
- * @Author: ddvlhr 354874258@qq.com
- * @Date: 2022-07-28 16:24:16
- * @LastEditors: ddvlhr 354874258@qq.com
- * @LastEditTime: 2022-10-28 19:56:46
- * @FilePath: /frontend/vue.config.js
- * @Description: 
- */
-const { defineConfig } = require("@vue/cli-service");
-const { resolve } = require("node:path")
+const { defineConfig } = require('@vue/cli-service')
+const { resolve } = require('node:path')
 module.exports = defineConfig({
   transpileDependencies: true,
   productionSourceMap: false,
@@ -16,7 +8,7 @@ module.exports = defineConfig({
   lintOnSave: false,
   devServer: {
     host: '0.0.0.0',
-    port: 8080,
+    port: 8234,
     https: false,
     open: false,
     hot: true,
@@ -29,18 +21,13 @@ module.exports = defineConfig({
   pluginOptions: {
     windicss: {}
   },
-  chainWebpack: config => {
-    config
-      .plugin('html')
-      .tap(args => {
-        args[0].title = '数据采集与分析系统'
-        return args
-      })
+  chainWebpack: (config) => {
+    config.plugin('html').tap((args) => {
+      args[0].title = '数据采集与分析系统'
+      return args
+    })
 
-    config.module
-      .rule('svg')
-      .exclude.add(resolve('src/assets/icons'))
-      .end()
+    config.module.rule('svg').exclude.add(resolve('src/assets/icons')).end()
 
     config.module
       .rule('icons')
@@ -53,4 +40,4 @@ module.exports = defineConfig({
         symbolId: 'icon-[name]'
       })
   }
-});
+})

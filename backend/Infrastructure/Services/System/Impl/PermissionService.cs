@@ -1,5 +1,7 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 using Core.Dtos;
 using Core.Dtos.Permission;
 using Core.Entities;
@@ -15,21 +17,36 @@ public class PermissionService : IPermissionService
 {
     private readonly IRepository<Permission> _permissionRepository;
     private readonly IUnitOfWork _uow;
+    private readonly IRepository<Role> _roleRepository;
 
     public PermissionService(IRepository<Permission> permissionRepository,
-        IUnitOfWork uow)
+        IUnitOfWork uow,
+        IRepository<Role> roleRepository)
     {
         _permissionRepository = permissionRepository;
         _uow = uow;
+        _roleRepository = roleRepository;
     }
 
     public IEnumerable<PermissionTreeDto> GetPermissionTree(int role)
     {
         var tree = new List<PermissionTreeDto>();
+        List<Permission> permissions;
         if (role == 0)
         {
-            var permissions = _permissionRepository.All().ToList();
-            var root = permissions.Where(c => c.Level == 0).OrderBy(c => c.Order).ToList();
+            permissions = _permissionRepository.All().ToList();
+        }
+        else
+        {
+            var currentRole = _roleRepository.Get(role);
+            var rolePermissions = JsonSerializer.Deserialize<List<int>>(currentRole.RoleMenu);
+            var tempList = _permissionRepository.All().Where(c => rolePermissions.Contains(c.Id)).ToList();
+            var rootIds = tempList.Where(c => c.PermissionType == PermissionType.Menu).Select(c => c.Level).ToList();
+            var ids = rolePermissions.Concat(rootIds);
+            permissions = _permissionRepository.All().Where(c=> ids.Contains(c.Id)).ToList();
+        }
+        
+        var root = permissions.Where(c => c.Level == 0).OrderBy(c => c.Order).ToList();
             foreach (var item in root)
             {
                 var rootItem = new PermissionTreeDto()
@@ -88,9 +105,24 @@ public class PermissionService : IPermissionService
                 rootItem.Children = menuItems;
                 tree.Add(rootItem);
             }
-        }
 
         return tree;
+    }
+
+    public IEnumerable<BaseTreeDto> GetAllPermissionTree()
+    {
+        var permissions = _permissionRepository.All().ToList();
+        var result = permissions.Where(c => c.Level != 0 && c.PermissionType == PermissionType.Menu).OrderBy(c => c.Order)
+            .Select(c => new BaseTreeDto()
+            {
+                Id = c.Id, Label = c.Name, Children = permissions.Where(x => x.Level == c.Id && x.PermissionType == PermissionType.Button).Select(x =>
+                    new BaseTreeDto.Child()
+                    {
+                        Id = x.Id, ParentId = c.Id, Label = x.Name
+                    }).ToList()
+            }).ToList();
+
+        return result;
     }
 
     public bool Edit(EditPermissionDto dto, out string failReason)

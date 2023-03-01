@@ -8,28 +8,17 @@
  */
 import axios from 'axios'
 import NProgress from 'nprogress'
+import utils from '.'
 import router from '../router'
 import store from '../store'
 axios.defaults.withCredentials = true
 
-const getCurrentHost = (env) => {
-  let base = {
-    development:
-      window.location.protocol + '//' + window.location.hostname + ':5000/api',
-    // 'https://localhost:5001/api',
-    production:
-      window.location.protocol + '//' + window.location.hostname + ':5001/api'
-  }[env]
-  if (!base) {
-    base = '/'
-  }
-  return base
-}
-
 class Axios {
   constructor() {
     // this.baseURL = getBaseUrl(process.env.NODE_ENV)
-    this.baseURL = getCurrentHost(process.env.NODE_ENV)
+    // this.baseURL = getCurrentHost(process.env.NODE_ENV)
+    this.baseURL =
+      utils.getCurrentApiUrl(process.env.NODE_ENV === 'development') + '/api'
     this.timeout = 100000
     this.withCredentials = true
   }

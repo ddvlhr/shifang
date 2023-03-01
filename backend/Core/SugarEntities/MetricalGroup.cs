@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Core.Enums;
 using SqlSugar;
 
 namespace Core.SugarEntities;
@@ -50,6 +51,12 @@ public class MetricalGroup: SugarEntity
     public string UserName { get; set; }
     [SugarColumn(ColumnName = "count")]
     public int Count { get; set; }
+
+    [SugarColumn(ColumnName = "user_data", Length = 255)]
+    public string UserData { get; set; }
     [Navigate(NavigateType.OneToMany, nameof(MetricalData.GroupId))]
     public List<MetricalData> DataList { get; set; }
+
+    [SugarColumn(ColumnName = "equipment_type")]
+    public EquipmentType EquipmentType { get; set; } = EquipmentType.Rt;
 }

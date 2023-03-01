@@ -53,6 +53,9 @@ public abstract class BaseGroup : Entity
     
     [Column("count")]
     public int Count { get; set; }
+    
+    [Column("user_data"), MaxLength(255)]
+    public string UserData { get; set; }
 }
 
 public enum PickUpWay

@@ -9,6 +9,7 @@ using MySql.Data.MySqlClient;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using RTLib;
+using Microsoft.AspNet.SignalR.Client;
 
 namespace WebService
 {
@@ -22,6 +23,39 @@ namespace WebService
     // [System.Web.Script.Services.ScriptService]
     public class DataService : System.Web.Services.WebService
     {
+        private IHubProxy _hub;
+        public DataService()
+        {
+            string url = "http://localhost:9527/ServerHub";
+            HubConnection connection = new HubConnection(url);
+            connection.ConnectionSlow += connectionSlow;
+            connection.Error += connectionError;
+            connection.StateChanged += connectionStateChanged;
+            ///服务端 配置 [HubName("MyTestHub")]
+            _hub = connection.CreateHubProxy("MyTestHub");
+            connection.Start().Wait();
+            _hub.On("addMessage", x =>
+            Console.WriteLine(x));
+            _hub.On("SendClient", x =>
+            {
+                Console.WriteLine(x);
+            });
+        }
+
+        private void connectionSlow() {
+            NetLog.save("signalr 服务连接超时了", false);
+        }
+
+        private void connectionError(Exception ex) {
+            NetLog.save("signalr 服务连接失败：" + ex.ToString());
+        }
+
+        private void connectionStateChanged(StateChange state) { 
+            if (state.NewState == Microsoft.AspNet.SignalR.Client.ConnectionState.Disconnected)
+            {
+                NetLog.save("signalr 服务已断开");
+            }
+        }
         /// <summary>
         /// 判断数据是否存在
         /// </summary>
@@ -35,7 +69,7 @@ namespace WebService
             var sql = "select id from t_group where begin_time=@beginTime and specification_id=@specificationId and instance=@instance";
             if (equipmentType != 3)
             {
-                sql += "and turn_id=@turnId and machine_id=@machineId and measure_type_id=@measureTypeId";
+                sql += " and turn_id=@turnId and machine_id=@machineId and measure_type_id=@measureTypeId";
             }
             cmd.CommandText = sql;
             cmd.Parameters.AddWithValue("beginTime", xInfo.Attributes["beginTime"].Value);
@@ -116,7 +150,7 @@ namespace WebService
 
                 if (!string.IsNullOrEmpty(lastSyncServerTime))
                 {
-                    specificationSql += " and modified_time >=" + lastSyncServerTime;
+                    specificationSql += " and modified_at_utc >=" + "'" + lastSyncServerTime + "'";
                 }
 
                 var dtSpecification = db.excuteToTable(specificationSql);
@@ -128,7 +162,7 @@ namespace WebService
                     el.SetAttribute("id", id);
                     el.SetAttribute("name", dr["name"].ToString());
                     el.SetAttribute("equipment", equipmentType.ToString());
-                    el.SetAttribute("status", dr["status"].ToString());
+                    el.SetAttribute("status", dr["status"].ToString() == "0" ? "1" : "0");
 
                     if (!string.IsNullOrEmpty(dr["single_rules"].ToString()))
                     {
@@ -277,27 +311,30 @@ namespace WebService
                 cmd.Parameters.Clear();
                 cmd.Transaction = transction;
                 cmd.CommandText =
-                    "insert into t_group (equipment_type, begin_time, end_time, production_time, deliver_time, instance, specification_id, turn_id, machine_id," +
-                    " measure_type_id, pickup_way, count, created_time, modified_time, user_data)" +
-                    " values (@equipmentType, @beginTime, @endTime, @productionTime, @deliverTime, @instance, @specificationId, @turnId," +
-                    " @machineId, @measureTypeId, @pickupWay, @count, @createdTime, @modifiedTime, @userData)";
+                    "insert into t_group (begin_time, end_time, production_time, deliver_time, instance, specification_id, turn_id, machine_id," +
+                    " measure_type_id, pickup_way, count, created_at_utc, modified_at_utc, user_data, equipment_type)" +
+                    " values (@beginTime, @endTime, @productionTime, @deliverTime, @instance, @specificationId, @turnId," +
+                    " @machineId, @measureTypeId, @pickupWay, @count, @createdTime, @modifiedTime, @userData, @equipmentType)";
 
-                cmd.Parameters.AddWithValue("equipmentType", equipmentType);
+                //cmd.Parameters.AddWithValue("equipmentType", equipmentType);
                 cmd.Parameters.AddWithValue("beginTime", xInfo.Attributes["beginTime"].Value);
                 cmd.Parameters.AddWithValue("endTime", xInfo.Attributes["endTime"].Value);
-                cmd.Parameters.AddWithValue("productionTime", xInfo.Attributes["productionTime"].Value);
-                cmd.Parameters.AddWithValue("deliverTime", xInfo.Attributes["deliverTime"].Value);
+                var productionTime = xInfo.Attributes["productionTime"].Value;
+                var deliverTime = xInfo.Attributes["deliverTime"].Value;
+                cmd.Parameters.AddWithValue("productionTime", productionTime == "" ? null : productionTime);
+                cmd.Parameters.AddWithValue("deliverTime", deliverTime == "" ? null : deliverTime);
                 cmd.Parameters.AddWithValue("instance", xInfo.Attributes["instance"].Value);
                 cmd.Parameters.AddWithValue("specificationId", specificationId);
                 cmd.Parameters.AddWithValue("turnId", turnId == "" ? 0 : int.Parse(turnId));
                 cmd.Parameters.AddWithValue("machineId", machineId == "" ? 0 : int.Parse(machineId));
-                cmd.Parameters.AddWithValue("measureTypeId", measureTypeId == "" ? 0 : int.Parse(measureTypeId));
+                cmd.Parameters.AddWithValue("measureTypeId", equipmentType == 1 ? int.Parse(measureTypeId) : 25);
                 cmd.Parameters.AddWithValue("pickupWay", int.Parse(xInfo.Attributes["pickupWay"].Value));
                 cmd.Parameters.AddWithValue("count", xDetails.Count);
 
                 cmd.Parameters.AddWithValue("createdTime", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
                 cmd.Parameters.AddWithValue("modifiedTime", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
                 cmd.Parameters.AddWithValue("userData", xInfo.Attributes["userData"].Value);
+                cmd.Parameters.AddWithValue("equipmentType", equipmentType);
                 cmd.ExecuteNonQuery();
 
                 var strGid = "";
@@ -313,24 +350,28 @@ namespace WebService
                 var indicators = ConvertHelper<Indicator>.dataTableToList(dtIndicator);
                 foreach (XmlElement d in xDetails)
                 {
-                    cmd.CommandText = "insert into t_data (group_id, test_time, data) values (@groupId, @testTime, @data)";
+                    cmd.CommandText = "insert into t_data (group_id, test_time, data, created_at_utc, modified_at_utc) values (@groupId, @testTime, @data, @createTime, @modifiedTime)";
                     cmd.Parameters.Clear();
                     cmd.Parameters.AddWithValue("groupId", strGid);
                     cmd.Parameters.AddWithValue("testTime", d.Attributes["time"].Value);
-                    var data = new JArray();
+                    var data = new JObject();
                     foreach (XmlAttribute attr in d.Attributes)
                     {
                         if (attr.Name == "time")
-                            continue;
+                        {
+                            data.Add(new JProperty("testTime", d.Attributes["time"].Value));
+                        }
 
                         var indicator = indicators.FirstOrDefault(c => c.Alias == attr.Name);
                         if (indicator == null)
                             continue;
 
-                        data.Add(new JObject { { indicator.Id.ToString(), attr.Value } });
+                        data.Add(new JProperty(indicator.Id.ToString(), attr.Value));
                     }
 
                     cmd.Parameters.AddWithValue("data", JsonConvert.SerializeObject(data));
+                    cmd.Parameters.AddWithValue("createTime", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
+                    cmd.Parameters.AddWithValue("modifiedTime", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
                     cmd.ExecuteNonQuery();
                 }
                 transction?.Commit();

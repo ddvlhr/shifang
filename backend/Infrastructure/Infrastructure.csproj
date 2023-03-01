@@ -62,4 +62,10 @@
         <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.15.0" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Reference Include="RTLib.Raw">
+        <HintPath>..\..\..\..\Lib\RTLib\RTLib.Raw\bin\Release\RTLib.Raw.dll</HintPath>
+      </Reference>
+    </ItemGroup>
+
 </Project>

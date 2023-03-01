@@ -3,7 +3,7 @@
     <TopHeader />
     <el-container>
       <Menu />
-      <div class="app-main">
+      <div class="app-main" :style="{ '--main-left': asideWidth }">
         <router-tab :restore="user.id.toString()" />
       </div>
     </el-container>
@@ -22,7 +22,6 @@ export default {
   data() {
     return {
       homeImages: {},
-      serverAddr: '',
       routerAliveHeight: 0,
       routerAliveWidth: 0
     }
@@ -38,15 +37,14 @@ export default {
   created() {
     this.getSystemSettings()
     this.getDicts()
-    this.serverAddr =
-      process.env.NODE_ENV === 'development'
-        ? 'https://localhost:9527'
-        : // 'https://192.168.1.107:5001'
-          window.location.protocol + '//' + window.location.hostname + ':81'
 
     // 初始化SignalR, 在登录和刷新页面时调用, 判断是否需要初始化, 防止重复初始化
     if (!sr.connection || sr.connection.state === 'Disconnected')
-      sr.init(this.serverAddr + '/ServerHub', this.$store.state.user.userInfo)
+      sr.init(
+        this.$utils.getCurrentApiUrl(process.env.NODE_ENV === 'development') +
+          '/ServerHub',
+        this.$store.state.user.userInfo
+      )
   },
   computed: {
     asideWidth() {
@@ -58,9 +56,6 @@ export default {
     }
   },
   methods: {
-    getServerAddr() {
-      return this.serverAddr
-    },
     async getDicts() {
       const { data: res } = await this.$api.getDicts()
       if (res.meta.code !== 0) {
@@ -96,24 +91,6 @@ export default {
 .home-container {
   height: 100vh;
 }
-// .el-header {
-//   background-color: #006851;
-//   display: flex;
-//   justify-content: space-between;
-//   align-items: center;
-//   color: #fff;
-//   font-size: 20px;
-//   padding-left: 0;
-
-//   .collapse {
-//     display: flex;
-//     align-items: center;
-//     height: 60px;
-//     .title {
-//       padding: 0 20px;
-//     }
-//   }
-// }
 
 .app-bd {
   position: relative;
@@ -125,7 +102,7 @@ export default {
   top: 60px;
   right: 0;
   bottom: 0;
-  left: v-bind(asideWidth);
+  left: var(--main-left);
   height: calc(100vh - 60px);
   transition: all 0.2s ease-in-out;
 }

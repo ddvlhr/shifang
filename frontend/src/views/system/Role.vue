@@ -95,8 +95,8 @@ export default {
             multiple: true,
             flat: true
           },
-          options: async (data) => {
-            const { data: res } = await this.$api.getAllMenuFunctions()
+          options: async () => {
+            const { data: res } = await this.$api.getAllPermissionTree()
             if (res.meta.code !== 0) {
               return this.$message.error(
                 '获取菜单功能数据失败: ' + res.meta.message
@@ -118,7 +118,7 @@ export default {
           type: 'radio',
           label: '状态',
           default: true,
-          options: boolStateList
+          options: this.$store.state.app.dicts.boolStateList
         }
       },
       userRoleFormError: false,
@@ -187,17 +187,10 @@ export default {
       this.isEdit = false
       this.dialogFormVisible = true
     },
-    edit() {
-      const selectedData = this.$refs.table.selectedData
-      if (selectedData.length === 0) {
-        return this.$message.error('请选择需要编辑的角色')
-      }
-      if (selectedData.length > 1) {
-        return this.$message.error('每次只能编辑一条角色')
-      }
-      this.formData = selectedData[0]
-      this.isEdit = true
-      this.dialogFormVisible = true
+    edit(data, that) {
+      that.formData = data
+      that.isEdit = true
+      that.dialogFormVisible = true
     },
     async getNoRoleUsers() {
       const { data: res } = await this.$api.getOptions()

@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Core.Entities;
@@ -18,6 +19,9 @@ public class Indicator : Entity
     [Column("unit")] public string Unit { get; set; }
 
     [Column("standard")] public string Standard { get; set; }
+    
+    [Column("score")]
+    public double Score { get; set; }
 
     [Column("status")] public Status Status { get; set; }
 }

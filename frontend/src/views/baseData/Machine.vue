@@ -102,7 +102,7 @@ export default {
       this.rightButtons = await this.$utils.initRightButtons(this)
     },
     query() {
-      this.$utils.queryTable(this, this.getMachines)
+      this.$utils.queryTable(this, this.getMachineList)
     },
     async getMachineList(params) {
       const { data: res } = await this.$api.getMachines(

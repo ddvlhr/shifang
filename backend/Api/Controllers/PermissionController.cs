@@ -39,4 +39,10 @@ public class PermissionController : BaseController
     {
         return Success(_permissionService.GetOptions(root));
     }
+
+    [HttpGet, Route("permission/tree")]
+    public IActionResult GetAllPermissionTree()
+    {
+        return Success(_permissionService.GetAllPermissionTree());
+    }
 }

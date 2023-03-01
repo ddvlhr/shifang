@@ -9,4 +9,5 @@ public class MetricalDataQueryDto : BaseQueryInfoDto
     public string MeasureTypeId { get; set; }
     public string BeginTime { get; set; }
     public string EndTime { get; set; }
+    public string EquipmentTypeId { get; set; }
 }

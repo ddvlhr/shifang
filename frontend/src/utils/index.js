@@ -128,4 +128,45 @@ utils.reloadCurrentRoute = (tabs, store) => {
   store.commit('app/setActivePath', currentTab)
 }
 
+utils.getCurrentApiUrl = (ssl = false, port = 9527) => {
+  let url = `${window.location.protocol}//${window.location.hostname}:${port}`
+  if (ssl) {
+    url = url.replace('http', 'https')
+  }
+  return url
+}
+
+utils.getCurrentTime = () => {
+  const newDate = new Date()
+  const year = newDate.getFullYear()
+  let month = newDate.getMonth() + 1
+  let day = newDate.getDate()
+  let hours = newDate.getHours()
+  let miniutes = newDate.getMinutes()
+  let seconds = newDate.getSeconds()
+  if (month < 10) {
+    month = '0' + month
+  }
+
+  if (day < 10) {
+    day = '0' + day
+  }
+
+  if (hours < 10) {
+    hours = '0' + hours
+  }
+
+  if (miniutes < 10) {
+    miniutes = '0' + miniutes
+  }
+
+  if (seconds < 10) {
+    seconds = '0' + seconds
+  }
+
+  const time = [hours, miniutes, seconds].join(':')
+  const date = [year, month, day].join('-')
+  return date + ' ' + time
+}
+
 export default utils

@@ -891,6 +891,10 @@ namespace FuYang.Infrastructure.Migrations
                         .HasColumnType("varchar(64)")
                         .HasColumnName("name");
 
+                    b.Property<double>("Score")
+                        .HasColumnType("double")
+                        .HasColumnName("score");
+
                     b.Property<string>("Standard")
                         .HasColumnType("longtext")
                         .HasColumnName("standard");
@@ -2070,13 +2074,29 @@ namespace FuYang.Infrastructure.Migrations
                         .HasColumnType("int")
                         .HasColumnName("id");
 
+                    b.Property<string>("BatchNumber")
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)")
+                        .HasColumnName("batch_number")
+                        .HasComment("烟支批号");
+
                     b.Property<DateTime>("CreatedAtUtc")
                         .HasColumnType("datetime(6)")
                         .HasColumnName("created_at_utc");
 
+                    b.Property<double>("EndTribeCount")
+                        .HasColumnType("double")
+                        .HasColumnName("end_tribe_count")
+                        .HasComment("端部落丝量");
+
                     b.Property<int>("FinalRet")
                         .HasColumnType("int")
                         .HasColumnName("final_ret");
+
+                    b.Property<int>("FlameOutCount")
+                        .HasColumnType("int")
+                        .HasColumnName("flame_out_count")
+                        .HasComment("熄火支数");
 
                     b.Property<int>("GroupId")
                         .HasColumnType("int")
@@ -2087,9 +2107,20 @@ namespace FuYang.Infrastructure.Migrations
                         .HasColumnType("varchar(64)")
                         .HasColumnName("humidity");
 
+                    b.Property<string>("Inspector")
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)")
+                        .HasColumnName("inspector")
+                        .HasComment("检验员");
+
                     b.Property<DateTime>("ModifiedAtUtc")
                         .HasColumnType("datetime(6)")
                         .HasColumnName("modified_at_utc");
+
+                    b.Property<double>("MoistureRate")
+                        .HasColumnType("double")
+                        .HasColumnName("moisture_rate")
+                        .HasComment("含末率");
 
                     b.Property<int>("PhyRet")
                         .HasColumnType("int")
@@ -2166,6 +2197,45 @@ namespace FuYang.Infrastructure.Migrations
                     b.HasIndex("IndicatorId");
 
                     b.ToTable("t_product_report_appearance");
+                });
+
+            modelBuilder.Entity("Core.Entities.ProductReportDefect", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("id");
+
+                    b.Property<int>("Count")
+                        .HasColumnType("int")
+                        .HasColumnName("count")
+                        .HasComment("数量");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("created_at_utc");
+
+                    b.Property<int>("DefectId")
+                        .HasColumnType("int")
+                        .HasColumnName("defect_id")
+                        .HasComment("缺陷 Id");
+
+                    b.Property<DateTime>("ModifiedAtUtc")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("modified_at_utc");
+
+                    b.Property<int>("ReportId")
+                        .HasColumnType("int")
+                        .HasColumnName("report_id")
+                        .HasComment("成品质量检验报表 Id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DefectId");
+
+                    b.HasIndex("ReportId");
+
+                    b.ToTable("t_product_report_defect");
                 });
 
             modelBuilder.Entity("Core.Entities.ReportOrder", b =>
@@ -3671,6 +3741,25 @@ namespace FuYang.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("Indicator");
+                });
+
+            modelBuilder.Entity("Core.Entities.ProductReportDefect", b =>
+                {
+                    b.HasOne("Core.Entities.Defect", "Defect")
+                        .WithMany()
+                        .HasForeignKey("DefectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Core.Entities.ProductReport", "ProductReport")
+                        .WithMany()
+                        .HasForeignKey("ReportId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Defect");
+
+                    b.Navigation("ProductReport");
                 });
 
             modelBuilder.Entity("Core.Entities.Specification", b =>

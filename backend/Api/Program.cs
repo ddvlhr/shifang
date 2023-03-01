@@ -8,6 +8,7 @@ using Api.Settings;
 using Core.Models;
 using Infrastructure.DataBase;
 using Infrastructure.Extensions;
+using Infrastructure.Helper;
 using Infrastructure.Middlewares;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
@@ -35,7 +36,7 @@ builder.Host.ConfigureLogging(logging =>
 }).ConfigureAppConfiguration((hostingContext, config) =>
 {
     config.AddJsonFile("appsettings.shifang.json", optional: true, reloadOnChange: true);
-    config.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+    // config.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
     config.AddEnvironmentVariables();
     config.AddCommandLine(args);
 });
@@ -82,9 +83,9 @@ services.AddCors(options =>
 {
     options.AddPolicy("ShiFang", b =>
     {
-        var allowOrigins = configuration.GetSection("allowOrigins").Get<string[]>();
-        // b.WithOrigins(allowOrigins)
+        // var allowOrigins = configuration.GetSection("allowOrigins").Get<string[]>();
         b.SetIsOriginAllowed(_ => true)
+        // b.WithOrigins(allowOrigins)
             .AllowAnyHeader()
             .AllowAnyMethod()
             .AllowCredentials();
@@ -136,9 +137,8 @@ services.AddWatchDogServices(opt =>
 var app = builder.Build();
 
 // 将跨域配置放在 UseHttpsRedirection 之前, 保证非 HTTPS 请求也能通过跨域
-app.UseCors("ShiFang");
 
-app.UseHttpsRedirection();
+// app.UseHttpsRedirection();
 
 app.UseSwagger();
 
@@ -154,11 +154,13 @@ app.UseWatchDogExceptionLogger();
 
 app.UseExceptionHandle();
 
-app.UseHttpsRedirection();
+// app.UseHttpsRedirection();
 
 app.UseStaticFiles();
 
 app.UseRouting();
+
+app.UseCors("ShiFang");
 
 app.UseAuthentication();
 
@@ -173,7 +175,8 @@ app.UseWatchDog(opt =>
 app.UseEndpoints(endpoints =>
 {
     endpoints.MapControllers();
-    endpoints.MapHub<ServerHub>("/ServerHub");
+    // SignalR 跨域配置，在IIS中部署时需要启用WebSocket
+    endpoints.MapHub<ServerHub>("/ServerHub").RequireCors(t=>t.SetIsOriginAllowed(_ => true).AllowAnyMethod().AllowAnyHeader().AllowCredentials());
 });
 
 app.Run();

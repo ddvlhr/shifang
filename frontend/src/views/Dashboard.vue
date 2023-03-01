@@ -8,96 +8,83 @@
 -->
 <template>
   <div class="main-container">
-    <el-row :gutter="20">
-      <el-col :span="18" :offset="0">
+    <el-tabs type="card">
+      <el-tab-pane label="历史测量数据">
         <el-card shadow="never" :body-style="{ padding: '20px' }">
           <div slot="header">
-            <span>历史测量数据</span>
             <el-button
-              style="float: right; padding: 3px 0"
+              style="padding: 3px 0px"
               type="text"
               @click="getMetricalDataInfo(3)"
               >年度</el-button
             >
             <el-button
-              style="float: right; padding: 3px 5px"
+              style="padding: 3px 0px"
               type="text"
               @click="getMetricalDataInfo(2)"
               >月度</el-button
             >
             <el-button
-              style="float: right; padding: 3px 5px"
+              style="padding: 3px 0px"
               type="text"
               @click="getMetricalDataInfo(1)"
-              >周</el-button
+              >周度</el-button
             >
           </div>
-          <v-chart class="chart" :option="option" />
+          <v-chart class="chart" :option="option" autoresize />
         </el-card>
-      </el-col>
-      <el-col :span="6" :offset="0">
-        <el-row :gutter="20">
-          <el-col :span="24" :offset="0">
-            <el-card shadow="never" :body-style="{ padding: '20px' }">
-              <div slot="header">
-                <span>系统信息</span>
-              </div>
-              <div class="text-center">
-                <!-- <p>系统版本: {{ serverInfo.Version }}</p>
-                <p>CPU使用率: {{ serverInfo.CpuUsage }}</p>
-                <p>系统内存: {{ serverInfo.TotalRam }}</p> -->
-                <p>{{ serverInfo.SystemDescription }}</p>
-                <p>系统框架: {{ serverInfo.FrameworkDescription }}</p>
-                <p>系统运行时间: {{ serverInfo.SystemRuntimes }}</p>
-                <el-row :gutter="20">
-                  <el-col :span="12" :offset="0">
-                    <el-progress
-                      type="dashboard"
-                      :percentage="serverInfo.CpuRate"
-                      :color="colors"
-                      :stroke-width="12"
-                    >
-                    </el-progress>
-                    <p>CPU占用率</p>
-                  </el-col>
-                  <el-col :span="12" :offset="0">
-                    <el-progress
-                      type="dashboard"
-                      :percentage="serverInfo.RamRate"
-                      :color="colors"
-                      :stroke-width="12"
-                    >
-                    </el-progress>
-                    <p>内存占用率</p></el-col
-                  >
-                </el-row>
-              </div>
-            </el-card>
-          </el-col>
-        </el-row>
-
-        <el-row :gutter="20">
-          <el-col :span="24" :offset="0">
-            <el-card shadow="never" :body-style="{ padding: '20px' }">
-              <div slot="header">
-                <span>LocalStorage 使用存储空间</span>
-              </div>
-              {{ localStorageSize }} / 5101 KB
-            </el-card>
-          </el-col>
-        </el-row>
-        <el-row :gutter="20" class="mt-3">
-          <el-col :span="24" :offset="0">
-            <el-card shadow="never" :body-style="{ padding: '20px' }">
-              <div slot="header">
-                <span>SessionStorage 存储使用空间</span>
-              </div>
-              {{ sessionStorageSize }} / 5101 KB
-            </el-card></el-col
-          >
-        </el-row>
-      </el-col>
-    </el-row>
+      </el-tab-pane>
+      <el-tab-pane label="测量数据推送" style="height: calc(100vh - 200px)">
+        <el-card shadow="never" :body-style="{ padding: '20px' }">
+          <div slot="header">
+            <el-row :gutter="20">
+              <el-col :span="6">
+                <query-select
+                  :options="specificationOptions"
+                  placeholder="请选择牌号"
+                />
+              </el-col>
+              <el-col :span="6" :offset="0">
+                <query-select :options="turnOptions" placeholder="请选择班次" />
+              </el-col>
+              <el-col :span="6" :offset="0">
+                <query-select
+                  :options="machineOptions"
+                  placeholder="请选择机台"
+                />
+              </el-col>
+              <el-col :span="6">
+                <el-button type="primary">开启推送</el-button>
+              </el-col>
+            </el-row>
+          </div>
+          <el-row :gutter="20" style="height: 100%">
+            <el-col :span="14" style="height: 100%">
+              <el-table :data="dataList">
+                <el-table-column
+                  label="测量时间"
+                  prop="beginTime"
+                ></el-table-column>
+                <el-table-column
+                  label="牌号名称"
+                  prop="specificationName"
+                ></el-table-column>
+                <el-table-column label="班次" prop="turnName"></el-table-column>
+                <el-table-column
+                  label="机台"
+                  prop="machineName"
+                ></el-table-column>
+                <el-table-column
+                  label="测量类型"
+                  prop="measureTypeName"
+                ></el-table-column>
+              </el-table>
+            </el-col>
+            <el-col :span="10" style="height: 100%"></el-col>
+          </el-row>
+        </el-card>
+      </el-tab-pane>
+    </el-tabs>
   </div>
 </template>
 
@@ -166,12 +153,25 @@ export default {
             data: []
           }
         ]
-      }
+      },
+      specificationOptions: [],
+      turnOptions: [],
+      machineOptions: [],
+      queryInfo: {
+        specificationId: '',
+        turnId: '',
+        machineId: '',
+        pageNum: 1,
+        pageSize: 10
+      },
+      dataList: []
     }
   },
   created() {
     this.$store.dispatch('app/setSystemCacheSize')
-    this.getMetricalDataInfo(3)
+    this.getMetricalDataInfo(2)
+    this.loadDataList()
+    this.getOptions()
   },
   computed: {
     localStorageSize() {
@@ -211,6 +211,36 @@ export default {
       this.option.xAxis[0].data = times
       this.option.series[0].data = groupTotalList
       this.option.series[1].data = dataTotalList
+    },
+    async getOptions() {
+      const { data: res } = await this.$api.getOptions()
+      if (res.meta.code !== 0) {
+        return this.$message.error('获取选项失败: ' + res.meta.message)
+      }
+      this.specificationOptions = res.data.specifications
+      this.turnOptions = res.data.turns
+      this.machineOptions = res.data.machines
+    },
+    loadDataList() {
+      let clear = false
+      setInterval(async () => {
+        // if (this.dataList.length > 10) {
+        //   clear = true
+        // }
+        const { data: res } = await this.$api.getMetricalData(this.queryInfo)
+        this.dataList = res.data.list
+        // if (this.dataList.length > 10) {
+        //   this.dataList.pop()
+        //   // clear = false
+        // }
+        // this.dataList.unshift({
+        //   beginTime: this.$utils.getCurrentTime(),
+        //   specificationName: '牌号名称',
+        //   turnName: '班次',
+        //   machineName: '机台',
+        //   measureTypeName: '测量类型'
+        // })
+      }, 5000)
     }
   }
 }

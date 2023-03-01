@@ -28,8 +28,10 @@ const mutations = {
 }
 
 const actions = {
-  async getPermissionTree({ commit }) {
-    const { data: res } = await api.getPermissionTree(0)
+  async getPermissionTree({ commit, rootState }) {
+    const { data: res } = await api.getPermissionTree(
+      rootState.user.userInfo.roleId
+    )
     if (res.meta.code !== 0) {
       return this.$message.error('获取权限树失败')
     }

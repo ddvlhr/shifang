@@ -4,7 +4,7 @@
  * @LastEditors: ddvlhr 354874258@qq.com
  * @LastEditTime: 2022-11-03 16:41:35
  * @FilePath: /frontend/src/api/permission.js
- * @Description: 
+ * @Description:
  */
 import http from '@/utils/http'
 
@@ -22,4 +22,8 @@ export const removePermissions = (data) => {
 
 export const getPermissionOptions = (root) => {
   return http.request(`/permission/options/${root}`, 'get')
+}
+
+export const getAllPermissionTree = () => {
+  return http.request('/permission/tree', 'get')
 }

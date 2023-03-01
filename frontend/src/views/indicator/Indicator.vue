@@ -119,6 +119,10 @@ export default {
           type: 'input',
           label: '标准值'
         },
+        score: {
+          type: 'number',
+          label: '指标分值'
+        },
         parent: {
           type: 'select',
           label: '上级指标',

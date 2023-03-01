@@ -18,7 +18,7 @@ public static class AutoInjectExtension
     public static IServiceCollection AddAutoDi(this IServiceCollection serviceCollection)
     {
         var path = AppDomain.CurrentDomain.BaseDirectory;
-        var assemblies = Directory.GetFiles(path, "*.dll").Select(Assembly.LoadFrom).ToList();
+        var assemblies = Directory.GetFiles(path, "Infrastructure.dll").Select(Assembly.LoadFrom).ToList();
         foreach (var assembly in assemblies)
         {
             var types = assembly.GetTypes().Where(a => a.GetCustomAttribute<AutoInjectAttribute>() != null)

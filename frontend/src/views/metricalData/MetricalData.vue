@@ -66,6 +66,15 @@
               @clear="query"
             />
           </el-col>
+          <el-col :span="6">
+            <query-select
+              :options="equipmentTypeOptions"
+              v-model="queryInfo.equipmentTypeId"
+              placeholder="仪器类型筛选"
+              @change="query"
+              @clear="query"
+            />
+          </el-col>
           <el-col :span="6" :offset="0">
             <query-input
               v-model="queryInfo.query"
@@ -107,39 +116,6 @@
       ref="dataDialog"
       @closed="handleClosed"
     ></ele-form-dialog>
-    <el-dialog
-      title="统计信息"
-      :visible.sync="statisticDialogVisible"
-      width="70%"
-    >
-      <el-tabs v-model="tabSelected" tab-position="top">
-        <el-tab-pane label="统计信息" name="statistic">
-          <ele-table
-            :key="statisticKey"
-            :columns-desc="statisticColumnsDesc"
-            :request-fn="getStatisticDataInfo"
-            :is-show-selection="false"
-            :is-show-top-delete="false"
-            :is-show-right-delete="false"
-            ref="statisticTableRef"
-          ></ele-table>
-        </el-tab-pane>
-        <el-tab-pane label="原始数据" name="origin">
-          <ele-table
-            :key="statisticKey"
-            :columns-desc="originColumnsDesc"
-            :request-fn="getOriginDataInfo"
-            :is-show-selection="false"
-            :is-show-top-delete="false"
-            :is-show-right-delete="false"
-            ref="originTableRef"
-          ></ele-table>
-        </el-tab-pane>
-      </el-tabs>
-      <span slot="footer" class="dialog-footer">
-        <el-button @click="statisticDialogVisible = false">取 消</el-button>
-      </span>
-    </el-dialog>
     <measure-data-dialog
       ref="measureDataDialogRef"
       :dialogVisible.sync="measureDataDialogVisible"
@@ -169,7 +145,8 @@ export default {
         specificationId: '',
         specificationTypeId: '',
         turnId: '',
-        machineModelId: ''
+        machineModelId: '',
+        equipmentTypeId: ''
       },
       statisticDialogVisible: false,
       statisticGroupId: 0,
@@ -181,6 +158,7 @@ export default {
       machineOptions: [],
       measureTypeOptions: [],
       specificationTypeOptions: [],
+      equipmentTypeOptions: [],
       specifications: [],
       reportOrderOptions: [],
       dataInfo: {},
@@ -235,6 +213,12 @@ export default {
         },
         machineName: {
           text: '机台'
+        },
+        instance: {
+          text: '仪器名称'
+        },
+        equipmentTypeName: {
+          text: '仪器类型'
         },
         measureTypeName: {
           text: '测量类型'
@@ -411,6 +395,7 @@ export default {
       this.specificationTypeOptions = res.data.specificationTypes
       this.machineOptions = res.data.machines
       this.reportOrderOptions = res.data.reportOrders
+      this.equipmentTypeOptions = res.data.equipmentTypes
     },
     query() {
       if (this.daterange !== null) {
@@ -478,17 +463,6 @@ export default {
     async statistic(data, that) {
       that.statisticGroupId = data.id
       that.statisticDialogVisible = true
-      // const { data: res } = await that.$api.getStatistic(data.id)
-      // if (res.meta.code !== 0) {
-      //   return that.$message.error('获取统计信息失败: ' + res.meta.message)
-      // }
-      // that.clearStatisticInfo()
-      // that.statisticColumnsDesc = JSON.parse(res.data.statisticColumns)
-      // that.originColumnsDesc = JSON.parse(res.data.originColumns)
-      // that.originDataInfo = JSON.parse(res.data.originDataInfo)
-      // that.statisticDataInfo = JSON.parse(res.data.dataInfo)
-      // that.statisticKey = data.id
-      // that.statisticDialogVisible = true
     },
     // 获取表格中选中的数据
     getSelectedData(multi) {

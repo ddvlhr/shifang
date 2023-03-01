@@ -4,20 +4,40 @@
  * @LastEditors: ddvlhr 354874258@qq.com
  * @LastEditTime: 2022-10-31 09:41:02
  * @FilePath: /frontend/src/components/LoginForm.vue
- * @Description: 
+ * @Description:
 -->
 <template>
-  <el-form :model="loginUser" ref="loginFormRef" :rules="rules" label-width="100px" class="loginForm"
-    label-position="left" @keyup.enter.native="handleEnter">
+  <el-form
+    :model="loginUser"
+    ref="loginFormRef"
+    :rules="rules"
+    label-width="100px"
+    class="loginForm"
+    label-position="left"
+    @keyup.enter.native="handleEnter"
+  >
     <div class="title">用户登录</div>
     <el-form-item label="用户名" class="userName" prop="userName">
-      <el-input v-model="loginUser.userName" placeholder="请输入用户名"></el-input>
+      <el-input
+        v-model="loginUser.userName"
+        placeholder="请输入用户名"
+      ></el-input>
     </el-form-item>
     <el-form-item label="密码" class="password" prop="password">
-      <el-input v-model="loginUser.password" placeholder="请输入密码" type="password"></el-input>
+      <el-input
+        v-model="loginUser.password"
+        placeholder="请输入密码"
+        type="password"
+      ></el-input>
     </el-form-item>
     <div class="password"></div>
-    <el-button type="primary" @click="handleLogin" @keyup.enter.native="handleLogin()" class="btn-submit">登 录</el-button>
+    <el-button
+      type="primary"
+      @click="handleLogin"
+      @keyup.enter.native="handleLogin()"
+      class="btn-submit"
+      >登 录</el-button
+    >
   </el-form>
 </template>
 
@@ -41,9 +61,14 @@ export default {
           if (res.meta.code === 0) {
             this.$store.commit('user/setToken', res.data.token)
             this.$store.commit('user/setUserInfo', res.data.userInfo)
-            this.$store.commit('setCanSeeOtherData', res.data.userInfo.canSeeOtherData)
+            this.$store.commit(
+              'setCanSeeOtherData',
+              res.data.userInfo.canSeeOtherData
+            )
             this.$message.success('登录成功')
-            const { data: menuRes } = await this.$api.getPermissionTree(0)
+            const { data: menuRes } = await this.$api.getPermissionTree(
+              res.data.userInfo.roleId
+            )
             if (menuRes.meta.code !== 0) {
               return this.$message.error('获取权限菜单失败, 请联系管理员')
             }

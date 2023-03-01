@@ -1,4 +1,6 @@
-﻿namespace Core.Dtos.MetricalData;
+﻿using Core.Enums;
+
+namespace Core.Dtos.MetricalData;
 
 public class MetricalDataTableDto
 {
@@ -24,4 +26,6 @@ public class MetricalDataTableDto
     public string Instance { get; set; }
     public int UserId { get; set; }
     public string UserName { get; set; }
+    public EquipmentType EquipmentType { get; set; }
+    public string EquipmentTypeName { get; set; }
 }

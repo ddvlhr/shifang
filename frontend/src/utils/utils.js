@@ -125,6 +125,7 @@ export const getCurrentDay = () => {
   return date + ' ' + time
 }
 
+
 export const getWater = (before, after) => {
   const _before = Number(before)
   const _after = Number(after)

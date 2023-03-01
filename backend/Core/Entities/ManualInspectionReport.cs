@@ -10,6 +10,7 @@ namespace Core.Entities;
 [Table("t_manual_inspection_report")]
 public class ManualInspectionReport: Entity
 {
+    public DateTime ProductionTime { get; set; }
     [Column("time")]
     [Comment("时间")]
     public DateTime Time { get; set; }
@@ -18,6 +19,8 @@ public class ManualInspectionReport: Entity
     [Column("specification_id")]
     [Comment("牌号 Id")]
     public int SpecificationId { get; set; }
+
+    public int TeamId { get; set; }
     [Column("operation")]
     [MaxLength(64)]
     [Comment("操作工")]
@@ -25,6 +28,8 @@ public class ManualInspectionReport: Entity
     [Column("count")]
     [Comment("数量")]
     public int Count { get; set; }
+
+    public string User { get; set; }
 
     public virtual List<ManualInspectionReportDefect> Defects { get; set; }
     [Column("result")]

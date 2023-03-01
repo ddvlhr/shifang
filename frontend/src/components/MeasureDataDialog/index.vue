@@ -4,7 +4,7 @@
  * @LastEditors: ddvlhr 354874258@qq.com
  * @LastEditTime: 2022-11-25 11:46:27
  * @FilePath: /frontend/src/components/MeasureDataDialog/index.vue
- * @Description: 
+ * @Description:
 -->
 <template>
   <ele-form-dialog
@@ -83,6 +83,8 @@ export default {
       this.dialogFormVisible = false
     },
     handleClosed() {
+      this.formDesc = {}
+      this.formData = {}
       this.$emit('update:dialogVisible', false)
     }
   }

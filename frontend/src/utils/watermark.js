@@ -9,7 +9,9 @@
 'use strict'
 
 const id = '1.23452384164.123412415'
-let watermark = {}
+let watermark = {
+  opacity: 40
+}
 
 let setWatermark = (str) => {
   if (document.getElementById(id) !== null) {
@@ -22,8 +24,8 @@ let setWatermark = (str) => {
 
   let cans = can.getContext('2d')
   cans.rotate((-15 * Math.PI) / 150)
-  cans.font = '15px Vedana'
-  cans.fillStyle = 'rgba(200, 200, 200, 0.30)'
+  cans.font = '14px Vedana'
+  cans.fillStyle = `rgba(200, 200, 200, ${watermark.opacity / 100})`
   cans.textAlign = 'left'
   cans.textBaseline = 'Middle'
   cans.fillText(str, can.width / 8, can.height / 2)

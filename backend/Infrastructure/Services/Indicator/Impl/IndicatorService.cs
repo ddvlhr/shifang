@@ -55,6 +55,7 @@ public class IndicatorService : IIndicatorService
                     Parent = c.IndicatorParentId,
                     Unit = c.Unit,
                     Standard = c.Standard,
+                    Score = c.Score,
                     ParentName = c.IndicatorParent.Name,
                     Project = (int)c.IndicatorProject,
                     State = c.Status == Status.Enabled
@@ -76,6 +77,7 @@ public class IndicatorService : IIndicatorService
             Name = dto.Name,
             Unit = dto.Unit,
             Standard = dto.Standard,
+            Score = dto.Score,
             IndicatorParentId = dto.Parent,
             IndicatorProject = (IndicatorProject)dto.Project,
             Status = dto.State ? Status.Enabled : Status.Disabled
@@ -99,6 +101,7 @@ public class IndicatorService : IIndicatorService
         indicator.Name = dto.Name;
         indicator.Unit = dto.Unit;
         indicator.Standard = dto.Standard;
+        indicator.Score = dto.Score;
         indicator.IndicatorParentId = dto.Parent;
         indicator.IndicatorProject = (IndicatorProject)dto.Project;
         indicator.Status = dto.State ? Status.Enabled : Status.Disabled;
