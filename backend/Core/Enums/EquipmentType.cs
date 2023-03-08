@@ -7,6 +7,8 @@ namespace Core.Enums;
 /// </summary>
 public enum EquipmentType
 {
+    [Description("未知")]
+    None = 0,
     [Description("RT综合测试台")]
     Rt = 1,
     [Description("MTS综合测试台")]

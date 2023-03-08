@@ -21,11 +21,8 @@ public class EfRepository<T> : IRepository<T> where T : Entity
     {
         if (item == null) throw new ArgumentNullException(nameof(item));
 
-        if (item.CreatedAtUtc == Entity.EntityInitialDate)
-        {
-            item.CreatedAtUtc = DateTime.Now;
-            item.ModifiedAtUtc = DateTime.Now;
-        }
+        item.CreatedAtUtc = DateTime.Now;
+        item.ModifiedAtUtc = DateTime.Now;
 
         _entities.Add(item);
     }
@@ -51,7 +48,7 @@ public class EfRepository<T> : IRepository<T> where T : Entity
     {
         if (item == null) throw new ArgumentNullException(nameof(item));
 
-        if (item.ModifiedAtUtc == Entity.EntityInitialDate) item.ModifiedAtUtc = DateTime.Now;
+        item.ModifiedAtUtc = DateTime.Now;
     }
 
     public void AddRange(IEnumerable<T> items)

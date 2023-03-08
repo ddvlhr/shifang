@@ -6,4 +6,5 @@ public class SpecificationTableDto : BaseTableDto
     public int TypeId { get; set; }
     public string OrderNo { get; set; }
     public string ModifiedTime { get; set; }
+    public string EquipmentTypeName { get; set; }
 }

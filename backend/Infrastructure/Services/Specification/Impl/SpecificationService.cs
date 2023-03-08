@@ -4,8 +4,11 @@ using System.Linq;
 using Core.Dtos;
 using Core.Dtos.Specification;
 using Core.Entities;
+using Core.Enums;
 using Core.Models;
 using Infrastructure.DataBase;
+using Infrastructure.Extensions;
+using Infrastructure.Helper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
@@ -20,11 +23,11 @@ public class SpecificationService : ISpecificationService
     private readonly IRepository<SpecificationTypeRule> _sptRepo;
     private readonly IRepository<MachineModel> _mmRepo;
     private readonly IRepository<CraftIndicatorRule> _cirRepo;
-    private readonly Settings _settings;
+    private readonly ShiFangSettings _settings;
 
     public SpecificationService(IRepository<Core.Entities.Specification> speRepo,
         IRepository<Core.Entities.Indicator> iRepo, IUnitOfWork uow,
-        IOptionsSnapshot<Settings> settings, IRepository<SpecificationTypeRule> sptRepo,
+        IOptionsSnapshot<ShiFangSettings> settings, IRepository<SpecificationTypeRule> sptRepo,
         IRepository<MachineModel> mmRepo, IRepository<CraftIndicatorRule> cirRepo)
     {
         _speRepo = speRepo;
@@ -56,13 +59,18 @@ public class SpecificationService : ISpecificationService
         }
 
         total = data.Count();
-        var result = data.Include(c => c.SpecificationType).OrderByDescending(c => c.ModifiedAtUtc).Skip(dto.Skip())
+        var result = data.OrderByDescending(c => c.ModifiedAtUtc).Include(c => c.SpecificationType).Skip(dto.Skip())
             .Take(dto.PageSize).Select(c =>
                 new SpecificationTableDto
                 {
-                    Id = c.Id, Name = c.Name, OrderNo = c.OrderNo, TypeId = c.SpecificationTypeId,
-                    TypeName = c.SpecificationType.Name, ModifiedTime = c.ModifiedAtUtc.ToString("yyyy-MM-dd HH:mm:ss"),
-                    State = c.Status == Status.Enabled
+                    Id = c.Id,
+                    Name = c.Name,
+                    OrderNo = c.OrderNo,
+                    TypeId = c.SpecificationTypeId,
+                    TypeName = c.SpecificationType.Name,
+                    ModifiedTime = c.ModifiedAtUtc.ToString("yyyy-MM-dd HH:mm:ss"),
+                    State = c.Status == Status.Enabled,
+                    EquipmentTypeName = c.EquipmentType.toDescription()
                 }).ToList();
 
         return result;
@@ -83,6 +91,15 @@ public class SpecificationService : ISpecificationService
             {
                 var indicator = indicators.FirstOrDefault(c => c.Id == rule.Id);
                 rule.Name = indicator == null ? "" : indicator.Name;
+                if (dto.EquipmentTypeId == (int)EquipmentType.SingleResistance)
+                {
+                    var mid = double.Parse(rule.Standard);
+                    var high = double.Parse(rule.Upper);
+                    var low = double.Parse(rule.Lower);
+                    rule.Standard = ConvertHelper.mmWGToPa(mid).ToString("F5");
+                    rule.Upper = ConvertHelper.mmWGToPa(high).ToString("F5");
+                    rule.Lower = ConvertHelper.mmWGToPa(low).ToString("F5");
+                }
             }
 
 
@@ -107,6 +124,7 @@ public class SpecificationService : ISpecificationService
             OrderNo = dto.OrderNo,
             SpecificationTypeId = dto.TypeId,
             Remark = dto.Remark,
+            EquipmentType = (EquipmentType)dto.EquipmentTypeId,
             Status = dto.State ? Status.Enabled : Status.Disabled,
             SingleRules = JsonConvert.SerializeObject(dto.SingleRules),
             MeanRules = JsonConvert.SerializeObject(dto.MeanRules),
@@ -135,6 +153,15 @@ public class SpecificationService : ISpecificationService
             {
                 var indicator = indicators.FirstOrDefault(c => c.Id == rule.Id);
                 rule.Name = indicator == null ? "" : indicator.Name;
+                if (dto.EquipmentTypeId == (int)EquipmentType.SingleResistance)
+                {
+                    var mid = double.Parse(rule.Standard);
+                    var high = double.Parse(rule.Upper);
+                    var low = double.Parse(rule.Lower);
+                    rule.Standard = ConvertHelper.mmWGToPa(mid).ToString("F5");
+                    rule.Upper = ConvertHelper.mmWGToPa(high).ToString("F5");
+                    rule.Lower = ConvertHelper.mmWGToPa(low).ToString("F5");
+                }
             }
 
         if (dto.MeanRules != null)
@@ -157,6 +184,7 @@ public class SpecificationService : ISpecificationService
         specification.OrderNo = dto.OrderNo;
         specification.SpecificationTypeId = dto.TypeId;
         specification.Remark = dto.Remark;
+        specification.EquipmentType = (EquipmentType)dto.EquipmentTypeId;
         specification.SingleRules = JsonConvert.SerializeObject(dto.SingleRules);
         specification.MeanRules = JsonConvert.SerializeObject(dto.MeanRules);
         specification.SdRules = JsonConvert.SerializeObject(dto.SdRules);
@@ -179,6 +207,7 @@ public class SpecificationService : ISpecificationService
             OrderNo = specification.OrderNo,
             TypeId = specification.SpecificationTypeId,
             Remark = specification.Remark,
+            EquipmentTypeId = (int)specification.EquipmentType,
             SingleRules = JsonConvert.DeserializeObject<IEnumerable<Rule>>(specification.SingleRules),
             MeanRules = JsonConvert.DeserializeObject<IEnumerable<Rule>>(specification.MeanRules),
             SdRules = JsonConvert.DeserializeObject<IEnumerable<Rule>>(specification.SdRules),
@@ -191,6 +220,25 @@ public class SpecificationService : ISpecificationService
             State = specification.Status == Status.Enabled
         };
 
+        if (specification.EquipmentType == EquipmentType.SingleResistance)
+        {
+            if (dto.SingleRules != null)
+            {
+                foreach (var item in dto.SingleRules)
+                {
+                    if (item.Id == _settings.Resistance)
+                    {
+                        var mid = double.Parse(item.Standard);
+                        var high = double.Parse(item.Upper);
+                        var low = double.Parse(item.Lower);
+                        item.Standard = ConvertHelper.paToMMWG(mid).ToString("F0");
+                        item.Upper = ConvertHelper.paToMMWG(high).ToString("F0");
+                        item.Lower = ConvertHelper.paToMMWG(low).ToString("F0");
+                    }
+                }
+            }
+        }
+
         return dto;
     }
 
@@ -199,7 +247,8 @@ public class SpecificationService : ISpecificationService
         var data = _speRepo.All().AsNoTracking().OrderByDescending(c => c.ModifiedAtUtc)
             .Where(c => c.Status == Status.Enabled).Select(c => new BaseOptionDto
             {
-                Value = c.Id, Text = c.Name
+                Value = c.Id,
+                Text = c.Name
             }).ToList();
         return data;
     }
@@ -209,15 +258,16 @@ public class SpecificationService : ISpecificationService
         var data = _speRepo.All().Where(c => c.SpecificationTypeId == id && c.Status == Status.Enabled).Select(c =>
             new BaseOptionDto
             {
-                Value = c.Id, Text = c.Name
+                Value = c.Id,
+                Text = c.Name
             }).ToList();
 
         return data;
     }
 
     public bool GetIndicatorsTableDescById(int id,
-        out TableEditor result, 
-        out string message, 
+        out TableEditor result,
+        out string message,
         int measureTypeId = 0,
         int machineModelId = 0)
     {
@@ -231,27 +281,7 @@ public class SpecificationService : ISpecificationService
         }
 
         var indicators = _iRepo.All().AsNoTracking().ToList();
-        List<Rule> rules;
-        if (measureTypeId > 0 && measureTypeId == _settings.ChemicalTypeId)
-        {
-            var spt = _sptRepo.All().FirstOrDefault(c => c.SpecificationTypeId == specification.SpecificationTypeId);
-            rules = JsonConvert.DeserializeObject<List<Rule>>(spt != null ? spt.Rules : specification.SingleRules);
-        }
-        else if (machineModelId > 0 && _settings.CraftTypeIds.Contains(measureTypeId))
-        {
-            var machineModel = _mmRepo.Get(machineModelId);
-            CraftIndicatorRule craftRules = null;
-            if (machineModel.ModelId > 0)
-                craftRules = _cirRepo.All().FirstOrDefault(c => c.ModelId == machineModel.ModelId);
-
-            rules = JsonConvert.DeserializeObject<List<Rule>>(craftRules != null
-                ? craftRules.Rules
-                : specification.SingleRules);
-        }
-        else
-        {
-            rules = JsonConvert.DeserializeObject<List<Rule>>(specification.SingleRules);
-        }
+        List<Rule> rules = JsonConvert.DeserializeObject<List<Rule>>(specification.SingleRules);
 
         if (rules == null || rules.Count == 0)
         {
@@ -327,7 +357,7 @@ public class SpecificationService : ISpecificationService
             };
             tableEditorColumns.Add(indicatorColumn);
         }
-        
+
         tableEditorAttrs.Columns = tableEditorColumns;
         tableEditor.Attrs = tableEditorAttrs;
 

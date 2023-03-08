@@ -82,12 +82,16 @@ export default {
         state: ''
       },
       rightButtons: [],
+      equipmentTypes: [],
       columnsDesc: {
         name: {
           text: '牌号名称'
         },
         typeName: {
           text: '牌号类型'
+        },
+        equipmentTypeName: {
+          text: '仪器类型'
         },
         state: {
           text: '状态',
@@ -161,6 +165,14 @@ export default {
           type: 'select',
           options: async () => {
             return await this.specificationTypeOptions
+          },
+          required: true
+        },
+        equipmentTypeId: {
+          label: '仪器类型',
+          type: 'select',
+          options: async () => {
+            return await this.equipmentTypes
           },
           required: true
         },
@@ -550,13 +562,13 @@ export default {
       this.$utils.queryTable(this, this.getSpecifications)
     },
     async getOptions() {
-      Promise.all([
-        this.$api.getSpecificationTypeOptions(),
-        this.$api.getIndicatorOptions()
-      ]).then((res) => {
-        this.specificationTypeOptions = res[0].data.data
-        this.measureIndicators = res[1].data.data
-      })
+      const { data: res } = await this.$api.getOptions()
+      if (res.meta.code !== 0) {
+        return this.$message.error('获取选择项失败: ' + res.meta.message)
+      }
+      this.specificationTypeOptions = res.data.specificationTypes
+      this.measureIndicators = res.data.measureIndicators
+      this.equipmentTypes = res.data.equipmentTypes
     },
     async getSpecifications(params) {
       const { data: res } = await this.$api.getSpecifications(

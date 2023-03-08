@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Core.Enums;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Core.Entities;
@@ -31,6 +32,9 @@ public class Specification : Entity
 
     [Column("cv_rules", TypeName = "text")]
     public string CvRules { get; set; }
+
+    [Column("equipment_type")]
+    public EquipmentType EquipmentType { get; set; }
 
     [Column("status")] public Status Status { get; set; }
 }

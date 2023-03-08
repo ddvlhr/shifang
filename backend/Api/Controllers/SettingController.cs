@@ -48,6 +48,8 @@ public class SettingController : BaseController
             opt.EnableErrorPush = setting.EnableErrorPush;
             opt.ErrorPushAt = setting.ErrorPushAt.Distinct().ToArray();
             opt.AdminTypeId = setting.AdminTypeId;
+            opt.CigarTypeId = setting.CigarTypeId;
+            opt.Resistance = setting.Resistance;
         });
         var serializeOptions = new JsonSerializerOptions()
         {

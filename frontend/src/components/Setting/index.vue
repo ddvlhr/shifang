@@ -49,6 +49,18 @@
               :options="roleOptions"
             />
           </el-form-item>
+          <el-form-item label="雪茄牌号类型">
+            <query-select
+              v-model="formData.cigarTypeId"
+              :options="specificationTypeOptions"
+            />
+          </el-form-item>
+          <el-form-item label="吸阻指标类型">
+            <query-select
+              v-model="formData.resistance"
+              :options="indicatorOptions"
+            />
+          </el-form-item>
         </el-form>
         <div class="footer">
           <el-button type="primary" @click="handleSubmit">提交</el-button>

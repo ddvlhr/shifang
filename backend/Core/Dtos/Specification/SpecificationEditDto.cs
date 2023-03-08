@@ -9,6 +9,7 @@ public class SpecificationEditDto
     public string OrderNo { get; set; }
     public string Remark { get; set; }
     public int TypeId { get; set; }
+    public int EquipmentTypeId { get; set; }
     public IEnumerable<Rule> SingleRules { get; set; }
     public IEnumerable<Rule> MeanRules { get; set; }
     public IEnumerable<Rule> SdRules { get; set; }
