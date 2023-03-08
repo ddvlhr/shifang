@@ -23,39 +23,11 @@ namespace WebService
     // [System.Web.Script.Services.ScriptService]
     public class DataService : System.Web.Services.WebService
     {
-        private IHubProxy _hub;
         public DataService()
         {
-            string url = "http://localhost:9527/ServerHub";
-            HubConnection connection = new HubConnection(url);
-            connection.ConnectionSlow += connectionSlow;
-            connection.Error += connectionError;
-            connection.StateChanged += connectionStateChanged;
-            ///服务端 配置 [HubName("MyTestHub")]
-            _hub = connection.CreateHubProxy("MyTestHub");
-            connection.Start().Wait();
-            _hub.On("addMessage", x =>
-            Console.WriteLine(x));
-            _hub.On("SendClient", x =>
-            {
-                Console.WriteLine(x);
-            });
+            
         }
 
-        private void connectionSlow() {
-            NetLog.save("signalr 服务连接超时了", false);
-        }
-
-        private void connectionError(Exception ex) {
-            NetLog.save("signalr 服务连接失败：" + ex.ToString());
-        }
-
-        private void connectionStateChanged(StateChange state) { 
-            if (state.NewState == Microsoft.AspNet.SignalR.Client.ConnectionState.Disconnected)
-            {
-                NetLog.save("signalr 服务已断开");
-            }
-        }
         /// <summary>
         /// 判断数据是否存在
         /// </summary>
