@@ -15,5 +15,10 @@ namespace Infrastructure.Extensions
             var result = Math.Round(value, decimalCount);
             return result.ToString(digital);
         }
+
+        public static double format(this double value, int decimalCount)
+        {
+            return Math.Round(value, decimalCount);
+        }
     }
 }

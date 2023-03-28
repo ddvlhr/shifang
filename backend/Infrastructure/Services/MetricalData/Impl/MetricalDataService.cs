@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using Core.Dtos;
@@ -27,6 +28,7 @@ using Turn = Core.SugarEntities.Turn;
 using System.Threading.Tasks;
 using Core.Enums;
 using System.Text;
+using SixLabors.ImageSharp.ColorSpaces.Conversion;
 using ShiFangSettings = Core.Models.ShiFangSettings;
 
 namespace Infrastructure.Services.MetricalData.Impl;
@@ -1109,6 +1111,162 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
 
                     ws.Cells[row, valueCol].Value = value;
                     valueCol++;
+                }
+
+                row++;
+            }
+        }
+
+        var file = new MemoryStream();
+        package.SaveAs(file);
+
+        file.Seek(0, SeekOrigin.Begin);
+        return file;
+    }
+
+    public MemoryStream DownloadStatistic(MetricalDataQueryDto dto)
+    {
+        var exp = Expressionable.Create<Core.SugarEntities.MetricalData>()
+            .AndIF(dto.SpecificationId != null, c => c.Group.SpecificationId == int.Parse(dto.SpecificationId))
+            .AndIF(dto.BeginTime != null && dto.EndTime != null,
+                c => c.Group.BeginTime.Date >= Convert.ToDateTime(dto.BeginTime).Date &&
+                     c.Group.BeginTime.Date <= Convert.ToDateTime(dto.EndTime).Date)
+            .AndIF(dto.SpecificationTypeId != null,
+                c => c.Group.Specification.SpecificationTypeId == int.Parse(dto.SpecificationTypeId))
+            .AndIF(dto.TurnId != null, c => c.Group.TurnId == int.Parse(dto.TurnId))
+            .AndIF(dto.MeasureTypeId != null, c => c.Group.MeasureTypeId == int.Parse(dto.MeasureTypeId))
+            .AndIF(dto.MachineModelId != null, c=>c.Group.MachineId == int.Parse(dto.MachineModelId))
+            .AndIF(dto.EquipmentTypeId != null, c => c.Group.EquipmentType == (EquipmentType)int.Parse(dto.EquipmentTypeId))
+            .ToExpression();
+        var list = _db.Queryable<Core.SugarEntities.MetricalData>()
+            .LeftJoin<MetricalGroup>((c, g) => c.GroupId == g.Id)
+            .LeftJoin<Core.SugarEntities.Specification>((c, g, s) => g.SpecificationId == s.Id)
+            .LeftJoin<Team>((c, g, s, team) => g.TeamId == team.Id)
+            .LeftJoin<Turn>((c, g, s, team, turn) => g.TurnId == turn.Id)
+            .LeftJoin<Machine>((c, g, s, team, turn, mac) => g.MachineId == mac.Id)
+            .LeftJoin<MeasureType>((c, g, s, team, turn, mac, mt) => g.MeasureTypeId == mt.Id)
+            .Where(exp).Select((c, g, s, team, turn, mac, mt) => new
+            {
+                c.Id, c.GroupId, specificationId = g.SpecificationId, specificationName = s.Name,
+                turnName = turn.Name, machineName = mac.Name, measureTypeName = mt.Name,
+                testTime = c.TestTime, data = c.Data
+            }).ToList();
+
+        var specificationGroups = list.GroupBy(c => c.specificationId).ToList();
+
+        var specifications = _spRepo.All().Select(c => new { c.Id, c.SingleRules }).ToList();
+        var indicators = _iRepo.All().ToList();
+        using var package = new ExcelPackage();
+        var statisticItems = new List<string> {"平均值", "最大值", "最小值", "SD", "CV", "CPK", "Offs", "上超", "下超", "合格数", "合格率"};
+
+        foreach (var specificationGroup in specificationGroups)
+        {
+            var first = specificationGroup.First();
+            if (first == null)
+                continue;
+            var singleRules = specifications.FirstOrDefault(c => c.Id == specificationGroup.Key);
+            if (singleRules == null)
+                continue;
+            var ws = package.Workbook.Worksheets.Add(first.specificationName);
+
+            var rules = JsonConvert.DeserializeObject<List<Rule>>(singleRules.SingleRules);
+            var ruleDic = new Dictionary<Rule, string>();
+            foreach (var rule in rules)
+            {
+                var name = indicators.FirstOrDefault(c => c.Id == rule.Id).Name;
+                ruleDic.Add(rule, name);
+            }
+
+            ws.Cells.Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+            ws.Cells.Style.VerticalAlignment = ExcelVerticalAlignment.Center;
+            ws.Column(1).Width = 25;
+            ws.Column(2).Width = 25;
+            ws.Column(3).Width = 25;
+            ws.Column(4).Width = 25;
+            ws.Cells[1, 1].Value = "测量时间";
+            ws.Cells[1, 1, 2, 1].Merge = true;
+            ws.Cells[1, 1, 2, 1].Style.Border.BorderAround(ExcelBorderStyle.Thin, Color.Black);
+            ws.Cells[1, 2].Value = "班次";
+            ws.Cells[1, 2, 2, 2].Merge = true;
+            ws.Cells[1, 2, 2, 2].Style.Border.BorderAround(ExcelBorderStyle.Thin, Color.Black);
+            ws.Cells[1, 3].Value = "机台";
+            ws.Cells[1, 3, 2, 3].Merge = true;
+            ws.Cells[1, 3, 2, 3].Style.Border.BorderAround(ExcelBorderStyle.Thin, Color.Black);
+            ws.Cells[1, 4].Value = "测量类型";
+            ws.Cells[1, 4, 2, 4].Merge = true;
+            ws.Cells[1, 4, 2, 4].Style.Border.BorderAround(ExcelBorderStyle.Thin, Color.Black);
+            var col = 5;
+            foreach (var ruleItem in ruleDic)
+            {
+                ws.Cells[1, col].Value = ruleItem.Value;
+                ws.Cells[1, col, 1, col + statisticItems.Count - 1].Merge = true;
+                ws.Cells[1, col, 1, col+statisticItems.Count - 1].Style.Border.BorderAround(ExcelBorderStyle.Thin, Color.Black);
+                foreach (var item in statisticItems)
+                {
+                    ws.Column(col).Width = 15;
+                    ws.Cells[2, col].Value = item;
+                    ws.Cells[2, col].Style.Border.BorderAround(ExcelBorderStyle.Thin, Color.Black);
+
+                    col++;
+                }
+            }
+
+            var row = 3;
+            var groups = specificationGroup.OrderByDescending(c=>c.testTime).GroupBy(c => c.GroupId).ToList();
+            foreach (var group in groups)
+            {
+                var item = group.FirstOrDefault();
+                if (item == null)
+                    continue;
+                var dataList = group.Select(c => c.data).ToList();
+                var valueCol = 1;
+                ws.Cells[row, valueCol].Style.Border.BorderAround(ExcelBorderStyle.Thin, Color.Black);
+                ws.Cells[row, valueCol++].Value = item.testTime.ToString("yyyy-MM-dd HH:mm:ss");
+                ws.Cells[row, valueCol].Style.Border.BorderAround(ExcelBorderStyle.Thin, Color.Black);
+                ws.Cells[row, valueCol++].Value = item.turnName;
+                ws.Cells[row, valueCol].Style.Border.BorderAround(ExcelBorderStyle.Thin, Color.Black);
+                ws.Cells[row, valueCol++].Value = item.machineName;
+                ws.Cells[row, valueCol].Style.Border.BorderAround(ExcelBorderStyle.Thin, Color.Black);
+                ws.Cells[row, valueCol++].Value = item.measureTypeName;
+                foreach (var ruleItem in ruleDic)
+                {
+                    var tempList = new List<double>();
+                    foreach (var data in dataList)
+                    {
+                        var obj = JsonConvert.DeserializeObject<JObject>(data);
+                        if (obj[$"{ruleItem.Key.Id}"] != null)
+                        {
+                            var value = obj[$"{ruleItem.Key.Id}"].ToString();
+                            if (!string.IsNullOrEmpty(value))
+                            {
+                                tempList.Add(Convert.ToDouble(value));
+                            }
+                        }
+                    }
+
+                    var statistic = tempList.toStatistic(ruleItem.Key.Standard, ruleItem.Key.Upper, ruleItem.Key.Lower);
+                    ws.Cells[row, valueCol].Style.Border.BorderAround(ExcelBorderStyle.Thin, Color.Black);
+                    ws.Cells[row, valueCol++].Value = statistic.Mean.format(_settings.IndicatorDecimal.Mean);
+                    ws.Cells[row, valueCol].Style.Border.BorderAround(ExcelBorderStyle.Thin, Color.Black);
+                    ws.Cells[row, valueCol++].Value = statistic.Max.format(_settings.IndicatorDecimal.Max);
+                    ws.Cells[row, valueCol].Style.Border.BorderAround(ExcelBorderStyle.Thin, Color.Black);
+                    ws.Cells[row, valueCol++].Value = statistic.Min.format(_settings.IndicatorDecimal.Min);
+                    ws.Cells[row, valueCol].Style.Border.BorderAround(ExcelBorderStyle.Thin, Color.Black);
+                    ws.Cells[row, valueCol++].Value = statistic.Sd.format(_settings.IndicatorDecimal.Sd);
+                    ws.Cells[row, valueCol].Style.Border.BorderAround(ExcelBorderStyle.Thin, Color.Black);
+                    ws.Cells[row, valueCol++].Value = statistic.Cv.format(_settings.IndicatorDecimal.Cv);
+                    ws.Cells[row, valueCol].Style.Border.BorderAround(ExcelBorderStyle.Thin, Color.Black);
+                    ws.Cells[row, valueCol++].Value = statistic.Cpk.format(_settings.IndicatorDecimal.Cpk);
+                    ws.Cells[row, valueCol].Style.Border.BorderAround(ExcelBorderStyle.Thin, Color.Black);
+                    ws.Cells[row, valueCol++].Value = statistic.Offset.format(_settings.IndicatorDecimal.Offs);
+                    ws.Cells[row, valueCol].Style.Border.BorderAround(ExcelBorderStyle.Thin, Color.Black);
+                    ws.Cells[row, valueCol++].Value = statistic.HighCnt;
+                    ws.Cells[row, valueCol].Style.Border.BorderAround(ExcelBorderStyle.Thin, Color.Black);
+                    ws.Cells[row, valueCol++].Value = statistic.LowCnt;
+                    ws.Cells[row, valueCol].Style.Border.BorderAround(ExcelBorderStyle.Thin, Color.Black);
+                    ws.Cells[row, valueCol++].Value = statistic.Quality;
+                    ws.Cells[row, valueCol].Style.Border.BorderAround(ExcelBorderStyle.Thin, Color.Black);
+                    ws.Cells[row, valueCol++].Value = statistic.QualityRate;
                 }
 
                 row++;

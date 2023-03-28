@@ -49,6 +49,12 @@ export const downloadMetricalInfo = (data) => {
   })
 }
 
+export const downloadMetricalStatistic = (data) => {
+  return http.request('/metricalData/download/statistic', 'get', {}, data, {
+    responseType: 'blob'
+  })
+}
+
 export const getGroupRecordInfo = (data) => {
   return http.request('/groupRecords', 'get', {}, data)
 }

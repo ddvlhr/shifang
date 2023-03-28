@@ -166,6 +166,17 @@ public class MetricalDataController : BaseController
     }
 
     [HttpGet]
+    [Route("metricalData/download/statistic")]
+    public IActionResult DownloadStatistic([FromQuery] MetricalDataQueryDto dto)
+    {
+        var file = _mdService.DownloadStatistic(dto);
+
+        var provider = new FileExtensionContentTypeProvider();
+        var contentType = provider.Mappings[".xlsx"];
+        return File(file, contentType, $"原始数据统计数据{DateTime.Now:yyyy-MM-dd_HH-mm-ss}.xlsx");
+    }
+
+    [HttpGet]
     [Route("metricalData/specificationId/{specificationId}/measureTypeId/{measureTypeId}")]
     public IActionResult GetMetricalDataBySpecificationIdAndMeasureTypeId(int specificationId, int measureTypeId)
     {

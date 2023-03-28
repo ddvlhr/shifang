@@ -27,6 +27,7 @@ public interface IMetricalDataService
     IEnumerable<BaseOptionDto> GetOptions();
     IEnumerable<BaseOptionDto> GetOptions(int specificationId, DateTime testDate, int type);
     MemoryStream Download(MetricalDataQueryDto dto);
+    MemoryStream DownloadStatistic(MetricalDataQueryDto dto);
     IEnumerable<BaseOptionDto> GetMeasureDataBySpecificationIdAndMeasureTypeId(int specificationId,
         int measureTypeId);
 

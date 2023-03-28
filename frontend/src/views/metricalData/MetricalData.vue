@@ -7,6 +7,7 @@
       @remove="remove"
       @copy="copy"
       @downloadInfo="downloadInfo"
+      @downloadStatistic="downloadStatistic"
     />
     <el-card shadow="never">
       <div slot="header">
@@ -617,7 +618,11 @@ export default {
       return this.specifications
     },
     async downloadInfo() {
-      this.utils.downloadFile("GET", "http://localhost:9527/api/metricalData/download/info")
+      const loading = this.$loading({
+        lock: true,
+        text: '正在导出详细数据',
+        spinner: 'el-icon-loading'
+      })
       const res = await this.$api.downloadMetricalInfo(this.queryInfo)
       const { data, headers } = res
 
@@ -626,7 +631,7 @@ export default {
       const url = window.URL.createObjectURL(blob)
       dom.href = url
       dom.download = decodeURI(
-        '测量详细数据' + this.$utils.getCurrentTime() + '.xlsx'
+        '原始数据详细数据' + this.$utils.getCurrentTime() + '.xlsx'
       )
       dom.style.display = 'none'
       document.body.appendChild(dom)
@@ -638,6 +643,35 @@ export default {
         message: '导出成功',
         type: 'success'
       })
+      loading.close()
+    },
+    async downloadStatistic() {
+      const loading = this.$loading({
+        lock: true,
+        text: '正在导出统计数据',
+        spinner: 'el-icon-loading'
+      })
+      const res = await this.$api.downloadMetricalStatistic(this.queryInfo)
+      const { data, headers } = res
+
+      const blob = new Blob([data], { type: headers['content-type'] })
+      const dom = document.createElement('a')
+      const url = window.URL.createObjectURL(blob)
+      dom.href = url
+      dom.download = decodeURI(
+        '原始数据统计数据' + this.$utils.getCurrentTime() + '.xlsx'
+      )
+      dom.style.display = 'none'
+      document.body.appendChild(dom)
+      dom.click()
+      dom.parentNode.removeChild(dom)
+      window.URL.revokeObjectURL(url)
+      this.$notify({
+        title: '导出提示',
+        message: '导出成功',
+        type: 'success'
+      })
+      loading.close()
     }
   }
 }

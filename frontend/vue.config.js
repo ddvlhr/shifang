@@ -4,7 +4,7 @@ module.exports = defineConfig({
   transpileDependencies: true,
   productionSourceMap: false,
   publicPath: '/',
-  outputDir: 'dist',
+  outputDir: 'ShiFang.Web',
   lintOnSave: false,
   devServer: {
     host: '0.0.0.0',
