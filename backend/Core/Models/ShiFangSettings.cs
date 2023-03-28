@@ -14,4 +14,5 @@ public class ShiFangSettings
     public int Resistance { get; set; }
     public int Hardness { get; set; }
     public int CigarTypeId { get; set; }
+    public DataFormatDecimal IndicatorDecimal { get; set; }
 }

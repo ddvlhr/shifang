@@ -390,7 +390,7 @@ export default {
       this.specificationOptions = res.data.specifications
       this.specificationTypeOptions = res.data.specificationTypes
       this.turnOptions = res.data.turns
-      this.machineModelOptions = res.data.machineModels
+      this.machineModelOptions = res.data.machines
       this.measureTypeOptions = res.data.measureTypes
       this.specificationTypeOptions = res.data.specificationTypes
       this.machineOptions = res.data.machines
@@ -551,13 +551,9 @@ export default {
     // 删除测量数据功能
     async remove() {
       const selectedData = this.getSelectedData(true)
-      // if (selectedData.length === 0) {
-      //   return this.$message.error('请选择需要删除的数据')
-      // }
       const ids = []
       let cancel = false
       selectedData.forEach((item) => {
-        console.log(item, this.user)
         ids.push(item.id)
         if (!this.user.showSettings) {
           if (item.userId !== this.user.id) {
@@ -620,40 +616,18 @@ export default {
     getSpecifications() {
       return this.specifications
     },
-    addWaterRecord() {},
-    async handleWaterSubmit(data) {
-      this.waterFormError = false
-      const post = {
-        groupId: this.selectedGroupId,
-        testTime: this.currentDataTestTime,
-        infos: data.info
-      }
-      const { data: res } = await this.$api.addWaterRecord(post)
-      if (res.meta.code !== 0) {
-        this.waterFormError = true
-        return this.$message.error('提交水分数据失败: ' + res.meta.message)
-      }
-      this.dataInfo.data[this.currentDataIndex][this.waterId] = res.data
-    },
-    handleWaterSuccess() {
-      if (!this.waterFormError) {
-        this.waterFormData = {}
-        this.waterDialogFormVisible = false
-        this.$message.success('提交成功')
-      }
-    },
     async downloadInfo() {
+      this.utils.downloadFile("GET", "http://localhost:9527/api/metricalData/download/info")
       const res = await this.$api.downloadMetricalInfo(this.queryInfo)
       const { data, headers } = res
-      const fileName = headers['content-disposition']
-        .split(';')[1]
-        .split('filename=')[1]
 
       const blob = new Blob([data], { type: headers['content-type'] })
       const dom = document.createElement('a')
       const url = window.URL.createObjectURL(blob)
       dom.href = url
-      dom.download = decodeURI('测量详细数据' + fileName)
+      dom.download = decodeURI(
+        '测量详细数据' + this.$utils.getCurrentTime() + '.xlsx'
+      )
       dom.style.display = 'none'
       document.body.appendChild(dom)
       dom.click()

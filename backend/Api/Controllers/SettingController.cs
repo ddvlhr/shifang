@@ -50,6 +50,7 @@ public class SettingController : BaseController
             opt.AdminTypeId = setting.AdminTypeId;
             opt.CigarTypeId = setting.CigarTypeId;
             opt.Resistance = setting.Resistance;
+            opt.IndicatorDecimal = setting.IndicatorDecimal;
         });
         var serializeOptions = new JsonSerializerOptions()
         {

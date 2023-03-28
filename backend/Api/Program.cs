@@ -32,7 +32,7 @@ builder.Host.ConfigureLogging(logging =>
 }).ConfigureServices(services =>
 {
     services.AddHostedService<OnlineUserBackgroundService>();
-    services.AddHostedService<ServerInfoBackgroundService>();
+    //services.AddHostedService<ServerInfoBackgroundService>();
 }).ConfigureAppConfiguration((hostingContext, config) =>
 {
     config.AddJsonFile("appsettings.shifang.json", optional: true, reloadOnChange: true);

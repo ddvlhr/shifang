@@ -61,6 +61,38 @@
               :options="indicatorOptions"
             />
           </el-form-item>
+
+          <el-divider content-positon="center" class="text-center"
+            >保留小数位数</el-divider
+          >
+
+          <el-form-item label="平均值">
+            <el-input-number v-model="indicatorDecimal.mean"></el-input-number>
+          </el-form-item>
+
+          <el-form-item label="最大值">
+            <el-input-number v-model="indicatorDecimal.max"></el-input-number>
+          </el-form-item>
+
+          <el-form-item label="最小值">
+            <el-input-number v-model="indicatorDecimal.min"></el-input-number>
+          </el-form-item>
+
+          <el-form-item label="S.D">
+            <el-input-number v-model="indicatorDecimal.sd"></el-input-number>
+          </el-form-item>
+
+          <el-form-item label="C.V">
+            <el-input-number v-model="indicatorDecimal.cv"></el-input-number>
+          </el-form-item>
+
+          <el-form-item label="CPK">
+            <el-input-number v-model="indicatorDecimal.cpk"></el-input-number>
+          </el-form-item>
+
+          <el-form-item label="Offset">
+            <el-input-number v-model="indicatorDecimal.offs"></el-input-number>
+          </el-form-item>
         </el-form>
         <div class="footer">
           <el-button type="primary" @click="handleSubmit">提交</el-button>
@@ -82,7 +114,16 @@ export default {
       roleOptions: [],
       workShopOptions: [],
       indicatorOptions: [],
-      formData: {}
+      formData: {},
+      indicatorDecimal: {
+        mean: 0,
+        max: 0,
+        min: 0,
+        sd: 0,
+        cv: 0,
+        cpk: 0,
+        offs: 0
+      }
     }
   },
   mounted() {
@@ -102,10 +143,12 @@ export default {
     handleSettings() {
       const settings = this.$store.state.app.settings
       this.formData = settings
+      this.indicatorDecimal = settings.indicatorDecimal
       this.settingVisible = true
     },
     async handleSubmit() {
       this.formError = false
+      this.formData.indicatorDecimal = this.indicatorDecimal
       const { data: res } = await this.$api.setSettings(this.formData)
       if (res.meta.code !== 0) {
         this.formError = true

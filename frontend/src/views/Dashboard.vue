@@ -170,7 +170,7 @@ export default {
   created() {
     this.$store.dispatch('app/setSystemCacheSize')
     this.getMetricalDataInfo(2)
-    this.loadDataList()
+    // this.loadDataList()
     this.getOptions()
   },
   computed: {

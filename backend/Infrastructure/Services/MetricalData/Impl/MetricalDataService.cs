@@ -26,6 +26,8 @@ using Team = Core.SugarEntities.Team;
 using Turn = Core.SugarEntities.Turn;
 using System.Threading.Tasks;
 using Core.Enums;
+using System.Text;
+using ShiFangSettings = Core.Models.ShiFangSettings;
 
 namespace Infrastructure.Services.MetricalData.Impl;
 
@@ -54,7 +56,7 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
     private readonly IPhysicalReportService _prService;
     private readonly IProductReportService _prsService;
     private readonly IRepository<PhysicalReport> _psrRepo;
-    private readonly Settings _settings;
+    private readonly ShiFangSettings _settings;
     private readonly IRepository<Core.Entities.Specification> _spRepo;
     private readonly IRepository<SpecificationTypeRule> _sptRepo;
     private readonly IUnitOfWork _uow;
@@ -66,7 +68,7 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
         IProductReportService prsService, IUnitOfWork uow, IRepository<InspectionReport> irRepo,
         IRepository<ProductReport> prRepo, IRepository<PhysicalReport> psrRepo,
         IRepository<MaterialReport> mrRepo, IFactoryReportService frService, IHttpContextAccessor accessor,
-        IMaterialReportService mrService, IOptionsSnapshot<Settings> settings,
+        IMaterialReportService mrService, IOptionsSnapshot<ShiFangSettings> settings,
         IRepository<SpecificationTypeRule> sptRepo,
         IRepository<CraftIndicatorRule> cirRepo, IRepository<WaterRecord> wrRepo, IRepository<MachineModel> mmRepo,
         ICraftReportService crService, IRepository<DataRecord> drRepo,
@@ -423,48 +425,48 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
             var typeName = group.MeasureType.Name;
             var typeId = group.MeasureTypeId;
             // 删除数据时同时将报表中对应的报表删除
-            if (typeId == _settings.InspectionTypeId)
-            {
-                var inspectionReport = _irRepo.All().FirstOrDefault(c => c.GroupId == id);
-                if (inspectionReport != null)
-                    inspectionReports.Add(inspectionReport);
-            }
-            else if (typeId == _settings.ProductionTypeId)
-            {
-                var productReport = _prRepo.All().FirstOrDefault(c => c.GroupId == id);
-                if (productReport != null)
-                    productReports.Add(productReport);
-            }
-            else if (typeId == _settings.PhysicalTypeId)
-            {
-                var physicalReport = _psrRepo.All().FirstOrDefault(c => c.GroupId == id);
-                if (physicalReport != null)
-                    physicalReports.Add(physicalReport);
-            }
-            else if (typeId == _settings.MaterialTypeId)
-            {
-                var materialReport = _mrRepo.All().FirstOrDefault(c => c.GroupId == id);
-                if (materialReport != null)
-                    materialReports.Add(materialReport);
-            }
-            else if (typeId == _settings.FactoryTypeId)
-            {
-                var factoryReport = _frRepo.All().FirstOrDefault(c => c.GroupId == id);
-                if (factoryReport != null)
-                    factoryReports.Add(factoryReport);
-            }
-            else if (_settings.CraftTypeIds.Contains(typeId))
-            {
-                var craftReport = _crRepo.All().FirstOrDefault(c => c.GroupId == id);
-                if (craftReport != null)
-                    craftReports.Add(craftReport);
-            }
-            else if (typeId == _settings.TestTypeId)
-            {
-                var testReport = _trRepo.All().FirstOrDefault(c => c.GroupId == id);
-                if (testReport != null)
-                    testReports.Add(testReport);
-            }
+            // if (typeId == _settings.InspectionTypeId)
+            // {
+            //     var inspectionReport = _irRepo.All().FirstOrDefault(c => c.GroupId == id);
+            //     if (inspectionReport != null)
+            //         inspectionReports.Add(inspectionReport);
+            // }
+            // else if (typeId == _settings.ProductionTypeId)
+            // {
+            //     var productReport = _prRepo.All().FirstOrDefault(c => c.GroupId == id);
+            //     if (productReport != null)
+            //         productReports.Add(productReport);
+            // }
+            // else if (typeId == _settings.PhysicalTypeId)
+            // {
+            //     var physicalReport = _psrRepo.All().FirstOrDefault(c => c.GroupId == id);
+            //     if (physicalReport != null)
+            //         physicalReports.Add(physicalReport);
+            // }
+            // else if (typeId == _settings.MaterialTypeId)
+            // {
+            //     var materialReport = _mrRepo.All().FirstOrDefault(c => c.GroupId == id);
+            //     if (materialReport != null)
+            //         materialReports.Add(materialReport);
+            // }
+            // else if (typeId == _settings.FactoryTypeId)
+            // {
+            //     var factoryReport = _frRepo.All().FirstOrDefault(c => c.GroupId == id);
+            //     if (factoryReport != null)
+            //         factoryReports.Add(factoryReport);
+            // }
+            // else if (_settings.CraftTypeIds.Contains(typeId))
+            // {
+            //     var craftReport = _crRepo.All().FirstOrDefault(c => c.GroupId == id);
+            //     if (craftReport != null)
+            //         craftReports.Add(craftReport);
+            // }
+            // else if (typeId == _settings.TestTypeId)
+            // {
+            //     var testReport = _trRepo.All().FirstOrDefault(c => c.GroupId == id);
+            //     if (testReport != null)
+            //         testReports.Add(testReport);
+            // }
         }
 
         _gRepo.DeleteRange(groups);
@@ -504,6 +506,7 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
                 c => c.Specification.SpecificationTypeId == int.Parse(dto.SpecificationTypeId))
             .AndIF(dto.TurnId != null, c => c.TurnId == int.Parse(dto.TurnId))
             .AndIF(dto.MeasureTypeId != null, c => c.MeasureTypeId == int.Parse(dto.MeasureTypeId))
+            .AndIF(dto.MachineModelId != null, c=>c.MachineId == int.Parse(dto.MachineModelId))
             .AndIF(dto.EquipmentTypeId != null, c=>c.EquipmentType == (EquipmentType)int.Parse(dto.EquipmentTypeId))
             .ToExpression();
         var list = _db.Queryable<MetricalGroup>()
@@ -856,13 +859,13 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
                 if (current == null) continue;
                 var currentItem = item switch
                 {
-                    "平均值" => statistic.Mean.ToString("F3"),
-                    "最大值" => statistic.Max.ToString("F3"),
-                    "最小值" => statistic.Min.ToString("F3"),
-                    "SD" => statistic.Sd.ToString("F3"),
-                    "CV" => statistic.Cv.ToString("F3"),
-                    "CPK" => statistic.Cpk.ToString("F3"),
-                    "Offs" => statistic.Offset.ToString("F3"),
+                    "平均值" => statistic.Mean.toString(_settings.IndicatorDecimal.Mean),
+                    "最大值" => statistic.Max.toString(_settings.IndicatorDecimal.Max),
+                    "最小值" => statistic.Min.toString(_settings.IndicatorDecimal.Min),
+                    "SD" => statistic.Sd.toString(_settings.IndicatorDecimal.Sd),
+                    "CV" => statistic.Cv.toString(_settings.IndicatorDecimal.Cv),
+                    "CPK" => statistic.Cpk.toString(_settings.IndicatorDecimal.Cpk),
+                    "Offs" => statistic.Offset.toString(_settings.IndicatorDecimal.Offs),
                     "上超" => statistic.HighCnt.ToString(),
                     "下超" => statistic.LowCnt.ToString(),
                     "合格数" => statistic.Quality,
@@ -877,7 +880,7 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
                     var standard = Convert.ToDouble(rule.Standard);
                     var upper = Convert.ToDouble(rule.Upper);
                     var lower = Convert.ToDouble(rule.Lower);
-                    itemInfo.Add("text", Convert.ToDouble(currentItem));
+                    itemInfo.Add("text", currentItem);
                     itemInfo.Add("high", standard + upper);
                     itemInfo.Add("low", standard - lower);
                 }
@@ -908,26 +911,8 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
         var statisticItems = new[] { "平均值", "最大值", "最小值", "SD", "CV", "CPK", "Offs", "上超", "下超", "合格数", "合格率" };
         var group = _gRepo.Get(id);
         var specification = _spRepo.Get(group.SpecificationId);
-        List<Rule> rules;
-        if (group.MeasureTypeId == _settings.ChemicalTypeId)
-        {
-            var tempData = _sptRepo.All()
-                .FirstOrDefault(c => c.SpecificationTypeId == specification.SpecificationTypeId);
-            rules = JsonConvert.DeserializeObject<List<Rule>>(tempData == null
-                ? specification.SingleRules
-                : tempData.Rules);
-        }
-        else if (group.MeasureTypeId == _settings.CraftTypeId)
-        {
-            var temp = _cirRepo.All().FirstOrDefault(c => c.ModelId == group.MachineModelId);
-            rules = JsonConvert.DeserializeObject<List<Rule>>(temp == null
-                ? specification.SingleRules
-                : temp.Rules);
-        }
-        else
-        {
-            rules = JsonConvert.DeserializeObject<List<Rule>>(specification.SingleRules);
-        }
+        var rules = JsonConvert.DeserializeObject<List<Rule>>(specification.SingleRules);
+
 
         var data = _dRepo.All().Where(c => c.GroupId == id).Select(c => c.Data).ToList();
         if (data.Count == 0)
@@ -990,43 +975,21 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
             foreach (var item in statisticItems)
             {
                 var currentObj = dataInfo.First(c => c["itemName"].ToString() == item);
-                var currentItem = "";
-                switch (item)
+                var currentItem = item switch
                 {
-                    case "平均值":
-                        currentItem = statistic.Mean.ToString("F2");
-                        break;
-                    case "最大值":
-                        currentItem = statistic.Max.ToString("F2");
-                        break;
-                    case "最小值":
-                        currentItem = statistic.Min.ToString("F2");
-                        break;
-                    case "SD":
-                        currentItem = statistic.Sd.ToString("F3");
-                        break;
-                    case "CV":
-                        currentItem = statistic.Cv.ToString("F3");
-                        break;
-                    case "CPK":
-                        currentItem = statistic.Cpk.ToString("F3");
-                        break;
-                    case "Offs":
-                        currentItem = statistic.Offset.ToString("F3");
-                        break;
-                    case "上超":
-                        currentItem = statistic.HighCnt.ToString();
-                        break;
-                    case "下超":
-                        currentItem = statistic.LowCnt.ToString();
-                        break;
-                    case "合格数":
-                        currentItem = statistic.Quality;
-                        break;
-                    case "合格率":
-                        currentItem = statistic.QualityRate;
-                        break;
-                }
+                    "平均值" => statistic.Mean.toString(_settings.IndicatorDecimal.Mean),
+                    "最大值" => statistic.Max.toString(_settings.IndicatorDecimal.Max),
+                    "最小值" => statistic.Min.toString(_settings.IndicatorDecimal.Min),
+                    "SD" => statistic.Sd.toString(_settings.IndicatorDecimal.Sd),
+                    "CV" => statistic.Cv.toString(_settings.IndicatorDecimal.Cv),
+                    "CPK" => statistic.Cpk.toString(_settings.IndicatorDecimal.Cpk),
+                    "Offs" => statistic.Offset.toString(_settings.IndicatorDecimal.Offs),
+                    "上超" => statistic.HighCnt.ToString(),
+                    "下超" => statistic.LowCnt.ToString(),
+                    "合格数" => statistic.Quality,
+                    "合格率" => statistic.QualityRate,
+                    _ => ""
+                };
 
                 currentObj[$"a{rule.Id}"] = currentItem;
                 index++;
@@ -1042,13 +1005,7 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
 
     public IEnumerable<BaseOptionDto> GetOptions()
     {
-        var data = _gRepo.All().Where(c => c.MeasureTypeId == _settings.ChemicalTypeId).Select(c => new BaseOptionDto
-        {
-            Value = c.Id,
-            Text = $"{c.Specification.Name}({c.BeginTime:yyyy-MM-dd HH:mm:ss})"
-        }).ToList();
-
-        return data;
+        return null;
     }
 
     public IEnumerable<BaseOptionDto> GetOptions(int specificationId, DateTime testDate, int type)
@@ -1067,48 +1024,35 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
     public MemoryStream Download(MetricalDataQueryDto dto)
     {
         var data = _dRepo.All().AsNoTracking();
-        if (!string.IsNullOrEmpty(dto.MeasureTypeId))
-        {
-            var typeId = int.Parse(dto.MeasureTypeId);
-            data = data.Where(c => c.Group.MeasureTypeId == typeId);
-        }
 
-        if (!string.IsNullOrEmpty(dto.SpecificationTypeId))
-        {
-            var specificationTypeId = int.Parse(dto.SpecificationTypeId);
-            data = data.Where(c => c.Group.Specification.SpecificationTypeId == specificationTypeId);
-        }
+        var exp = Expressionable.Create<Core.SugarEntities.MetricalData>()
+            .AndIF(dto.SpecificationId != null, c => c.Group.SpecificationId == int.Parse(dto.SpecificationId))
+            .AndIF(dto.BeginTime != null && dto.EndTime != null,
+                c => c.Group.BeginTime.Date >= Convert.ToDateTime(dto.BeginTime).Date &&
+                     c.Group.BeginTime.Date <= Convert.ToDateTime(dto.EndTime).Date)
+            .AndIF(dto.SpecificationTypeId != null,
+                c => c.Group.Specification.SpecificationTypeId == int.Parse(dto.SpecificationTypeId))
+            .AndIF(dto.TurnId != null, c => c.Group.TurnId == int.Parse(dto.TurnId))
+            .AndIF(dto.MeasureTypeId != null, c => c.Group.MeasureTypeId == int.Parse(dto.MeasureTypeId))
+            .AndIF(dto.MachineModelId != null, c=>c.Group.MachineId == int.Parse(dto.MachineModelId))
+            .AndIF(dto.EquipmentTypeId != null, c => c.Group.EquipmentType == (EquipmentType)int.Parse(dto.EquipmentTypeId))
+            .ToExpression();
+        var list = _db.Queryable<Core.SugarEntities.MetricalData>()
+            .LeftJoin<MetricalGroup>((c, g) => c.GroupId == g.Id)
+            .LeftJoin<Core.SugarEntities.Specification>((c, g, s) => g.SpecificationId == s.Id)
+            .LeftJoin<Team>((c, g, s, team) => g.TeamId == team.Id)
+            .LeftJoin<Turn>((c, g, s, team, turn) => g.TurnId == turn.Id)
+            .LeftJoin<Machine>((c, g, s, team, turn, mac) => g.MachineId == mac.Id)
+            .LeftJoin<MeasureType>((c, g, s, team, turn, mac, mt) => g.MeasureTypeId == mt.Id)
+            .Where(exp).Select((c, g, s, team, turn, mac, mt) => new
+            {
+                c.Id, specificationId = g.SpecificationId, specificationName = s.Name,
+                turnName = turn.Name, machineName = mac.Name, measureTypeName = mt.Name,
+                testTime = c.TestTime, data = c.Data
+            }).ToList();
 
-        if (!string.IsNullOrEmpty(dto.SpecificationId))
-        {
-            var specificationId = int.Parse(dto.SpecificationId);
-            data = data.Where(c => c.Group.SpecificationId == specificationId);
-        }
+        var specificationGroups = list.GroupBy(c => c.specificationId).ToList();
 
-        if (!string.IsNullOrEmpty(dto.TurnId))
-        {
-            var turnId = int.Parse(dto.TurnId);
-            data = data.Where(c => c.Group.TurnId == turnId);
-        }
-
-        if (!string.IsNullOrEmpty(dto.MachineModelId))
-        {
-            var machineModelId = int.Parse(dto.MachineModelId);
-            data = data.Where(c => c.Group.MachineModelId == machineModelId);
-        }
-
-        if (!string.IsNullOrEmpty(dto.BeginTime) && !string.IsNullOrEmpty(dto.EndTime))
-        {
-            var begin = Convert.ToDateTime(dto.BeginTime);
-            var end = Convert.ToDateTime(dto.EndTime);
-            data = data.Where(c => c.Group.BeginTime.Date >= begin && c.Group.BeginTime.Date <= end);
-        }
-
-        var specificationGroups = data.Include(c => c.Group).ThenInclude(c => c.Specification)
-            .Include(c => c.Group).ThenInclude(c => c.Turn)
-            .Include(c => c.Group).ThenInclude(c => c.MachineModel)
-            .Include(c => c.Group).ThenInclude(c => c.MeasureType).ToList().GroupBy(c => c.Group.SpecificationId)
-            .ToList();
         var specifications = _spRepo.All().Select(c => new { c.Id, c.SingleRules }).ToList();
         var indicators = _iRepo.All().ToList();
         using var package = new ExcelPackage();
@@ -1121,14 +1065,13 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
             var singleRules = specifications.FirstOrDefault(c => c.Id == specificationGroup.Key);
             if (singleRules == null)
                 continue;
-            var ws = package.Workbook.Worksheets.Add(first.Group.Specification.Name);
+            var ws = package.Workbook.Worksheets.Add(first.specificationName);
 
             var rules = JsonConvert.DeserializeObject<List<Rule>>(singleRules.SingleRules);
             var ruleDic = new Dictionary<int, string>();
             foreach (var rule in rules)
             {
-                var name = rule.Name;
-                if (string.IsNullOrEmpty(name)) name = indicators.FirstOrDefault(c => c.Id == rule.Id).Name;
+                var name = indicators.FirstOrDefault(c => c.Id == rule.Id).Name;
                 ruleDic.Add(rule.Id, name);
             }
 
@@ -1151,14 +1094,14 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
             }
 
             var row = 2;
-            foreach (var item in specificationGroup.OrderBy(c => c.TestTime))
+            foreach (var item in specificationGroup.OrderBy(c => c.testTime))
             {
-                ws.Cells[row, 1].Value = item.TestTime.ToString("yyyy-MM-dd HH:mm:ss");
-                ws.Cells[row, 2].Value = item.Group.Turn.Name;
-                ws.Cells[row, 3].Value = item.Group.MachineModel.Name;
-                ws.Cells[row, 4].Value = item.Group.MeasureType.Name;
+                ws.Cells[row, 1].Value = item.testTime.ToString("yyyy-MM-dd HH:mm:ss");
+                ws.Cells[row, 2].Value = item.turnName;
+                ws.Cells[row, 3].Value = item.machineName;
+                ws.Cells[row, 4].Value = item.measureTypeName;
                 var valueCol = 5;
-                var obj = JsonConvert.DeserializeObject<JObject>(item.Data);
+                var obj = JsonConvert.DeserializeObject<JObject>(item.data);
                 foreach (var ruleItem in ruleDic)
                 {
                     var value = "";
@@ -1182,16 +1125,20 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
     public IEnumerable<BaseOptionDto> GetMeasureDataBySpecificationIdAndMeasureTypeId(int specificationId,
         int measureTypeId)
     {
-        var groups = _gRepo.All().Include(c => c.Specification)
-            .Where(c => c.SpecificationId == specificationId && c.MeasureTypeId == measureTypeId)
-            .OrderByDescending(c => c.BeginTime).Select(c =>
-                new BaseOptionDto
-                {
-                    Value = c.Id,
-                    Text = $"{c.Specification.Name}( {c.BeginTime:yyyy-MM-dd HH:mm:ss} )"
-                }).ToList();
+       var exp = Expressionable.Create<MetricalGroup>()
+            .AndIF(true, c => c.SpecificationId == specificationId)
+            .AndIF(true, c => c.MeasureTypeId == measureTypeId)
+            .ToExpression();
+        var g = _db.Queryable<MetricalGroup>()
+            .LeftJoin<Core.SugarEntities.Specification>((c, s) => c.SpecificationId == s.Id)
+            .Where(exp).OrderByDescending(c => c.BeginTime)
+            .Select((c, s) => new BaseOptionDto()
+            {
+                Value = c.Id,
+                Text = $"{s.Name}( {c.BeginTime:yyyy-MM-dd HH:mm:ss} )"
+            }).ToList();
 
-        return groups;
+        return g;
     }
 
     private JObject getSpecificationIndicators(int id)
@@ -1200,27 +1147,7 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
         var specification = _spRepo.Get(group.SpecificationId);
         var label = new JObject { { "label", "原始数据" }, { "type", "table-editor" } };
         var columns = new JArray();
-        List<Rule> rules;
-        if (group.MeasureTypeId == _settings.ChemicalTypeId)
-        {
-            var spt = _sptRepo.All().FirstOrDefault(c => c.SpecificationTypeId == specification.SpecificationTypeId);
-            rules = JsonConvert.DeserializeObject<List<Rule>>(spt != null ? spt.Rules : specification.SingleRules);
-        }
-        // else if (_settings.CraftTypeIds.Contains(group.MeasureTypeId))
-        // {
-        //     // var machineModel = _mmRepo.Get(group.MachineModelId);
-        //     // CraftIndicatorRule craftRules = null;
-        //     // if (machineModel.ModelId > 0)
-        //     //     craftRules = _cirRepo.All().FirstOrDefault(c => c.ModelId == machineModel.ModelId);
-        //     //
-        //     // rules = JsonConvert.DeserializeObject<List<Rule>>(craftRules != null
-        //     //     ? craftRules.Rules
-        //     //     : specification.SingleRules);
-        // }
-        else
-        {
-            rules = JsonConvert.DeserializeObject<List<Rule>>(specification.SingleRules);
-        }
+        var rules = JsonConvert.DeserializeObject<List<Rule>>(specification.SingleRules);
 
         var idObj = new JObject { { "prop", "id" }, { "label", "ID" }, { "width", "150" } };
         columns.Add(idObj);
