@@ -37,14 +37,6 @@ export default {
   created() {
     this.getSystemSettings()
     this.getDicts()
-
-    // 初始化SignalR, 在登录和刷新页面时调用, 判断是否需要初始化, 防止重复初始化
-    if (!sr.connection || sr.connection.state === 'Disconnected')
-      sr.init(
-        this.$utils.getCurrentApiUrl(process.env.NODE_ENV === 'development') +
-          '/ServerHub',
-        this.$store.state.user.userInfo
-      )
   },
   computed: {
     asideWidth() {

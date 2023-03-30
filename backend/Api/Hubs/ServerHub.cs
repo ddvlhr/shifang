@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 using Core.Dtos.User;
 using Infrastructure.Response;
@@ -33,13 +34,22 @@ public class ServerHub: Hub
         var connId = Context.ConnectionId;
         
         _logger.LogWarning("SignalR已连接");
-        var token = _accessor.HttpContext?.Request.Query["access_token"];
-        var userInfo = JsonSerializer.Deserialize<SignalRUserDto>(token);
+        var token = "";
+        if (_accessor.HttpContext?.Request.Query.ContainsKey("access_token") == true)
+        {
+            token = _accessor.HttpContext?.Request.Query["access_token"];
+        }
+        else
+        {
+            token = _accessor.HttpContext?.Request.Headers["access_token"];
+        }
+        var tokenObj = JsonSerializer.Deserialize<JsonObject>(token);
         var user = new SignalRUserDto()
         {
             ConnectionId = connId,
-            UserId = userInfo.UserId,
-            UserName = userInfo.UserName
+            UserId = tokenObj["userId"].ToString(),
+            UserName = tokenObj["userName"].ToString(),
+            Machine = tokenObj["machine"].ToString() == "" ? 0 : int.Parse(tokenObj["machine"].ToString())
         };
         
         OnlineUsers.Add(user);
@@ -69,6 +79,13 @@ public class ServerHub: Hub
             UserName = user
         };
         var result = new Response(0, msg, model);
-        await Clients.Clients(OnlineUsers.Select(c => c.ConnectionId).ToList()).SendAsync("SendMessage", result);
+        await Clients.Clients(OnlineUsers.Select(c => c.ConnectionId).ToList()).SendAsync("ReceiveMessage", result);
+    }
+
+    public async Task PushMetricalData(int groupId, int machine, string testTime)
+    {
+        var result = new Response(0, "", new {groupId, testTime});
+        var clients = OnlineUsers.Where(c => c.Machine == machine).Select(c => c.ConnectionId).ToList();
+        await Clients.Clients(clients).SendAsync("ReceiveMetricalPushData", result);
     }
 }

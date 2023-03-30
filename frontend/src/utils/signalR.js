@@ -12,11 +12,12 @@ let sr = {
  * @param {String} url SignalR连接地址
  * @param {Object} token 用户信息
  */
-sr.init = (url, token) => {
+sr.init = (url, token, machine) => {
   // console.log(url, token)
   const user = {
     userId: token.id,
-    userName: token.userName
+    userName: token.userName,
+    machine: machine
   }
   sr.connection = new signalR.HubConnectionBuilder()
     .withAutomaticReconnect()
@@ -44,6 +45,10 @@ sr.init = (url, token) => {
       message: res.meta.message,
       type: 'info'
     })
+  })
+
+  sr.connection.on('ReceiveMetricalPushData', (data) => {
+    store.dispatch('user/addMetricalPushData', data.data)
   })
 
   sr.connection.on('OnlineUserMessage', (data) => {

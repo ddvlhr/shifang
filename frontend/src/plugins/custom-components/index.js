@@ -15,6 +15,7 @@ import QueryDatePicker from '@/components/QueryDatePicker'
 import MeasureDataDialog from '@/components/MeasureDataDialog'
 import StatisticDialog from '@/components/StatisticDialog'
 import FullScreen from '@/components/FullScreen'
+import MetricalPushData from '@/components/MetricalPushData'
 
 export const setupCustomComponents = () => {
   Vue.component('function-button', FunctionButton)
@@ -25,4 +26,5 @@ export const setupCustomComponents = () => {
   Vue.component('measure-data-dialog', MeasureDataDialog)
   Vue.component('statistic-dialog', StatisticDialog)
   Vue.component('full-screen', FullScreen)
+  Vue.component('metrical-push-data', MetricalPushData)
 }

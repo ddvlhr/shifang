@@ -19,7 +19,8 @@ export default {
     onlineUsers: 0,
     localStorageSize: '',
     sessionStorageSize: '',
-    serverInfo: {}
+    serverInfo: {},
+    metricalDataPush: []
   },
   getters: {},
   mutations: {

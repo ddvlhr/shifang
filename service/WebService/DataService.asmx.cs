@@ -1,15 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Configuration;
 using System.Data;
 using System.Linq;
 using System.Web.Services;
 using System.Xml;
+using Microsoft.AspNetCore.SignalR.Client;
 using MySql.Data.MySqlClient;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using RTLib;
-using Microsoft.AspNet.SignalR.Client;
 
 namespace WebService
 {
@@ -23,10 +24,34 @@ namespace WebService
     // [System.Web.Script.Services.ScriptService]
     public class DataService : System.Web.Services.WebService
     {
+        private readonly HubConnection _connection;
         public DataService()
         {
-            
+            var signalRServerUrl = ConfigurationManager.AppSettings["signalRUrl"];
+            var serviceUser = new Dictionary<string, object>()
+            {
+                {"userId", 10086},
+                {"userName", "DataService"},
+                {"machine", 0}
+            };
+
+            _connection = new HubConnectionBuilder()
+                .WithUrl(signalRServerUrl, options =>
+                {
+                    options.Headers.Add("access_token", JsonConvert.SerializeObject(serviceUser));
+                })
+                .WithAutomaticReconnect()
+                .Build();
+            // _connection.StartAsync(serviceUser).Wait();
+            startSignalR();
         }
+
+        private void startSignalR()
+        {
+            _connection.StartAsync().Wait();
+        }
+
+
 
         /// <summary>
         /// 判断数据是否存在
@@ -83,6 +108,13 @@ namespace WebService
             }
         }
 
+        [WebMethod]
+        public bool signalRTest(int groupId)
+        {
+            _connection.InvokeAsync("PushMetricalData", groupId, 3, "2023-03-30 17:49:50");
+            return true;
+        }
+        
 
         /// <summary>
         /// 获取基础数据
@@ -316,6 +348,9 @@ namespace WebService
                     da.Fill(dt);
                     strGid = dt.Rows[0][0].ToString();
                 }
+
+                if (machineId != "")
+                    _connection.InvokeAsync("PushMetricalData", int.Parse(strGid), int.Parse(machineId), xInfo.Attributes["beginTime"].Value);
 
                 // 记录详细数据t_data
                 var dtIndicator = db.excuteToTable("select id, alias from t_indicator");

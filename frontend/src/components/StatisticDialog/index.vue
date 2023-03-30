@@ -25,8 +25,8 @@
                   scope.row[col.key]?.text > scope.row[col.key]?.high
                     ? 'text-red-600'
                     : scope.row[col.key]?.text < scope.row[col.key]?.low
-                    ? 'text-sky-400'
-                    : 'text-lime-500'
+                    ? 'text-blue-600'
+                    : 'text-green-600'
                 "
               >
                 {{
@@ -61,8 +61,8 @@
                   scope.row[col.key]?.text > scope.row[col.key]?.high
                     ? 'text-red-600'
                     : scope.row[col.key]?.text < scope.row[col.key]?.low
-                    ? 'text-sky-400'
-                    : 'text-lime-500'
+                    ? 'text-blue-600'
+                    : 'text-green-600'
                 "
               >
                 {{
@@ -141,7 +141,6 @@ export default {
       const { data: res } = await this.$api.getMetricalDataStatisticInfo(
         this.groupId
       )
-      console.log(res.data)
       const columns = res.data.columns
       const tempColumns = []
       for (const key in columns) {

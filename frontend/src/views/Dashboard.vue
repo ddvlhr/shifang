@@ -34,54 +34,37 @@
           <v-chart class="chart" :option="option" autoresize />
         </el-card>
       </el-tab-pane>
-      <el-tab-pane label="测量数据推送" style="height: calc(100vh - 200px)">
+      <el-tab-pane label="测量数据推送">
         <el-card shadow="never" :body-style="{ padding: '20px' }">
           <div slot="header">
             <el-row :gutter="20">
-              <el-col :span="6">
-                <query-select
-                  :options="specificationOptions"
-                  placeholder="请选择牌号"
-                />
-              </el-col>
-              <el-col :span="6" :offset="0">
-                <query-select :options="turnOptions" placeholder="请选择班次" />
-              </el-col>
               <el-col :span="6" :offset="0">
                 <query-select
+                  v-model="machineId"
                   :options="machineOptions"
                   placeholder="请选择机台"
                 />
               </el-col>
-              <el-col :span="6">
-                <el-button type="primary">开启推送</el-button>
+              <el-col :span="4">
+                <el-button type="primary" @click="metricalDataPush"
+                  >开启推送</el-button
+                >
+              </el-col>
+            </el-row>
+            <el-row class="mt-3">
+              <el-col :span="8" style="vertical-align: middle">
+                <el-tag type="dark">
+                  当前推送数据测量时间:
+                  {{
+                    metricalPushData.length > 0
+                      ? metricalPushData[0].testTime
+                      : ''
+                  }}
+                </el-tag>
               </el-col>
             </el-row>
           </div>
-          <el-row :gutter="20" style="height: 100%">
-            <el-col :span="14" style="height: 100%">
-              <el-table :data="dataList">
-                <el-table-column
-                  label="测量时间"
-                  prop="beginTime"
-                ></el-table-column>
-                <el-table-column
-                  label="牌号名称"
-                  prop="specificationName"
-                ></el-table-column>
-                <el-table-column label="班次" prop="turnName"></el-table-column>
-                <el-table-column
-                  label="机台"
-                  prop="machineName"
-                ></el-table-column>
-                <el-table-column
-                  label="测量类型"
-                  prop="measureTypeName"
-                ></el-table-column>
-              </el-table>
-            </el-col>
-            <el-col :span="10" style="height: 100%"></el-col>
-          </el-row>
+          <metrical-push-data />
         </el-card>
       </el-tab-pane>
     </el-tabs>
@@ -90,6 +73,7 @@
 
 <script>
 import VChart, { THEME_KEY } from 'vue-echarts'
+import sr from '@/utils/signalR'
 export default {
   components: {
     VChart
@@ -154,9 +138,8 @@ export default {
           }
         ]
       },
-      specificationOptions: [],
-      turnOptions: [],
       machineOptions: [],
+      machineId: '',
       queryInfo: {
         specificationId: '',
         turnId: '',
@@ -182,6 +165,9 @@ export default {
     },
     serverInfo() {
       return this.$store.state.app.serverInfo
+    },
+    metricalPushData() {
+      return this.$store.state.user.metricalPushData
     }
   },
   methods: {
@@ -217,30 +203,21 @@ export default {
       if (res.meta.code !== 0) {
         return this.$message.error('获取选项失败: ' + res.meta.message)
       }
-      this.specificationOptions = res.data.specifications
-      this.turnOptions = res.data.turns
       this.machineOptions = res.data.machines
     },
-    loadDataList() {
-      let clear = false
-      setInterval(async () => {
-        // if (this.dataList.length > 10) {
-        //   clear = true
-        // }
-        const { data: res } = await this.$api.getMetricalData(this.queryInfo)
-        this.dataList = res.data.list
-        // if (this.dataList.length > 10) {
-        //   this.dataList.pop()
-        //   // clear = false
-        // }
-        // this.dataList.unshift({
-        //   beginTime: this.$utils.getCurrentTime(),
-        //   specificationName: '牌号名称',
-        //   turnName: '班次',
-        //   machineName: '机台',
-        //   measureTypeName: '测量类型'
-        // })
-      }, 5000)
+    metricalDataPush() {
+      if (!this.machineId) {
+        return this.$message.error('请选择机台再开启推送')
+      }
+      this.$store.dispatch('user/clearMetricalPushData')
+      // 初始化SignalR, 在登录和刷新页面时调用, 判断是否需要初始化, 防止重复初始化
+      if (!sr.connection || sr.connection.state === 'Disconnected')
+        sr.init(
+          this.$utils.getCurrentApiUrl(process.env.NODE_ENV === 'development') +
+            '/ServerHub',
+          this.$store.state.user.userInfo,
+          this.machineId
+        )
     }
   }
 }

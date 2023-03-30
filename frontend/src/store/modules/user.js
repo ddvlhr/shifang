@@ -11,7 +11,8 @@ export default {
   state: {
     userInfo: {},
     token: '',
-    notice: []
+    notice: [],
+    metricalPushData: []
   },
   mutations: {
     setUserInfo(state, userInfo) {
@@ -32,6 +33,16 @@ export default {
     },
     clearNotice(state) {
       state.notice = []
+    },
+    addMetricalPushData(state, data) {
+      state.metricalPushData.unshift(data)
+    },
+    deleteEarilestMetricalPushData(state) {
+      // 这里是删除数组中最早的一个元素
+      state.metricalPushData.shift()
+    },
+    clearMetricalPushData(state) {
+      state.metricalPushData = []
     }
   },
   actions: {
@@ -47,6 +58,15 @@ export default {
     },
     clearNotice({ commit }) {
       commit('clearNotice')
+    },
+    addMetricalPushData({ commit }, data) {
+      commit('addMetricalPushData', data)
+    },
+    deleteEarilestMetricalPushData({ commit }) {
+      commit('deleteEarilestMetricalPushData')
+    },
+    clearMetricalPushData({ commit }) {
+      commit('clearMetricalPushData')
     }
   }
 }
