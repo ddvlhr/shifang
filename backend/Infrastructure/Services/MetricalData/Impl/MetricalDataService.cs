@@ -241,7 +241,7 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
             failReason = "数据格式不正确";
             return false;
         }
-        
+
         var updateIds = new List<int>();
         var dataList = new List<Core.SugarEntities.MetricalData>();
         foreach (var item in items)
@@ -508,8 +508,8 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
                 c => c.Specification.SpecificationTypeId == int.Parse(dto.SpecificationTypeId))
             .AndIF(dto.TurnId != null, c => c.TurnId == int.Parse(dto.TurnId))
             .AndIF(dto.MeasureTypeId != null, c => c.MeasureTypeId == int.Parse(dto.MeasureTypeId))
-            .AndIF(dto.MachineModelId != null, c=>c.MachineId == int.Parse(dto.MachineModelId))
-            .AndIF(dto.EquipmentTypeId != null, c=>c.EquipmentType == (EquipmentType)int.Parse(dto.EquipmentTypeId))
+            .AndIF(dto.MachineModelId != null, c => c.MachineId == int.Parse(dto.MachineModelId))
+            .AndIF(dto.EquipmentTypeId != null, c => c.EquipmentType == (EquipmentType)int.Parse(dto.EquipmentTypeId))
             .ToExpression();
         var list = _db.Queryable<MetricalGroup>()
             .LeftJoin<Core.SugarEntities.Specification>((c, s) => c.SpecificationId == s.Id)
@@ -709,7 +709,7 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
         var group = _db.Queryable<MetricalGroup>()
             .LeftJoin<Core.SugarEntities.Specification>((c, s) => c.SpecificationId == s.Id)
             .Where(c => c.Id == id)
-            .Select((c, s)=> new
+            .Select((c, s) => new
             {
                 beginTime = c.BeginTime,
                 specificationName = s.Name
@@ -751,7 +751,7 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
             return info;
         }
 
-        var specification = _db.Queryable<Core.SugarEntities.Specification>().Single(c=>c.Id == group.SpecificationId);
+        var specification = _db.Queryable<Core.SugarEntities.Specification>().Single(c => c.Id == group.SpecificationId);
         if (specification == null)
         {
             failReason = "没有找到对应的牌号";
@@ -765,8 +765,8 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
             return info;
         }
 
-        var data = _db.Queryable<Core.SugarEntities.MetricalData>().Where(c=>c.GroupId == groupId)
-            .Select(c=>c.Data).ToList();
+        var data = _db.Queryable<Core.SugarEntities.MetricalData>().Where(c => c.GroupId == groupId)
+            .Select(c => c.Data).ToList();
         if (data.Count == 0)
         {
             failReason = "没有找到对应的测试数据";
@@ -800,7 +800,7 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
             var indicatorValue = firstData[$"{rule.Id}"];
             if (indicatorValue != null && indicatorValue.ToString() != "")
             {
-                var indicatorName= indicators.FirstOrDefault(c => c.Id == rule.Id)?.Name;
+                var indicatorName = indicators.FirstOrDefault(c => c.Id == rule.Id)?.Name;
                 var columnItem = new Dictionary<string, object>()
                 {
                     {"text", indicatorName}
@@ -1030,13 +1030,13 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
         var exp = Expressionable.Create<Core.SugarEntities.MetricalData>()
             .AndIF(dto.SpecificationId != null, c => c.Group.SpecificationId == int.Parse(dto.SpecificationId))
             .AndIF(dto.BeginTime != null && dto.EndTime != null,
-                c => c.Group.BeginTime.Date >= Convert.ToDateTime(dto.BeginTime).Date &&
-                     c.Group.BeginTime.Date <= Convert.ToDateTime(dto.EndTime).Date)
+                c => c.Group.BeginTime >= Convert.ToDateTime(dto.BeginTime).Date &&
+                     c.Group.BeginTime <= Convert.ToDateTime(dto.EndTime).Date)
             .AndIF(dto.SpecificationTypeId != null,
                 c => c.Group.Specification.SpecificationTypeId == int.Parse(dto.SpecificationTypeId))
             .AndIF(dto.TurnId != null, c => c.Group.TurnId == int.Parse(dto.TurnId))
             .AndIF(dto.MeasureTypeId != null, c => c.Group.MeasureTypeId == int.Parse(dto.MeasureTypeId))
-            .AndIF(dto.MachineModelId != null, c=>c.Group.MachineId == int.Parse(dto.MachineModelId))
+            .AndIF(dto.MachineModelId != null, c => c.Group.MachineId == int.Parse(dto.MachineModelId))
             .AndIF(dto.EquipmentTypeId != null, c => c.Group.EquipmentType == (EquipmentType)int.Parse(dto.EquipmentTypeId))
             .ToExpression();
         var list = _db.Queryable<Core.SugarEntities.MetricalData>()
@@ -1048,73 +1048,124 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
             .LeftJoin<MeasureType>((c, g, s, team, turn, mac, mt) => g.MeasureTypeId == mt.Id)
             .Where(exp).Select((c, g, s, team, turn, mac, mt) => new
             {
-                c.Id, specificationId = g.SpecificationId, specificationName = s.Name,
-                turnName = turn.Name, machineName = mac.Name, measureTypeName = mt.Name,
-                testTime = c.TestTime, data = c.Data
+                c.Id,
+                specificationId = g.SpecificationId,
+                specificationName = s.Name,
+                turnName = turn.Name,
+                machineName = mac.Name,
+                measureTypeName = mt.Name,
+                testTime = c.TestTime,
+                data = c.Data,
+                userData = g.UserData,
+                instance = g.Instance
             }).ToList();
 
-        var specificationGroups = list.GroupBy(c => c.specificationId).ToList();
-
-        var specifications = _spRepo.All().Select(c => new { c.Id, c.SingleRules }).ToList();
         var indicators = _iRepo.All().ToList();
         using var package = new ExcelPackage();
+        var equipmentTypeId = Convert.ToInt32(dto.EquipmentTypeId);
 
-        foreach (var specificationGroup in specificationGroups)
+
+        if (!string.IsNullOrEmpty(dto.EquipmentTypeId) && equipmentTypeId == (int)EquipmentType.SingleResistance)
         {
-            var first = specificationGroup.First();
-            if (first == null)
-                continue;
-            var singleRules = specifications.FirstOrDefault(c => c.Id == specificationGroup.Key);
-            if (singleRules == null)
-                continue;
-            var ws = package.Workbook.Worksheets.Add(first.specificationName);
-
-            var rules = JsonConvert.DeserializeObject<List<Rule>>(singleRules.SingleRules);
-            var ruleDic = new Dictionary<int, string>();
-            foreach (var rule in rules)
-            {
-                var name = indicators.FirstOrDefault(c => c.Id == rule.Id).Name;
-                ruleDic.Add(rule.Id, name);
-            }
-
+            var resistanceIndicator = indicators.FirstOrDefault(c => c.Id == _settings.Resistance);
+            var ws = package.Workbook.Worksheets.Add("雪茄吸阻原始数据");
             ws.Cells.Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
             ws.Cells.Style.VerticalAlignment = ExcelVerticalAlignment.Center;
             ws.Column(1).Width = 25;
             ws.Column(2).Width = 25;
             ws.Column(3).Width = 25;
             ws.Column(4).Width = 25;
+            ws.Column(5).Width = 25;
             ws.Cells[1, 1].Value = "测量时间";
-            ws.Cells[1, 2].Value = "班次";
-            ws.Cells[1, 3].Value = "机台";
-            ws.Cells[1, 4].Value = "测量类型";
-            var col = 5;
-            foreach (var ruleItem in ruleDic)
-            {
-                ws.Column(col).Width = 25;
-                ws.Cells[1, col].Value = ruleItem.Value;
-                col++;
-            }
+            ws.Cells[1, 2].Value = "牌号";
+            ws.Cells[1, 3].Value = "仪器名称";
+            ws.Cells[1, 4].Value = "工号";
+            ws.Cells[1, 5].Value = resistanceIndicator?.Name + "(mmWG)";
 
             var row = 2;
-            foreach (var item in specificationGroup.OrderBy(c => c.testTime))
+            foreach (var item in list.OrderBy(c => c.testTime).ToList())
             {
                 ws.Cells[row, 1].Value = item.testTime.ToString("yyyy-MM-dd HH:mm:ss");
-                ws.Cells[row, 2].Value = item.turnName;
-                ws.Cells[row, 3].Value = item.machineName;
-                ws.Cells[row, 4].Value = item.measureTypeName;
-                var valueCol = 5;
+                ws.Cells[row, 2].Value = item.specificationName;
+                ws.Cells[row, 3].Value = item.instance;
+                ws.Cells[row, 4].Value = item.userData;
                 var obj = JsonConvert.DeserializeObject<JObject>(item.data);
-                foreach (var ruleItem in ruleDic)
+                var value = "";
+                if (obj[$"{resistanceIndicator.Id}"] != null) value = obj[$"{resistanceIndicator.Id}"].ToString();
+                var resistance = 0.0;
+                if (!string.IsNullOrEmpty(value))
                 {
-                    var value = "";
-                    if (obj[$"{ruleItem.Key}"] != null) value = obj[$"{ruleItem.Key}"].ToString();
-
-                    ws.Cells[row, valueCol].Value = value;
-                    valueCol++;
+                    var temp = double.Parse(value);
+                    resistance = ConvertHelper.paToMMWG(temp);
+                    resistance = Math.Round(resistance, 0, MidpointRounding.ToPositiveInfinity);
                 }
+                ws.Cells[row, 5].Value = resistance;
 
                 row++;
             }
+        }
+        else
+        {
+            var specificationGroups = list.GroupBy(c => c.specificationId).ToList();
+            var specifications = _spRepo.All().Select(c => new { c.Id, c.SingleRules }).ToList();
+            foreach (var specificationGroup in specificationGroups)
+            {
+                var first = specificationGroup.First();
+                if (first == null)
+                    continue;
+                var singleRules = specifications.FirstOrDefault(c => c.Id == specificationGroup.Key);
+                if (singleRules == null)
+                    continue;
+                var ws = package.Workbook.Worksheets.Add(first.specificationName);
+
+                var rules = JsonConvert.DeserializeObject<List<Rule>>(singleRules.SingleRules);
+                var ruleDic = new Dictionary<int, string>();
+                foreach (var rule in rules)
+                {
+                    var name = indicators.FirstOrDefault(c => c.Id == rule.Id).Name;
+                    ruleDic.Add(rule.Id, name);
+                }
+
+                ws.Cells.Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+                ws.Cells.Style.VerticalAlignment = ExcelVerticalAlignment.Center;
+                ws.Column(1).Width = 25;
+                ws.Column(2).Width = 25;
+                ws.Column(3).Width = 25;
+                ws.Column(4).Width = 25;
+                ws.Cells[1, 1].Value = "测量时间";
+                ws.Cells[1, 2].Value = "班次";
+                ws.Cells[1, 3].Value = "机台";
+                ws.Cells[1, 4].Value = "测量类型";
+                var col = 5;
+                foreach (var ruleItem in ruleDic)
+                {
+                    ws.Column(col).Width = 25;
+                    ws.Cells[1, col].Value = ruleItem.Value;
+                    col++;
+                }
+
+                var row = 2;
+                foreach (var item in specificationGroup.OrderBy(c => c.testTime))
+                {
+                    ws.Cells[row, 1].Value = item.testTime.ToString("yyyy-MM-dd HH:mm:ss");
+                    ws.Cells[row, 2].Value = item.turnName;
+                    ws.Cells[row, 3].Value = item.machineName;
+                    ws.Cells[row, 4].Value = item.measureTypeName;
+                    var valueCol = 5;
+                    var obj = JsonConvert.DeserializeObject<JObject>(item.data);
+                    foreach (var ruleItem in ruleDic)
+                    {
+                        var value = "";
+                        if (obj[$"{ruleItem.Key}"] != null) value = obj[$"{ruleItem.Key}"].ToString();
+
+                        ws.Cells[row, valueCol].Value = value;
+                        valueCol++;
+                    }
+
+                    row++;
+                }
+            }
+
         }
 
         var file = new MemoryStream();
@@ -1135,7 +1186,7 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
                 c => c.Group.Specification.SpecificationTypeId == int.Parse(dto.SpecificationTypeId))
             .AndIF(dto.TurnId != null, c => c.Group.TurnId == int.Parse(dto.TurnId))
             .AndIF(dto.MeasureTypeId != null, c => c.Group.MeasureTypeId == int.Parse(dto.MeasureTypeId))
-            .AndIF(dto.MachineModelId != null, c=>c.Group.MachineId == int.Parse(dto.MachineModelId))
+            .AndIF(dto.MachineModelId != null, c => c.Group.MachineId == int.Parse(dto.MachineModelId))
             .AndIF(dto.EquipmentTypeId != null, c => c.Group.EquipmentType == (EquipmentType)int.Parse(dto.EquipmentTypeId))
             .ToExpression();
         var list = _db.Queryable<Core.SugarEntities.MetricalData>()
@@ -1147,9 +1198,15 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
             .LeftJoin<MeasureType>((c, g, s, team, turn, mac, mt) => g.MeasureTypeId == mt.Id)
             .Where(exp).Select((c, g, s, team, turn, mac, mt) => new
             {
-                c.Id, c.GroupId, specificationId = g.SpecificationId, specificationName = s.Name,
-                turnName = turn.Name, machineName = mac.Name, measureTypeName = mt.Name,
-                testTime = c.TestTime, data = c.Data
+                c.Id,
+                c.GroupId,
+                specificationId = g.SpecificationId,
+                specificationName = s.Name,
+                turnName = turn.Name,
+                machineName = mac.Name,
+                measureTypeName = mt.Name,
+                testTime = c.TestTime,
+                data = c.Data
             }).ToList();
 
         var specificationGroups = list.GroupBy(c => c.specificationId).ToList();
@@ -1157,7 +1214,7 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
         var specifications = _spRepo.All().Select(c => new { c.Id, c.SingleRules }).ToList();
         var indicators = _iRepo.All().ToList();
         using var package = new ExcelPackage();
-        var statisticItems = new List<string> {"平均值", "最大值", "最小值", "SD", "CV", "CPK", "Offs", "上超", "下超", "合格数", "合格率"};
+        var statisticItems = new List<string> { "平均值", "最大值", "最小值", "SD", "CV", "CPK", "Offs", "上超", "下超", "合格数", "合格率" };
 
         foreach (var specificationGroup in specificationGroups)
         {
@@ -1200,7 +1257,7 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
             {
                 ws.Cells[1, col].Value = ruleItem.Value;
                 ws.Cells[1, col, 1, col + statisticItems.Count - 1].Merge = true;
-                ws.Cells[1, col, 1, col+statisticItems.Count - 1].Style.Border.BorderAround(ExcelBorderStyle.Thin, Color.Black);
+                ws.Cells[1, col, 1, col + statisticItems.Count - 1].Style.Border.BorderAround(ExcelBorderStyle.Thin, Color.Black);
                 foreach (var item in statisticItems)
                 {
                     ws.Column(col).Width = 15;
@@ -1212,7 +1269,7 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
             }
 
             var row = 3;
-            var groups = specificationGroup.OrderByDescending(c=>c.testTime).GroupBy(c => c.GroupId).ToList();
+            var groups = specificationGroup.OrderByDescending(c => c.testTime).GroupBy(c => c.GroupId).ToList();
             foreach (var group in groups)
             {
                 var item = group.FirstOrDefault();
@@ -1283,10 +1340,10 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
     public IEnumerable<BaseOptionDto> GetMeasureDataBySpecificationIdAndMeasureTypeId(int specificationId,
         int measureTypeId)
     {
-       var exp = Expressionable.Create<MetricalGroup>()
-            .AndIF(true, c => c.SpecificationId == specificationId)
-            .AndIF(true, c => c.MeasureTypeId == measureTypeId)
-            .ToExpression();
+        var exp = Expressionable.Create<MetricalGroup>()
+             .AndIF(true, c => c.SpecificationId == specificationId)
+             .AndIF(true, c => c.MeasureTypeId == measureTypeId)
+             .ToExpression();
         var g = _db.Queryable<MetricalGroup>()
             .LeftJoin<Core.SugarEntities.Specification>((c, s) => c.SpecificationId == s.Id)
             .Where(exp).OrderByDescending(c => c.BeginTime)
@@ -1343,7 +1400,7 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
 
         return specificationObj;
     }
-    
+
     public async Task<IEnumerable<MetricalDataInfoDto>> GetMetricalDataInfoAsync(int type)
     {
         var dataRepository = base.ChangeRepository<SugarRepository<Core.SugarEntities.MetricalData>>();
@@ -1372,7 +1429,7 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
             .Includes(c => c.DataList)
             .Where(c => c.BeginTime.Date >= begin && c.EndTime.Date <= end)
             .ToListAsync();
-        
+
         if (type == 1)
         {
             var temp = groupList.GroupBy(c => c.BeginTime.Date.Hour).ToList();
@@ -1416,6 +1473,6 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
             }
         }
 
-        return list.OrderBy(c=> int.Parse(c.Name)).ToList();
+        return list.OrderBy(c => int.Parse(c.Name)).ToList();
     }
 }

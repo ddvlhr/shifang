@@ -70,8 +70,7 @@ export default {
     },
     handleCommand(command) {
       if (command === 'logOut') {
-        sr.off()
-        console.log(sr.connection)
+        // sr.off()
         this.logOut()
       } else {
         this.dialogFormVisible = true

@@ -35,23 +35,29 @@ namespace WebService
                 {"machine", 0}
             };
 
-            _connection = new HubConnectionBuilder()
-                .WithUrl(signalRServerUrl, options =>
-                {
-                    options.Headers.Add("access_token", JsonConvert.SerializeObject(serviceUser));
-                })
-                .WithAutomaticReconnect()
-                .Build();
-            // _connection.StartAsync(serviceUser).Wait();
-            startSignalR();
+            // _connection = new HubConnectionBuilder()
+            //     .WithUrl(signalRServerUrl, options =>
+            //     {
+            //         options.Headers.Add("access_token", JsonConvert.SerializeObject(serviceUser));
+            //     })
+            //     .WithAutomaticReconnect()
+            //     .Build();
+            //
+            // startSignalR();
         }
 
         private void startSignalR()
         {
-            _connection.StartAsync().Wait();
+            try
+            {
+                _connection.StartAsync().Wait();
+                NetLog.save("SignalR连接成功", false);
+            }
+            catch (Exception ex)
+            {
+                NetLog.save("SignalR连接失败: " + ex.ToString());
+            }
         }
-
-
 
         /// <summary>
         /// 判断数据是否存在
@@ -111,7 +117,7 @@ namespace WebService
         [WebMethod]
         public bool signalRTest(int groupId)
         {
-            _connection.InvokeAsync("PushMetricalData", groupId, 3, "2023-03-30 17:49:50");
+            _connection.InvokeAsync("PushMetricalData", groupId, 3, DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
             return true;
         }
         
@@ -283,9 +289,16 @@ namespace WebService
 
                 var xInfo = xUpload.SelectSingleNode("info") as XmlElement;
 
+                if (string.IsNullOrEmpty(xInfo.Attributes["specificationId"].Value))
+                {
+                    failReason = "牌号ID不能为空";
+                    return false;
+                }
+
                 // 检查牌号ID
                 conn = db.getConnection();
                 conn.Open();
+
                 var dtSpecification = db.excuteToTable("select id, single_rules from t_specification where id=" +
                                                        xInfo.Attributes["specificationId"].Value);
                 if (dtSpecification.Rows.Count == 0)
@@ -421,7 +434,7 @@ namespace WebService
                 var cmd = new MySqlCommand();
                 cmd.Connection = conn;
                 cmd.CommandText =
-                    "insert into t_calibration (instance, equipment_type, time, operation, unit, unit_type, result_code, description, temperature, humidity) values (@instance, @equipmentType, @time, @operation, @unit, @unitType, @resultCode, @description, @temperature, @humidity)";
+                    "insert into t_calibration (instance, equipment_type, time, operation, unit, unit_type, result_code, description, temperature, humidity, created_at_utc, modified_at_utc) values (@instance, @equipmentType, @time, @operation, @unit, @unitType, @resultCode, @description, @temperature, @humidity, @createdTime, @modifiedTime)";
                 var xDoc = new XmlDocument();
                 xDoc.LoadXml(xmlData);
                 var xUpload = xDoc.SelectSingleNode("upload");
@@ -437,6 +450,7 @@ namespace WebService
                 foreach (XmlElement d in xDetails)
                 {
                     var time = Convert.ToDateTime(d.Attributes["time"].Value);
+                    var currentTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
                     var temperature = d.Attributes["temperature"].Value;
                     var humidity = d.Attributes["humidity"].Value;
                     cmd.Parameters.Clear();
@@ -450,6 +464,8 @@ namespace WebService
                     cmd.Parameters.AddWithValue("description", d.Attributes["description"].Value);
                     cmd.Parameters.AddWithValue("temperature", temperature == "" ? 0 : Convert.ToDouble(temperature));
                     cmd.Parameters.AddWithValue("humidity", humidity == "" ? 0 : Convert.ToDouble(humidity));
+                    cmd.Parameters.AddWithValue("createdTime", currentTime);
+                    cmd.Parameters.AddWithValue("modifiedTime", currentTime);
                     cmd.ExecuteNonQuery();
                     ret.Add(int.Parse(d.Attributes["id"].Value));
                 }
