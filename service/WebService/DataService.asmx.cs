@@ -7,7 +7,7 @@ using System.Linq;
 using System.Web.Services;
 using System.Xml;
 using Microsoft.AspNetCore.SignalR.Client;
-using MySql.Data.MySqlClient;
+using MySqlConnector;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using RTLib;
@@ -35,15 +35,15 @@ namespace WebService
                 {"machine", 0}
             };
 
-            // _connection = new HubConnectionBuilder()
-            //     .WithUrl(signalRServerUrl, options =>
-            //     {
-            //         options.Headers.Add("access_token", JsonConvert.SerializeObject(serviceUser));
-            //     })
-            //     .WithAutomaticReconnect()
-            //     .Build();
-            //
-            // startSignalR();
+            _connection = new HubConnectionBuilder()
+                .WithUrl(signalRServerUrl, options =>
+                {
+                    options.Headers.Add("access_token", JsonConvert.SerializeObject(serviceUser));
+                })
+                .WithAutomaticReconnect()
+                .Build();
+            
+            startSignalR();
         }
 
         private void startSignalR()
@@ -355,18 +355,25 @@ namespace WebService
                 cmd.ExecuteNonQuery();
 
                 var strGid = "";
-                using (var da = new MySqlDataAdapter("select LAST_INSERT_ID()", conn))
-                {
-                    var dt = new DataTable();
-                    da.Fill(dt);
-                    strGid = dt.Rows[0][0].ToString();
-                }
+                var dtGid = db.excuteToTable(cmd, "select LAST_INSERT_ID()", transction);
+                strGid = dtGid.Rows[0][0].ToString();
+                // cmd.Transaction = transction;
+                // cmd.CommandText = "select LAST_INSERT_ID()";
+                // cmd.Parameters.Clear();
+                // strGid = cmd.ExecuteScalar().ToString();
+                // using (var da = new MySqlDataAdapter("select LAST_INSERT_ID()", conn))
+                // {
+                //     var dt = new DataTable();
+                //     da.Fill(dt);
+                //     strGid = dt.Rows[0][0].ToString();
+                // }
 
                 if (machineId != "")
                     _connection.InvokeAsync("PushMetricalData", int.Parse(strGid), int.Parse(machineId), xInfo.Attributes["beginTime"].Value);
 
                 // 记录详细数据t_data
-                var dtIndicator = db.excuteToTable("select id, alias from t_indicator");
+                var dtIndicator = db.excuteToTable(cmd, "select id, alias from t_indicator", transction);
+                // dtIndicator = db.excuteToTable("select id, alias from t_indicator");
                 var indicators = ConvertHelper<Indicator>.dataTableToList(dtIndicator);
                 foreach (XmlElement d in xDetails)
                 {
