@@ -128,6 +128,7 @@
     <statistic-dialog
       :visible.sync="statisticDialogVisible"
       :groupId="statisticGroupId"
+      :showChart="true"
     />
   </div>
 </template>
@@ -136,7 +137,6 @@
 import { getCurrentDay } from '@/utils/utils'
 export default {
   data() {
-    const self = this
     return {
       user: {},
       systemSettings: {},
@@ -229,7 +229,6 @@ export default {
         }
       },
       rightButtons: [],
-      statisticDialogVisible: false,
       statisticColumnsDesc: {},
       originColumnsDesc: {},
       statisticDataInfo: [],

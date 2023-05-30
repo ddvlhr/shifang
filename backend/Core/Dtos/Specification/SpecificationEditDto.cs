@@ -34,3 +34,10 @@ public class Rule
     public string Points { get; set; }
     public string Deduction { get; set; }
 }
+
+public class DoubleRule
+{
+    public double Standard { get; set; }
+    public double Upper { get; set; }
+    public double Lower { get; set; }
+}

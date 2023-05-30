@@ -61,7 +61,7 @@ Vue.filter('dateToString', function (value) {
   return dayjs(value).format('YYYY-MM-DD HH:mm:ss')
 })
 
-let vueThis = new Vue({
+const vueThis = new Vue({
   router,
   store,
   render: (h) => h(App)
