@@ -11,6 +11,7 @@
     <div class="title">数据采集与分析系统</div>
     <Collapse />
     <div class="right-menu">
+      <span>{{ signalRState }}</span>
       <div class="top-header-tool-item hover-trigger">
         在线用户: {{ onlineUserCount }}
       </div>
@@ -26,6 +27,7 @@ import Collapse from '@/components/Collapse'
 import Setting from '@/components/Setting'
 import UserInfo from '@/components/UserInfo'
 import Notice from '@/components/Notice'
+import sr from '@/utils/signalR'
 export default {
   components: {
     Collapse,
@@ -43,6 +45,9 @@ export default {
     },
     onlineUserCount() {
       return this.$store.state.app.onlineUsers
+    },
+    signalRState() {
+      return sr.connection.state
     }
   },
   created() {},

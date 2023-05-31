@@ -7,9 +7,10 @@
  * @Description:
  */
 
+import screenfull from 'screenfull'
 import store from '@/store'
 
-let utils = {}
+const utils = {}
 
 /**
  * 根据权限树初始化路由表
@@ -167,6 +168,15 @@ utils.getCurrentTime = () => {
   const time = [hours, miniutes, seconds].join(':')
   const date = [year, month, day].join('-')
   return date + ' ' + time
+}
+
+utils.handleFullscreen = (elementName) => {
+  if (!screenfull.isEnabled) {
+    this.$message.warning('您的浏览器不支持全屏功能')
+    return false
+  }
+  const element = document.querySelector(elementName)
+  screenfull.toggle(element)
 }
 
 export default utils

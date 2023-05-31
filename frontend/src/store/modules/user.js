@@ -12,7 +12,9 @@ export default {
     userInfo: {},
     token: '',
     notice: [],
-    metricalPushData: []
+    metricalPushData: [],
+    metricalPushDataState: false,
+    metricalPushDataMachine: ''
   },
   mutations: {
     setUserInfo(state, userInfo) {
@@ -28,7 +30,7 @@ export default {
       state.notice.push(message)
     },
     deleteNotice(state, time) {
-      let index = state.notice.findIndex((item) => item.time === time)
+      const index = state.notice.findIndex((item) => item.time === time)
       state.notice.splice(index, 1)
     },
     clearNotice(state) {
@@ -43,6 +45,12 @@ export default {
     },
     clearMetricalPushData(state) {
       state.metricalPushData = []
+    },
+    setMetricalPushDataState(state, info) {
+      state.metricalPushDataState = info
+    },
+    setMetricalPushDataMachine(state, machine) {
+      state.metricalPushDataMachine = machine
     }
   },
   actions: {
@@ -67,6 +75,12 @@ export default {
     },
     clearMetricalPushData({ commit }) {
       commit('clearMetricalPushData')
+    },
+    setMetricalPushDataState({ commit }, info) {
+      commit('setMetricalPushDataState', info)
+    },
+    setMetricalPushDataMachine({ commit }, machine) {
+      commit('setMetricalPushDataMachine', machine)
     }
   }
 }

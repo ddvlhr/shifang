@@ -35,7 +35,11 @@
         </el-card>
       </el-tab-pane>
       <el-tab-pane label="测量数据推送">
-        <el-card shadow="never" :body-style="{ padding: '20px' }">
+        <el-card
+          id="metricalPushData"
+          shadow="never"
+          :body-style="{ padding: '20px' }"
+        >
           <div slot="header">
             <el-row :gutter="20">
               <el-col :span="6" :offset="0">
@@ -46,8 +50,23 @@
                 />
               </el-col>
               <el-col :span="4">
-                <el-button type="primary" @click="metricalDataPush"
+                <el-button
+                  type="primary"
+                  @click="metricalDataPush"
+                  v-if="pushDataState"
                   >开启推送</el-button
+                >
+                <el-button type="danger" @click="stopMetricalDataPush" v-else
+                  >停止推送</el-button
+                >
+              </el-col>
+              <el-col :span="4" :offset="10">
+                <el-button
+                  icon="el-icon-full-screen"
+                  type="primary"
+                  @click="metricalPushDataFullscreen"
+                  class="items-center"
+                  >全屏/退出全屏</el-button
                 >
               </el-col>
             </el-row>
@@ -64,7 +83,7 @@
               </el-col>
             </el-row>
           </div>
-          <metrical-push-data />
+          <metrical-push-data :showChart="true" />
         </el-card>
       </el-tab-pane>
     </el-tabs>
@@ -155,6 +174,10 @@ export default {
     this.getMetricalDataInfo(2)
     // this.loadDataList()
     this.getOptions()
+    this.machineId = this.$store.state.user.metricalPushDataMachine
+  },
+  mounted() {
+    this.initSignalR()
   },
   computed: {
     localStorageSize() {
@@ -168,6 +191,9 @@ export default {
     },
     metricalPushData() {
       return this.$store.state.user.metricalPushData
+    },
+    pushDataState() {
+      return this.$store.state.user.metricalPushDataState === false
     }
   },
   methods: {
@@ -205,19 +231,53 @@ export default {
       }
       this.machineOptions = res.data.machines
     },
+    initSignalR() {
+      const metricalPushDataState = this.$store.state.user.metricalPushDataState
+      console.log(sr.connection.state, sr.connection)
+      if (!sr.connection || sr.connection.state === 'Disconnected') {
+        sr.init(
+          this.$utils.getCurrentApiUrl(process.env.NODE_ENV === 'development') +
+            '/ServerHub',
+          this.$store.state.user.userInfo,
+          0
+        )
+      }
+      if (metricalPushDataState && sr.connection.state === 'Connected') {
+        const connectionId = sr.connection.connectionId
+        const machineId = this.$store.state.user.metricalPushDataMachine
+        sr.send('LoginPushData', [connectionId, machineId])
+      } else {
+        setTimeout(() => {
+          this.initSignalR()
+        }, 500)
+      }
+    },
     metricalDataPush() {
       if (!this.machineId) {
         return this.$message.error('请选择机台再开启推送')
       }
       this.$store.dispatch('user/clearMetricalPushData')
       // 初始化SignalR, 在登录和刷新页面时调用, 判断是否需要初始化, 防止重复初始化
-      if (!sr.connection || sr.connection.state === 'Disconnected')
+      if (!sr.connection || sr.connection.state === 'Disconnected') {
         sr.init(
           this.$utils.getCurrentApiUrl(process.env.NODE_ENV === 'development') +
             '/ServerHub',
           this.$store.state.user.userInfo,
           this.machineId
         )
+      } else {
+        const connectionId = sr.connection.connectionId
+        sr.send('LoginPushData', [connectionId, this.machineId])
+        this.$store.dispatch('user/setMetricalPushDataState', true)
+        this.$store.dispatch('user/setMetricalPushDataMachine', this.machineId)
+      }
+    },
+    stopMetricalDataPush() {
+      sr.send('LogoutPushData', [sr.connection.connectionId])
+      this.$store.dispatch('user/setMetricalPushDataState', false)
+    },
+    metricalPushDataFullscreen() {
+      this.$utils.handleFullscreen('#metricalPushData')
     }
   }
 }

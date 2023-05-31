@@ -2,7 +2,7 @@ import * as signalR from '@microsoft/signalr'
 import { Notification } from 'element-ui'
 import store from '@/store'
 
-let sr = {
+const sr = {
   name: 'ReceiveMessage',
   connection: null
 }
@@ -94,4 +94,12 @@ sr.off = () => {
   sr.connection.stop()
 }
 
+/**
+ * 发送消息
+ * @param {String} method 方法名
+ * @param {Array} data 数据
+ */
+sr.send = (method, data) => {
+  sr.connection.invoke(method, ...data)
+}
 export default sr

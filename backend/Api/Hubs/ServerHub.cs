@@ -88,4 +88,20 @@ public class ServerHub: Hub
         var clients = OnlineUsers.Where(c => c.Machine == machine).Select(c => c.ConnectionId).ToList();
         await Clients.Clients(clients).SendAsync("ReceiveMetricalPushData", result);
     }
+
+    public Task LoginPushData(string connectionId, int machineId)
+    {
+        var client = OnlineUsers.FirstOrDefault(c => c.ConnectionId == connectionId);
+        if (client != null)
+            client.Machine = machineId;
+        return Task.CompletedTask;
+    }
+
+    public Task LogoutPushData(string connectionId)
+    {
+        var client = OnlineUsers.FirstOrDefault(c => c.ConnectionId == connectionId);
+        if (client != null)
+            client.Machine = 0;
+        return Task.CompletedTask;
+    }
 }

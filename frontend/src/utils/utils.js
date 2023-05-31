@@ -1,3 +1,5 @@
+import screenfull from 'screenfull'
+
 const user_key = 'USER_INFO'
 const system_settings_key = 'SYSTEM_SETTINGS'
 const token_key = 'TOKEN'
@@ -124,7 +126,6 @@ export const getCurrentDay = () => {
   const date = [year, month, day].join('-')
   return date + ' ' + time
 }
-
 
 export const getWater = (before, after) => {
   const _before = Number(before)
