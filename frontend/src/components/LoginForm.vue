@@ -30,7 +30,9 @@
         type="password"
       ></el-input>
     </el-form-item>
-    <div class="password"></div>
+    <el-form-item class="allow">
+      <el-checkbox label="记住密码" v-model="loginUser.remember"></el-checkbox>
+    </el-form-item>
     <el-button
       type="primary"
       @click="handleLogin"
@@ -53,6 +55,12 @@ export default {
       required: true
     }
   },
+  mounted() {
+    if (this.$store.state.user.rememberPassword) {
+      const loginInfo = this.$store.state.user.loginInfo
+      this.loginUser = loginInfo
+    }
+  },
   methods: {
     handleLogin() {
       this.$refs.loginFormRef.validate(async (valid) => {
@@ -71,6 +79,13 @@ export default {
             )
             if (menuRes.meta.code !== 0) {
               return this.$message.error('获取权限菜单失败, 请联系管理员')
+            }
+            this.$store.commit(
+              'user/setRememberPasswordState',
+              this.loginUser.remember
+            )
+            if (this.loginUser.remember) {
+              this.$store.commit('user/setLoginInfo', this.loginUser)
             }
             this.$store.commit('permission/setAddRoutes', menuRes.data)
             this.$router.push('/dashboard')
@@ -120,6 +135,12 @@ export default {
   height: 50px;
   line-height: 50px;
   text-align: right;
+}
+
+.allow {
+  height: 50px;
+  line-height: 50px;
+  margin-bottom: 0;
 }
 
 .btn-submit {

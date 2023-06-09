@@ -34,21 +34,21 @@ public class DictionaryController : BaseController
         var boolStateList = stateList.Select(state => new BaseOptionDto() { Value = Convert.ToInt32(state.Value) == 0, Text = state.Text, Type = Convert.ToInt32(state.Value) == 0 ? "success" : "danger" }).ToList();
         var qualityTypeResult = new List<BaseOptionDto>()
         {
-            new BaseOptionDto() { Value = QualityResult.Quality, Text = QualityResult.Quality.toDescription(), Type = "success"},
-            new BaseOptionDto() { Value = QualityResult.Grade, Text = QualityResult.Grade.toDescription(), Type = "primary"},
-            new BaseOptionDto() { Value = QualityResult.Nonconforming, Text = QualityResult.Nonconforming.toDescription(), Type = "danger"},
-            new BaseOptionDto() { Value = QualityResult.Seconds, Text = QualityResult.Seconds.toDescription(), Type = "warning"}
+            new() { Value = QualityResult.Quality, Text = QualityResult.Quality.toDescription(), Type = "success"},
+            new() { Value = QualityResult.Grade, Text = QualityResult.Grade.toDescription(), Type = "primary"},
+            new() { Value = QualityResult.Nonconforming, Text = QualityResult.Nonconforming.toDescription(), Type = "danger"},
+            new() { Value = QualityResult.Seconds, Text = QualityResult.Seconds.toDescription(), Type = "warning"}
         };
         var qualified = typeof(QualifiedStatus).ToOptions().ToList();
         var qualifiedTypes = new List<BaseOptionDto>()
         {
-            new BaseOptionDto()
+            new()
                 { Value = QualifiedStatus.Undefined, Text = QualifiedStatus.Undefined.toDescription(), Type = "info" },
-            new BaseOptionDto()
+            new()
             {
                 Value = QualifiedStatus.Qualified, Text = QualifiedStatus.Qualified.toDescription(), Type = "success"
             },
-            new BaseOptionDto()
+            new()
             {
                 Value = QualifiedStatus.UnQualified, Text = QualifiedStatus.UnQualified.toDescription(), Type = "danger"
             }
@@ -56,22 +56,22 @@ public class DictionaryController : BaseController
         var materialCheckStatus = typeof(MaterialCheckStatus).ToOptions().ToList();
         var materialCheckStatusTypes = new List<BaseOptionDto>()
         {
-            new BaseOptionDto()
+            new()
             {
                 Value = MaterialCheckStatus.Undetected, Text = MaterialCheckStatus.Undetected.toDescription(),
                 Type = "info"
             },
-            new BaseOptionDto()
+            new()
             {
                 Value = MaterialCheckStatus.Detected, Text = MaterialCheckStatus.Detected.toDescription(),
                 Type = "primary"
             },
-            new BaseOptionDto()
+            new()
             {
                 Value = MaterialCheckStatus.Rejected, Text = MaterialCheckStatus.Rejected.toDescription(),
                 Type = "danger"
             },
-            new BaseOptionDto()
+            new()
                 { Value = MaterialCheckStatus.Done, Text = MaterialCheckStatus.Done.toDescription(), Type = "success" }
         };
 
@@ -80,6 +80,8 @@ public class DictionaryController : BaseController
             {
                 Value = c.Key, Text = c.Key
             }).ToList();
+
+        var departmentTypes = typeof(DepartmentType).ToOptions();
 
         return Success(new
         {
@@ -96,7 +98,8 @@ public class DictionaryController : BaseController
             qualifiedTypes,
             materialCheckStatus,
             materialCheckStatusTypes,
-            dataBaseOptions
+            dataBaseOptions,
+            departmentTypes
         });
     }
 }

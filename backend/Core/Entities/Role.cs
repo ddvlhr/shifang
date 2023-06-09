@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Core.Enums;
 
 namespace Core.Entities;
 
@@ -14,4 +15,7 @@ public class Role : Entity
     [Column("can_see_other_data")] public bool CanSeeOtherData { get; set; }
 
     [Column("status")] public Status Status { get; set; }
+
+    [Column("equipment_type")]
+    public DepartmentType EquipmentType { get; set; }
 }

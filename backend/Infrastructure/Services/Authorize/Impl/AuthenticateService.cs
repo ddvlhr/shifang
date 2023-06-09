@@ -50,7 +50,8 @@ public class AuthenticateService : IAuthenticateService
             new Claim(ClaimTypes.Role, userRole.Role.Name),
             new Claim("roleId", userInfo.RoleId.ToString()),
             // 当有个角色有查看其它用户数据权限时即可查看其它用户数据
-            new Claim("canSeeOtherData", roles.Any(c => c.CanSeeOtherData) ? "1" : "0")
+            new Claim("canSeeOtherData", roles.Any(c => c.CanSeeOtherData) ? "1" : "0"),
+            new Claim("equipmentType", ((int)roles.Min(c=>c.EquipmentType)).ToString())
         };
 
         var key =

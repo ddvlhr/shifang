@@ -3,6 +3,7 @@ using System.Linq;
 using Core.Dtos;
 using Core.Dtos.Role;
 using Core.Entities;
+using Core.Enums;
 using Infrastructure.DataBase;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
@@ -38,7 +39,7 @@ public class RoleService : IRoleService
                 {
                     Id = c.Id, Name = c.Name, RoleMenu = JsonConvert.DeserializeObject<List<int>>(c.RoleMenu),
                     CanSeeOtherData = c.CanSeeOtherData,
-                    State = c.Status == Status.Enabled
+                    State = c.Status == Status.Enabled, EquipmentType = (int)c.EquipmentType
                 }).ToList();
 
         return result;
@@ -58,7 +59,8 @@ public class RoleService : IRoleService
             Name = dto.Name,
             RoleMenu = JsonConvert.SerializeObject(dto.RoleMenu),
             CanSeeOtherData = dto.CanSeeOtherData,
-            Status = dto.State ? Status.Enabled : Status.Disabled
+            Status = dto.State ? Status.Enabled : Status.Disabled,
+            EquipmentType = (DepartmentType) dto.EquipmentType
         };
 
         _roleRepo.Add(role);
@@ -80,6 +82,7 @@ public class RoleService : IRoleService
         role.RoleMenu = JsonConvert.SerializeObject(dto.RoleMenu);
         role.CanSeeOtherData = dto.CanSeeOtherData;
         role.Status = dto.State ? Status.Enabled : Status.Disabled;
+        role.EquipmentType = (DepartmentType)dto.EquipmentType;
 
         _roleRepo.Update(role);
 

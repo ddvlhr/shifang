@@ -91,14 +91,20 @@ public class SpecificationService : ISpecificationService
             {
                 var indicator = indicators.FirstOrDefault(c => c.Id == rule.Id);
                 rule.Name = indicator == null ? "" : indicator.Name;
-                if (dto.EquipmentTypeId == (int)EquipmentType.SingleResistance)
+                if (dto.EquipmentTypeId == (int)EquipmentType.SingleResistance ||
+                    dto.EquipmentTypeId == (int)EquipmentType.Mts)
                 {
                     var mid = double.Parse(rule.Standard);
-                    var high = double.Parse(rule.Upper);
-                    var low = double.Parse(rule.Lower);
-                    rule.Standard = ConvertHelper.mmWGToPa(mid).ToString("F5");
-                    rule.Upper = ConvertHelper.mmWGToPa(high).ToString("F5");
-                    rule.Lower = ConvertHelper.mmWGToPa(low).ToString("F5");
+                    var upper = double.Parse(rule.Upper);
+                    var lower = double.Parse(rule.Lower);
+                    var high = mid + upper;
+                    var low = mid - lower;
+                    if (rule.Id == _settings.Resistance)
+                    {
+                        rule.Standard = ConvertHelper.mmWGToPa(mid).ToString("F5");
+                        rule.Upper = ConvertHelper.mmWGToPa(high).ToString("F5");
+                        rule.Lower = ConvertHelper.mmWGToPa(low).ToString("F5");
+                    }
                 }
             }
 
@@ -153,14 +159,20 @@ public class SpecificationService : ISpecificationService
             {
                 var indicator = indicators.FirstOrDefault(c => c.Id == rule.Id);
                 rule.Name = indicator == null ? "" : indicator.Name;
-                if (dto.EquipmentTypeId == (int)EquipmentType.SingleResistance)
+                if (dto.EquipmentTypeId == (int)EquipmentType.SingleResistance ||
+                    dto.EquipmentTypeId == (int)EquipmentType.Mts)
                 {
                     var mid = double.Parse(rule.Standard);
-                    var high = double.Parse(rule.Upper);
-                    var low = double.Parse(rule.Lower);
-                    rule.Standard = ConvertHelper.mmWGToPa(mid).ToString("F5");
-                    rule.Upper = ConvertHelper.mmWGToPa(high).ToString("F5");
-                    rule.Lower = ConvertHelper.mmWGToPa(low).ToString("F5");
+                    var upper = double.Parse(rule.Upper);
+                    var lower = double.Parse(rule.Lower);
+                    var high = mid + upper;
+                    var low = mid - lower;
+                    if (rule.Id == _settings.Resistance)
+                    {
+                        rule.Standard = ConvertHelper.mmWGToPa(mid).ToString("F5");
+                        rule.Upper = ConvertHelper.mmWGToPa(high).ToString("F5");
+                        rule.Lower = ConvertHelper.mmWGToPa(low).ToString("F5");
+                    }
                 }
             }
 
@@ -220,20 +232,23 @@ public class SpecificationService : ISpecificationService
             State = specification.Status == Status.Enabled
         };
 
-        if (specification.EquipmentType == EquipmentType.SingleResistance)
+        if (specification.EquipmentType == EquipmentType.SingleResistance ||
+            specification.EquipmentType == EquipmentType.Mts)
         {
             if (dto.SingleRules != null)
             {
                 foreach (var item in dto.SingleRules)
                 {
+                    var mid = double.Parse(item.Standard);
+                    var high = double.Parse(item.Upper);
+                    var low = double.Parse(item.Lower);
+                    var upper = Math.Round(high - mid, 3);
+                    var lower = Math.Round(mid - low, 3);
                     if (item.Id == _settings.Resistance)
                     {
-                        var mid = double.Parse(item.Standard);
-                        var high = double.Parse(item.Upper);
-                        var low = double.Parse(item.Lower);
                         item.Standard = ConvertHelper.paToMMWG(mid).ToString("F0");
-                        item.Upper = ConvertHelper.paToMMWG(high).ToString("F0");
-                        item.Lower = ConvertHelper.paToMMWG(low).ToString("F0");
+                        item.Upper = ConvertHelper.paToMMWG(upper).ToString("F0");
+                        item.Lower = ConvertHelper.paToMMWG(lower).ToString("F0");
                     }
                 }
             }

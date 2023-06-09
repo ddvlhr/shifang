@@ -4,20 +4,17 @@ import createPersistedState from 'vuex-persistedstate'
 import app from './modules/app'
 import user from './modules/user'
 import permission from './modules/permission'
+
+import SecureLS from 'secure-ls'
 import {
   getToken,
   setSystemSettings,
   getSystemSettings,
-  setToken,
   getUserInfo,
-  setUserInfo,
   clearToken,
   clearUserInfo,
-  setMenuFunctions,
   getMenuFunctions,
-  setRootMenuName,
   getRootMenuName,
-  setActivePath,
   getActivePath,
   getProductWaterYMin,
   setProductWaterYMin,
@@ -26,6 +23,11 @@ import {
 } from '@/utils/utils.js'
 
 Vue.use(Vuex)
+const ls = new SecureLS({
+  encodingType: 'aes',
+  isCompression: true,
+  encryptionSecret: 's3cr3tPa$$w0rd@DD^lhr`r3d'
+})
 
 export default new Vuex.Store({
   state: {
@@ -83,8 +85,8 @@ export default new Vuex.Store({
           state.menuFunctions = menus.length === 0 ? [] : JSON.parse(menus)
         }
         let current
-        state.menuFunctions.forEach(item => {
-          if (item.children.some(c => c.path === rootName)) {
+        state.menuFunctions.forEach((item) => {
+          if (item.children.some((c) => c.path === rootName)) {
             current = item
           }
         })
@@ -119,12 +121,16 @@ export default new Vuex.Store({
       return state.canSeeOtherData
     }
   },
-  actions: {
-  },
+  actions: {},
   plugins: [
     createPersistedState({
-      storage: window.sessionStorage,
+      // storage: window.sessionStorage,
       key: 'shifang2022-store',
+      storage: {
+        getItem: (key) => ls.get(key),
+        setItem: (key, value) => ls.set(key, value),
+        removeItem: (key) => ls.remove(key)
+      },
       render(state) {
         return { ...state }
       }

@@ -9,4 +9,5 @@ public class RoleEditDto
     public List<int> RoleMenu { get; set; }
     public bool CanSeeOtherData { get; set; }
     public bool State { get; set; }
+    public int EquipmentType { get; set; }
 }

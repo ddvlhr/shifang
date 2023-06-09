@@ -105,14 +105,10 @@ export default {
             return res.data
           }
         },
-        canSeeOtherData: {
-          label: '是否可以查看其他用户数据',
+        equipmentType: {
           type: 'radio',
-          options: [
-            { text: '是', value: true },
-            { text: '否', value: false }
-          ],
-          default: false
+          label: '所属部门',
+          options: this.$store.state.app.dicts.departmentTypes
         },
         state: {
           type: 'radio',

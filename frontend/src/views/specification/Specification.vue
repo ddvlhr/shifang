@@ -197,8 +197,8 @@ export default {
             },
             rules: {
               standard: { required: true, message: '标准值必填' },
-              upper: { required: true, message: '上允值必填' },
-              lower: { required: true, message: '下允值必填' }
+              upper: { required: true, message: '上允差必填' },
+              lower: { required: true, message: '下允差必填' }
             },
             columns: [
               {
@@ -238,7 +238,7 @@ export default {
               },
               {
                 prop: 'upper',
-                label: '上允值',
+                label: '上允差',
                 content: {
                   type: 'el-input',
                   attrs: {
@@ -249,291 +249,7 @@ export default {
               },
               {
                 prop: 'lower',
-                label: '下允值',
-                content: {
-                  type: 'el-input',
-                  attrs: {
-                    type: 'number',
-                    step: '0.00001'
-                  }
-                }
-              }
-            ]
-          }
-        },
-        meanRules: {
-          label: '平均值',
-          type: 'table-editor',
-          attrs: {
-            newColumnValue: {
-              equal: true
-            },
-            rules: {
-              standard: { required: true, message: '标准值必填' },
-              upper: { required: true, message: '上允值必填' },
-              lower: { required: true, message: '下允值必填' }
-            },
-            columns: [
-              {
-                prop: 'id',
-                label: '指标名称',
-                width: 200,
-                content: {
-                  type: 'el-select',
-                  attrs: {
-                    filterable: 'filterable'
-                  },
-                  options: []
-                }
-              },
-              {
-                prop: 'equal',
-                label: '是否包含等于',
-                width: 200,
-                content: {
-                  type: 'el-radio-group',
-                  options: equalList
-                }
-              },
-              {
-                prop: 'standard',
-                label: '标准值',
-                content: {
-                  type: 'el-input',
-                  attrs: {
-                    type: 'number',
-                    step: '0.00001'
-                  }
-                }
-              },
-              {
-                prop: 'upper',
-                label: '上允值',
-                content: {
-                  type: 'el-input',
-                  attrs: {
-                    type: 'number',
-                    step: '0.00001'
-                  }
-                }
-              },
-              {
-                prop: 'lower',
-                label: '下允值',
-                content: {
-                  type: 'el-input',
-                  attrs: {
-                    type: 'number',
-                    step: '0.00001'
-                  }
-                }
-              }
-            ]
-          }
-        },
-        sdRules: {
-          label: 'SD',
-          type: 'table-editor',
-          attrs: {
-            newColumnValue: {
-              equal: true
-            },
-            rules: {
-              standard: { required: true, message: '标准值必填' },
-              upper: { required: true, message: '上允值必填' },
-              lower: { required: true, message: '下允值必填' }
-            },
-            columns: [
-              {
-                prop: 'id',
-                label: '指标名称',
-                width: 200,
-                content: {
-                  type: 'el-select',
-                  attrs: {
-                    filterable: 'filterable'
-                  },
-                  options: []
-                }
-              },
-              {
-                prop: 'equal',
-                label: '是否包含等于',
-                width: 200,
-                content: {
-                  type: 'el-radio-group',
-                  options: equalList
-                }
-              },
-              {
-                prop: 'standard',
-                label: '标准值',
-                content: {
-                  type: 'el-input',
-                  attrs: {
-                    type: 'number',
-                    step: '0.00001'
-                  }
-                }
-              },
-              {
-                prop: 'upper',
-                label: '上允值',
-                content: {
-                  type: 'el-input',
-                  attrs: {
-                    type: 'number',
-                    step: '0.00001'
-                  }
-                }
-              },
-              {
-                prop: 'lower',
-                label: '下允值',
-                content: {
-                  type: 'el-input',
-                  attrs: {
-                    type: 'number',
-                    step: '0.00001'
-                  }
-                }
-              }
-            ]
-          }
-        },
-        cpkRules: {
-          label: 'CPK',
-          type: 'table-editor',
-          attrs: {
-            newColumnValue: {
-              equal: true
-            },
-            rules: {
-              standard: { required: true, message: '标准值必填' },
-              upper: { required: true, message: '上允值必填' },
-              lower: { required: true, message: '下允值必填' }
-            },
-            columns: [
-              {
-                prop: 'id',
-                label: '指标名称',
-                width: 200,
-                content: {
-                  type: 'el-select',
-                  attrs: {
-                    filterable: 'filterable'
-                  },
-                  options: []
-                }
-              },
-              {
-                prop: 'equal',
-                label: '是否包含等于',
-                width: 200,
-                content: {
-                  type: 'el-radio-group',
-                  options: equalList
-                }
-              },
-              {
-                prop: 'standard',
-                label: '标准值',
-                content: {
-                  type: 'el-input',
-                  attrs: {
-                    type: 'number',
-                    step: '0.00001'
-                  }
-                }
-              },
-              {
-                prop: 'upper',
-                label: '上允值',
-                content: {
-                  type: 'el-input',
-                  attrs: {
-                    type: 'number',
-                    step: '0.00001'
-                  }
-                }
-              },
-              {
-                prop: 'lower',
-                label: '下允值',
-                content: {
-                  type: 'el-input',
-                  attrs: {
-                    type: 'number',
-                    step: '0.00001'
-                  }
-                }
-              }
-            ]
-          }
-        },
-        cvRules: {
-          label: 'CV',
-          type: 'table-editor',
-          layout: 24,
-          attrs: {
-            newColumnValue: {
-              equal: true
-            },
-            rules: {
-              standard: { required: true, message: '标准值必填' },
-              upper: { required: true, message: '上允值必填' },
-              lower: { required: true, message: '下允值必填' }
-            },
-            columns: [
-              {
-                prop: 'id',
-                label: '指标名称',
-                width: 200,
-                content: {
-                  type: 'el-select',
-                  attrs: {
-                    filterable: 'filterable'
-                  },
-                  options: []
-                }
-              },
-              {
-                prop: 'equal',
-                label: '是否包含等于',
-                width: 200,
-                content: {
-                  type: 'el-radio-group',
-                  options: equalList
-                }
-              },
-              {
-                prop: 'standard',
-                label: '标准值',
-                content: {
-                  type: 'el-input',
-                  attrs: {
-                    type: 'number',
-                    step: '0.00001'
-                  },
-                  on: {
-                    focus: ''
-                  }
-                }
-              },
-              {
-                prop: 'upper',
-                label: '上允值',
-                content: {
-                  type: 'el-input',
-                  attrs: {
-                    type: 'number',
-                    step: '0.00001'
-                  }
-                }
-              },
-              {
-                prop: 'lower',
-                label: '下允值',
+                label: '下允差',
                 content: {
                   type: 'el-input',
                   attrs: {
@@ -545,6 +261,290 @@ export default {
             ]
           }
         }
+        // meanRules: {
+        //   label: '平均值',
+        //   type: 'table-editor',
+        //   attrs: {
+        //     newColumnValue: {
+        //       equal: true
+        //     },
+        //     rules: {
+        //       standard: { required: true, message: '标准值必填' },
+        //       upper: { required: true, message: '上允值必填' },
+        //       lower: { required: true, message: '下允值必填' }
+        //     },
+        //     columns: [
+        //       {
+        //         prop: 'id',
+        //         label: '指标名称',
+        //         width: 200,
+        //         content: {
+        //           type: 'el-select',
+        //           attrs: {
+        //             filterable: 'filterable'
+        //           },
+        //           options: []
+        //         }
+        //       },
+        //       {
+        //         prop: 'equal',
+        //         label: '是否包含等于',
+        //         width: 200,
+        //         content: {
+        //           type: 'el-radio-group',
+        //           options: equalList
+        //         }
+        //       },
+        //       {
+        //         prop: 'standard',
+        //         label: '标准值',
+        //         content: {
+        //           type: 'el-input',
+        //           attrs: {
+        //             type: 'number',
+        //             step: '0.00001'
+        //           }
+        //         }
+        //       },
+        //       {
+        //         prop: 'upper',
+        //         label: '上允值',
+        //         content: {
+        //           type: 'el-input',
+        //           attrs: {
+        //             type: 'number',
+        //             step: '0.00001'
+        //           }
+        //         }
+        //       },
+        //       {
+        //         prop: 'lower',
+        //         label: '下允值',
+        //         content: {
+        //           type: 'el-input',
+        //           attrs: {
+        //             type: 'number',
+        //             step: '0.00001'
+        //           }
+        //         }
+        //       }
+        //     ]
+        //   }
+        // },
+        // sdRules: {
+        //   label: 'SD',
+        //   type: 'table-editor',
+        //   attrs: {
+        //     newColumnValue: {
+        //       equal: true
+        //     },
+        //     rules: {
+        //       standard: { required: true, message: '标准值必填' },
+        //       upper: { required: true, message: '上允值必填' },
+        //       lower: { required: true, message: '下允值必填' }
+        //     },
+        //     columns: [
+        //       {
+        //         prop: 'id',
+        //         label: '指标名称',
+        //         width: 200,
+        //         content: {
+        //           type: 'el-select',
+        //           attrs: {
+        //             filterable: 'filterable'
+        //           },
+        //           options: []
+        //         }
+        //       },
+        //       {
+        //         prop: 'equal',
+        //         label: '是否包含等于',
+        //         width: 200,
+        //         content: {
+        //           type: 'el-radio-group',
+        //           options: equalList
+        //         }
+        //       },
+        //       {
+        //         prop: 'standard',
+        //         label: '标准值',
+        //         content: {
+        //           type: 'el-input',
+        //           attrs: {
+        //             type: 'number',
+        //             step: '0.00001'
+        //           }
+        //         }
+        //       },
+        //       {
+        //         prop: 'upper',
+        //         label: '上允值',
+        //         content: {
+        //           type: 'el-input',
+        //           attrs: {
+        //             type: 'number',
+        //             step: '0.00001'
+        //           }
+        //         }
+        //       },
+        //       {
+        //         prop: 'lower',
+        //         label: '下允值',
+        //         content: {
+        //           type: 'el-input',
+        //           attrs: {
+        //             type: 'number',
+        //             step: '0.00001'
+        //           }
+        //         }
+        //       }
+        //     ]
+        //   }
+        // },
+        // cpkRules: {
+        //   label: 'CPK',
+        //   type: 'table-editor',
+        //   attrs: {
+        //     newColumnValue: {
+        //       equal: true
+        //     },
+        //     rules: {
+        //       standard: { required: true, message: '标准值必填' },
+        //       upper: { required: true, message: '上允值必填' },
+        //       lower: { required: true, message: '下允值必填' }
+        //     },
+        //     columns: [
+        //       {
+        //         prop: 'id',
+        //         label: '指标名称',
+        //         width: 200,
+        //         content: {
+        //           type: 'el-select',
+        //           attrs: {
+        //             filterable: 'filterable'
+        //           },
+        //           options: []
+        //         }
+        //       },
+        //       {
+        //         prop: 'equal',
+        //         label: '是否包含等于',
+        //         width: 200,
+        //         content: {
+        //           type: 'el-radio-group',
+        //           options: equalList
+        //         }
+        //       },
+        //       {
+        //         prop: 'standard',
+        //         label: '标准值',
+        //         content: {
+        //           type: 'el-input',
+        //           attrs: {
+        //             type: 'number',
+        //             step: '0.00001'
+        //           }
+        //         }
+        //       },
+        //       {
+        //         prop: 'upper',
+        //         label: '上允值',
+        //         content: {
+        //           type: 'el-input',
+        //           attrs: {
+        //             type: 'number',
+        //             step: '0.00001'
+        //           }
+        //         }
+        //       },
+        //       {
+        //         prop: 'lower',
+        //         label: '下允值',
+        //         content: {
+        //           type: 'el-input',
+        //           attrs: {
+        //             type: 'number',
+        //             step: '0.00001'
+        //           }
+        //         }
+        //       }
+        //     ]
+        //   }
+        // },
+        // cvRules: {
+        //   label: 'CV',
+        //   type: 'table-editor',
+        //   layout: 24,
+        //   attrs: {
+        //     newColumnValue: {
+        //       equal: true
+        //     },
+        //     rules: {
+        //       standard: { required: true, message: '标准值必填' },
+        //       upper: { required: true, message: '上允值必填' },
+        //       lower: { required: true, message: '下允值必填' }
+        //     },
+        //     columns: [
+        //       {
+        //         prop: 'id',
+        //         label: '指标名称',
+        //         width: 200,
+        //         content: {
+        //           type: 'el-select',
+        //           attrs: {
+        //             filterable: 'filterable'
+        //           },
+        //           options: []
+        //         }
+        //       },
+        //       {
+        //         prop: 'equal',
+        //         label: '是否包含等于',
+        //         width: 200,
+        //         content: {
+        //           type: 'el-radio-group',
+        //           options: equalList
+        //         }
+        //       },
+        //       {
+        //         prop: 'standard',
+        //         label: '标准值',
+        //         content: {
+        //           type: 'el-input',
+        //           attrs: {
+        //             type: 'number',
+        //             step: '0.00001'
+        //           },
+        //           on: {
+        //             focus: ''
+        //           }
+        //         }
+        //       },
+        //       {
+        //         prop: 'upper',
+        //         label: '上允值',
+        //         content: {
+        //           type: 'el-input',
+        //           attrs: {
+        //             type: 'number',
+        //             step: '0.00001'
+        //           }
+        //         }
+        //       },
+        //       {
+        //         prop: 'lower',
+        //         label: '下允值',
+        //         content: {
+        //           type: 'el-input',
+        //           attrs: {
+        //             type: 'number',
+        //             step: '0.00001'
+        //           }
+        //         }
+        //       }
+        //     ]
+        //   }
+        // }
       }
     }
   },
@@ -583,14 +583,14 @@ export default {
       // const { data: res } = await this.$api.getOptions()
       this.formDescTemp.singleRules.attrs.columns[0].content.options =
         this.measureIndicators
-      this.formDescTemp.meanRules.attrs.columns[0].content.options =
-        this.measureIndicators
-      this.formDescTemp.sdRules.attrs.columns[0].content.options =
-        this.measureIndicators
-      this.formDescTemp.cpkRules.attrs.columns[0].content.options =
-        this.measureIndicators
-      this.formDescTemp.cvRules.attrs.columns[0].content.options =
-        this.measureIndicators
+      // this.formDescTemp.meanRules.attrs.columns[0].content.options =
+      //   this.measureIndicators
+      // this.formDescTemp.sdRules.attrs.columns[0].content.options =
+      //   this.measureIndicators
+      // this.formDescTemp.cpkRules.attrs.columns[0].content.options =
+      //   this.measureIndicators
+      // this.formDescTemp.cvRules.attrs.columns[0].content.options =
+      //   this.measureIndicators
     },
     add() {
       this.isEdit = false
@@ -609,10 +609,10 @@ export default {
       that.formDesc = that.formDescTemp
       that.formData = res.data
       if (res.data.singleRules === null) that.formData.singleRules = []
-      if (res.data.meanRules === null) that.formData.meanRules = []
-      if (res.data.sdRules === null) that.formData.sdRules = []
-      if (res.data.cpkRules === null) that.formData.cpkRules = []
-      if (res.data.cvRules === null) that.formData.cvRules = []
+      // if (res.data.meanRules === null) that.formData.meanRules = []
+      // if (res.data.sdRules === null) that.formData.sdRules = []
+      // if (res.data.cpkRules === null) that.formData.cpkRules = []
+      // if (res.data.cvRules === null) that.formData.cvRules = []
       that.isEdit = true
       that.dialogFormVisible = true
     },
@@ -627,10 +627,10 @@ export default {
       that.formDesc = that.formDescTemp
       that.formData = res.data
       if (res.data.singleRules === null) that.formData.singleRules = []
-      if (res.data.meanRules === null) that.formData.meanRules = []
-      if (res.data.sdRules === null) that.formData.sdRules = []
-      if (res.data.cpkRules === null) that.formData.cpkRules = []
-      if (res.data.cvRules === null) that.formData.cvRules = []
+      // if (res.data.meanRules === null) that.formData.meanRules = []
+      // if (res.data.sdRules === null) that.formData.sdRules = []
+      // if (res.data.cpkRules === null) that.formData.cpkRules = []
+      // if (res.data.cvRules === null) that.formData.cvRules = []
       that.formData.id = 0
       that.isEdit = false
       that.dialogFormVisible = true

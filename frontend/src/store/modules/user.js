@@ -14,7 +14,9 @@ export default {
     notice: [],
     metricalPushData: [],
     metricalPushDataState: false,
-    metricalPushDataMachine: ''
+    metricalPushDataMachine: '',
+    rememberPassword: false,
+    loginInfo: {}
   },
   mutations: {
     setUserInfo(state, userInfo) {
@@ -51,6 +53,12 @@ export default {
     },
     setMetricalPushDataMachine(state, machine) {
       state.metricalPushDataMachine = machine
+    },
+    setRememberPasswordState(state, remember) {
+      state.rememberPassword = remember
+    },
+    setLoginInfo(state, info) {
+      state.loginInfo = info
     }
   },
   actions: {
@@ -81,6 +89,12 @@ export default {
     },
     setMetricalPushDataMachine({ commit }, machine) {
       commit('setMetricalPushDataMachine', machine)
+    },
+    setRememberPasswordState({ commit }, remember) {
+      commit('setRememberPasswordState', remember)
+    },
+    setLoginInfo({ commit }, info) {
+      commit('setLoginInfo', info)
     }
   }
 }

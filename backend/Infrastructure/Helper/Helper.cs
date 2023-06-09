@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Security.Claims;
+using Core.Enums;
 using Microsoft.AspNetCore.Http;
 
 namespace Infrastructure.Helper;
@@ -41,6 +42,12 @@ public static class Helper
     {
         var can = context.User.FindFirst("canSeeOtherData").Value;
         return can == "1";
+    }
+
+    public static DepartmentType getDepartmentType(this HttpContext context)
+    {
+        var departmentType = context.User.FindFirst("equipmentType")?.Value;
+        return (DepartmentType) Convert.ToInt32(departmentType ?? "0");
     }
 
     public static string getStandard(string standard, string upper, string lower)

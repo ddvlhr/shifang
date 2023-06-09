@@ -8,6 +8,7 @@
       @copy="copy"
       @downloadInfo="downloadInfo"
       @downloadStatistic="downloadStatistic"
+      @downloadStatisticInfo="downloadStatisticInfo"
     />
     <el-card shadow="never">
       <div slot="header">
@@ -659,6 +660,34 @@ export default {
       dom.href = url
       dom.download = decodeURI(
         '原始数据统计数据' + this.$utils.getCurrentTime() + '.xlsx'
+      )
+      dom.style.display = 'none'
+      document.body.appendChild(dom)
+      dom.click()
+      dom.parentNode.removeChild(dom)
+      window.URL.revokeObjectURL(url)
+      this.$notify({
+        title: '导出提示',
+        message: '导出成功',
+        type: 'success'
+      })
+      loading.close()
+    },
+    async downloadStatisticInfo() {
+      const loading = this.$loading({
+        lock: true,
+        text: '正在导出统计详情',
+        spinner: 'el-icon-loading'
+      })
+      const res = await this.$api.downloadMetricalStatisticInfo(this.queryInfo)
+      const { data, headers } = res
+
+      const blob = new Blob([data], { type: headers['content-type'] })
+      const dom = document.createElement('a')
+      const url = window.URL.createObjectURL(blob)
+      dom.href = url
+      dom.download = decodeURI(
+        '原始数据统计详情数据' + this.$utils.getCurrentTime() + '.xlsx'
       )
       dom.style.display = 'none'
       document.body.appendChild(dom)

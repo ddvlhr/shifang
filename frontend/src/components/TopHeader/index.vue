@@ -11,7 +11,6 @@
     <div class="title">数据采集与分析系统</div>
     <Collapse />
     <div class="right-menu">
-      <span>{{ signalRState }}</span>
       <div class="top-header-tool-item hover-trigger">
         在线用户: {{ onlineUserCount }}
       </div>
@@ -45,9 +44,6 @@ export default {
     },
     onlineUserCount() {
       return this.$store.state.app.onlineUsers
-    },
-    signalRState() {
-      return sr.connection.state
     }
   },
   created() {},
