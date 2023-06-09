@@ -128,11 +128,11 @@ services.AddDataServices(configuration);
 services.AddSqlSugarSetup(configuration);
 services.AddAutoDi();
 services.LoadServices();
-services.AddWatchDogServices(opt =>
-{
-    opt.IsAutoClear = true;
-    opt.ClearTimeSchedule = WatchDogAutoClearScheduleEnum.Monthly;
-});
+// services.AddWatchDogServices(opt =>
+// {
+//     opt.IsAutoClear = true;
+//     opt.ClearTimeSchedule = WatchDogAutoClearScheduleEnum.Monthly;
+// });
 
 var app = builder.Build();
 
@@ -150,7 +150,7 @@ app.UseSwaggerUI(c =>
 
 // app.UseOperatingLogging();
 
-app.UseWatchDogExceptionLogger();
+// app.UseWatchDogExceptionLogger();
 
 app.UseExceptionHandle();
 
@@ -166,11 +166,11 @@ app.UseAuthentication();
 
 app.UseAuthorization();
 
-app.UseWatchDog(opt =>
-{
-    opt.WatchPageUsername = "admin";
-    opt.WatchPagePassword = "123456";
-});
+// app.UseWatchDog(opt =>
+// {
+//     opt.WatchPageUsername = "admin";
+//     opt.WatchPagePassword = "123456";
+// });
 
 app.UseEndpoints(endpoints =>
 {

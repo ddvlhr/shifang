@@ -15,7 +15,7 @@ namespace Api.Hubs;
 
 public class ServerHub: Hub
 {
-    public static List<SignalRUserDto> OnlineUsers { get; set; } = new List<SignalRUserDto>();
+    public static List<SignalRUserDto> OnlineUsers = new List<SignalRUserDto>();
     private readonly IUserService _userService;
     private readonly ILogger<ServerHub> _logger;
     private readonly IHttpContextAccessor _accessor;

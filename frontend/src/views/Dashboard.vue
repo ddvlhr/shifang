@@ -233,7 +233,6 @@ export default {
     },
     initSignalR() {
       const metricalPushDataState = this.$store.state.user.metricalPushDataState
-      console.log(sr.connection.state, sr.connection)
       if (!sr.connection || sr.connection.state === 'Disconnected') {
         sr.init(
           this.$utils.getCurrentApiUrl(process.env.NODE_ENV === 'development') +
