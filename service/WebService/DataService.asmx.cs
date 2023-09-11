@@ -199,6 +199,20 @@ namespace WebService
 
                 #endregion
 
+                #region 班组信息
+
+                var dtTeam = db.excuteToTable("select * from t_team");
+                foreach (DataRow dr in dtTeam.Rows)
+                {
+                    var el = xDoc.CreateElement("team");
+                    el.SetAttribute("id", dr["id"].ToString());
+                    el.SetAttribute("name", dr["name"].ToString());
+                    el.SetAttribute("status", dr["status"].ToString());
+                    rootElement.AppendChild(el);
+                }
+
+                #endregion
+
                 #region 班次信息
 
                 var dtTurn = db.excuteToTable("select * from t_turn");
@@ -275,6 +289,7 @@ namespace WebService
             MySqlConnection conn = null;
             try
             {
+                UploadLog.save("上传数据: " + xmlData, false);
                 MariaDBHelper.setConnStr(ConfigurationManager.ConnectionStrings["mysql"].ConnectionString);
                 var db = new MariaDBHelper();
 
@@ -321,6 +336,9 @@ namespace WebService
                     return false;
                 }
                 var specificationId = int.Parse(xInfo.Attributes["specificationId"].Value);
+                string teamId = "";
+                if (xInfo.Attributes["teamId"] != null)
+                    teamId = xInfo.Attributes["teamId"].Value;
                 var turnId = xInfo.Attributes["turnId"].Value;
                 var machineId = xInfo.Attributes["machineId"].Value;
                 var measureTypeId = xInfo.Attributes["typeId"].Value;
@@ -329,9 +347,9 @@ namespace WebService
                 cmd.Transaction = transction;
                 cmd.CommandText =
                     "insert into t_group (begin_time, end_time, production_time, deliver_time, instance, specification_id, turn_id, machine_id," +
-                    " measure_type_id, pickup_way, count, created_at_utc, modified_at_utc, user_data, equipment_type)" +
+                    " measure_type_id, team_id, pickup_way, count, created_at_utc, modified_at_utc, user_data, equipment_type)" +
                     " values (@beginTime, @endTime, @productionTime, @deliverTime, @instance, @specificationId, @turnId," +
-                    " @machineId, @measureTypeId, @pickupWay, @count, @createdTime, @modifiedTime, @userData, @equipmentType)";
+                    " @machineId, @measureTypeId, @teamId, @pickupWay, @count, @createdTime, @modifiedTime, @userData, @equipmentType)";
 
                 //cmd.Parameters.AddWithValue("equipmentType", equipmentType);
                 cmd.Parameters.AddWithValue("beginTime", xInfo.Attributes["beginTime"].Value);
@@ -342,9 +360,10 @@ namespace WebService
                 cmd.Parameters.AddWithValue("deliverTime", deliverTime == "" ? null : deliverTime);
                 cmd.Parameters.AddWithValue("instance", xInfo.Attributes["instance"].Value);
                 cmd.Parameters.AddWithValue("specificationId", specificationId);
+                cmd.Parameters.AddWithValue("teamId", teamId == "" ? 0 : int.Parse(teamId));
                 cmd.Parameters.AddWithValue("turnId", turnId == "" ? 0 : int.Parse(turnId));
                 cmd.Parameters.AddWithValue("machineId", machineId == "" ? 0 : int.Parse(machineId));
-                cmd.Parameters.AddWithValue("measureTypeId", equipmentType == 1 ? int.Parse(measureTypeId) : 25);
+                cmd.Parameters.AddWithValue("measureTypeId", equipmentType is 1 or 2 ? int.Parse(measureTypeId) : 25);
                 cmd.Parameters.AddWithValue("pickupWay", int.Parse(xInfo.Attributes["pickupWay"].Value));
                 cmd.Parameters.AddWithValue("count", xDetails.Count);
 
@@ -402,6 +421,7 @@ namespace WebService
                     cmd.ExecuteNonQuery();
                 }
                 transction?.Commit();
+                UploadLog.save("上传成功: " + xmlData, false);
                 return true;
             }
             catch (Exception ex)

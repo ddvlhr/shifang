@@ -28,4 +28,5 @@ public class MetricalDataTableDto
     public string UserName { get; set; }
     public EquipmentType EquipmentType { get; set; }
     public string EquipmentTypeName { get; set; }
+    public string UserData { get; set; }
 }

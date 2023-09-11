@@ -20,7 +20,8 @@ export default {
     localStorageSize: '',
     sessionStorageSize: '',
     serverInfo: {},
-    metricalDataPush: []
+    metricalDataPush: [],
+    equipment: {}
   },
   getters: {},
   mutations: {
@@ -51,6 +52,9 @@ export default {
     },
     setServerInfo(state, info) {
       state.serverInfo = info
+    },
+    setEquipment(state, equipment) {
+      state.equipment = equipment
     }
   },
   actions: {
@@ -62,6 +66,9 @@ export default {
     },
     setServerInfo({ commit }, info) {
       commit('setServerInfo', info)
+    },
+    setEquipment({ commit }, equipment) {
+      commit('setEquipment', equipment)
     }
   }
 }

@@ -262,7 +262,7 @@ export default {
         return that.$message.error('获取指标分值信息失败: ' + res.meta.message)
       }
       that.formData = res.data
-      that.formData.name = selectedData[0].name
+      that.formData.name = that.selectedData[0].name
       that.formDesc.indicatorRules.attrs.columns[1].content.options =
         that.measureIndicators
       that.specificationTypes.unshift({ text: '通用', value: 0 })

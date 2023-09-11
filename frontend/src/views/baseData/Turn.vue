@@ -26,10 +26,10 @@
         :columns-desc="columnsDesc"
         :is-show-index="true"
         :is-show-selection="false"
-        :right-buttions="rightButtons"
         :request-fn="getTurnList"
         :is-show-top-delete="false"
         :is-show-right-delete="false"
+        :right-buttons="rightButtons"
         ref="table"
       ></ele-table>
     </el-card>
@@ -89,15 +89,16 @@ export default {
     }
   },
   created() {
+    this.setRightButtons()
     // 根据 router-tab 当前选中的页面重新设置当前路由
     this.$utils.reloadCurrentRoute(this.$tabs, this.$store)
-    this.setRightButtons()
   },
   methods: {
     async setRightButtons() {
       this.rightButtons = await this.$utils.initRightButtons(this)
     },
     query() {
+      console.log(this.$refs.table.rightButtions)
       this.$utils.queryTable(this, this.getTurnList)
     },
     async getTurnList(params) {

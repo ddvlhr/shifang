@@ -8,7 +8,6 @@ using Api.Settings;
 using Core.Models;
 using Infrastructure.DataBase;
 using Infrastructure.Extensions;
-using Infrastructure.Helper;
 using Infrastructure.Middlewares;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
@@ -18,8 +17,6 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using WatchDog;
-using WatchDog.src.Enums;
 
 var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration;
@@ -32,6 +29,7 @@ builder.Host.ConfigureLogging(logging =>
 }).ConfigureServices(services =>
 {
     services.AddHostedService<OnlineUserBackgroundService>();
+    // services.AddHostedService<OnlineEquipmentsBackgroundService>();
     //services.AddHostedService<ServerInfoBackgroundService>();
 }).ConfigureAppConfiguration((hostingContext, config) =>
 {
@@ -69,7 +67,7 @@ services.AddSwaggerGen(c =>
                     Id = "Bearer"
                 }
             },
-            new string[] { }
+            Array.Empty<string>()
         }
     });
 
@@ -176,7 +174,7 @@ app.UseEndpoints(endpoints =>
 {
     endpoints.MapControllers();
     // SignalR 跨域配置，在IIS中部署时需要启用WebSocket
-    endpoints.MapHub<ServerHub>("/ServerHub").RequireCors(t=>t.SetIsOriginAllowed(_ => true).AllowAnyMethod().AllowAnyHeader().AllowCredentials());
+    endpoints.MapHub<ServerHub>("/ServerHub").RequireCors(t => t.SetIsOriginAllowed(_ => true).AllowAnyMethod().AllowAnyHeader().AllowCredentials());
 });
 
 app.Run();

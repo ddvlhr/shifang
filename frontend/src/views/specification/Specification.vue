@@ -257,6 +257,28 @@ export default {
                     step: '0.00001'
                   }
                 }
+              },
+              {
+                prop: 'qualityUpper',
+                label: '优质上允差',
+                content: {
+                  type: 'el-input',
+                  attrs: {
+                    type: 'number',
+                    step: '0.00001'
+                  }
+                }
+              },
+              {
+                prop: 'qualityLower',
+                label: '优质下允差',
+                content: {
+                  type: 'el-input',
+                  attrs: {
+                    type: 'number',
+                    step: '0.00001'
+                  }
+                }
               }
             ]
           }

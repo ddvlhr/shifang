@@ -1,4 +1,6 @@
-﻿using Core.Entities;
+﻿using System.ComponentModel.DataAnnotations.Schema;
+using Core.Entities;
+using Core.Enums;
 using SqlSugar;
 
 namespace Core.SugarEntities;
@@ -29,4 +31,6 @@ public class Specification: SugarEntity
     public string CvRules { get; set; }
     [SugarColumn(ColumnName = "status")]
     public Status Status { get; set; }
+    [SugarColumn(ColumnName = "equipment_type")]
+    public EquipmentType EquipmentType { get; set; }
 }

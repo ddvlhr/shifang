@@ -102,7 +102,7 @@ public class ProductWaterStatisticService : IProductWaterStatisticService
             }
 
             var statistic = waterList.toStatistic(double.Parse(waterRule.Standard), double.Parse(waterRule.Upper),
-                double.Parse(waterRule.Lower), waterRule.Equal);
+                double.Parse(waterRule.Lower), equal:waterRule.Equal);
             var item = new ProductWaterStatisticInfoDto.ProductWaterInfo
             {
                 SpecificationName = $"{first.Specification.Name}: {statistic.QualityRate}"

@@ -1,3 +1,4 @@
+using System;
 using Core.Models;
 using Infrastructure.Helper;
 using Microsoft.Extensions.Configuration;
@@ -16,10 +17,11 @@ public class SugarRepository<T> : SimpleClient<T> where T : class, new()
             base.Context = new SqlSugarClient(new ConnectionConfig()
             {
                 ConnectionString = connectionString,
-                DbType = DbType.MySqlConnector,
+                DbType = DbType.MySql,
                 IsAutoCloseConnection = true,
                 InitKeyType = InitKeyType.Attribute
             });
+            base.Context.Aop.OnLogExecuting = (sql, pars) => { Console.WriteLine(sql + "\r"); };
         }
     }
 }

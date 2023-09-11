@@ -1,3 +1,11 @@
+<!--
+ * @Author: thx 354874258@qq.com
+ * @Date: 2023-03-08 15:06:04
+ * @LastEditors: thx 354874258@qq.com
+ * @LastEditTime: 2023-07-31 16:12:12
+ * @FilePath: \frontend\src\views\baseData\DisciplineClass.vue
+ * @Description:
+-->
 <template>
   <div class="main-container">
     <function-button @add="add" />

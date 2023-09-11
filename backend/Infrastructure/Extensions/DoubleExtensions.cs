@@ -20,5 +20,48 @@ namespace Infrastructure.Extensions
         {
             return Math.Round(value, decimalCount);
         }
+
+        public static double format(this double value)
+        {
+            var temp = value.ToString().Split(".");
+            var count = 0;
+            if (temp.Length == 2 && temp[1].Length > 0)
+            {
+                count = temp[1].Length;
+            }
+            return Math.Round(value, count);
+        }
+        
+        public static int getDecimalCount(this double value)
+        {
+            var temp = value.ToString().Split(".");
+            var count = 0;
+            if (temp.Length == 2 && temp[1].Length > 0)
+            {
+                count = temp[1].Length;
+            }
+            return count;
+        }
+
+        public static string getDecimalCountStr(this double value)
+        {
+            var temp = value.ToString().Split(".");
+            var count = 0;
+            if (temp.Length == 2 && temp[1].Length > 0)
+            {
+                count = temp[1].Length;
+            }
+
+            var str = "0.";
+            for (int i = 0; i < count; i++)
+            {
+                str += $"0";
+            }
+
+            if (count == 0)
+                str = "#";
+
+            return str;
+        }
     }
 }

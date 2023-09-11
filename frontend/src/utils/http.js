@@ -11,6 +11,7 @@ import NProgress from 'nprogress'
 import utils from '.'
 import router from '../router'
 import store from '../store'
+import { Message } from 'element-ui'
 axios.defaults.withCredentials = true
 
 class Axios {
@@ -46,12 +47,16 @@ class Axios {
           // 响应错误码处理
           switch (err.response.status) {
             case 401:
-              this.$message.error('账号已过期, 请重新登录')
-              router.replace({
-                path: '/login'
-              })
+              console.log('401')
+              Message.error('账号已过期, 请重新登录')
+              store.commit('user/clearToken')
+              store.commit('permission/clearRoutes')
+              router.push('/login')
               break
             case '403':
+              break
+            case 1:
+              Message.error('服务错误: ' + err.response.data.meta.message)
               break
             default:
               break

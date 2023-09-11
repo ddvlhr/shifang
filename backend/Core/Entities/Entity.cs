@@ -27,6 +27,14 @@ public enum Status
     Disabled = 1
 }
 
+public enum OnlineStatus
+{
+    [Description("在线")]
+    Online = 1,
+    [Description("离线")]
+    Offline = 0
+}
+
 public enum FunctionPosition
 {
     Line = 1,

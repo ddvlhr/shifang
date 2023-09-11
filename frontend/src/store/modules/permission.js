@@ -45,10 +45,9 @@ const actions = {
   },
   getMenuButtons({ state, rootState }) {
     const routes = state.addRoutes
-    const rootMenuName = rootState.app.rootMenuName
     const activePath = rootState.app.activePath
     const path = activePath.substring(1, activePath.length)
-    const buttons = utils.getPermissionButtons(routes, rootMenuName, path)
+    const buttons = utils.getPermissionButtons(routes, path)
     return buttons
   }
 }

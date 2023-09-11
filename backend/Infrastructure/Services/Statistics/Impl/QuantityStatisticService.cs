@@ -177,7 +177,7 @@ public class QuantityStatisticService : IQuantityStatisticService
             if (quantityRule == null)
                 continue;
             var statistic = tempQuantityList.toStatistic(double.Parse(quantityRule.Standard),
-                double.Parse(quantityRule.Upper), double.Parse(quantityRule.Lower), quantityRule.Equal);
+                double.Parse(quantityRule.Upper), double.Parse(quantityRule.Lower), equal: quantityRule.Equal);
             var item = new QuantityStatisticInfoDto
             {
                 SpecificationName = specification.Name,

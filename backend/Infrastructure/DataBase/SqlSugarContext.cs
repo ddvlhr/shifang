@@ -18,7 +18,7 @@ public static class SqlSugarContext
         var sqlSugar = new SqlSugarScope(new ConnectionConfig()
         {
             ConnectionString = connectionString,
-            DbType = DbType.MySqlConnector,
+            DbType = DbType.MySql,
             IsAutoCloseConnection = true,
             InitKeyType = InitKeyType.Attribute,
             ConfigureExternalServices = new ConfigureExternalServices

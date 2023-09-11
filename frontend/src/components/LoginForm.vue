@@ -14,7 +14,7 @@
     label-width="100px"
     class="loginForm"
     label-position="left"
-    @keyup.enter.native="handleEnter"
+    @keyup.enter.native="handleLogin"
   >
     <div class="title">用户登录</div>
     <el-form-item label="用户名" class="userName" prop="userName">
@@ -73,7 +73,6 @@ export default {
               'setCanSeeOtherData',
               res.data.userInfo.canSeeOtherData
             )
-            this.$message.success('登录成功')
             const { data: menuRes } = await this.$api.getPermissionTree(
               res.data.userInfo.roleId
             )
@@ -89,6 +88,7 @@ export default {
             }
             this.$store.commit('permission/setAddRoutes', menuRes.data)
             this.$router.push('/dashboard')
+            this.$message.success('登录成功')
           } else {
             return this.$message.error('登录失败: ' + res.meta.message)
           }

@@ -4,7 +4,7 @@
  * @LastEditors: ddvlhr 354874258@qq.com
  * @LastEditTime: 2022-11-03 09:43:56
  * @FilePath: /frontend/src/components/FunctionButton/index.vue
- * @Description: 
+ * @Description:
 -->
 <template>
   <div>
@@ -14,7 +14,7 @@
       style="margin-left: 0"
     >
       <el-button
-        v-for="func in functionList"
+        v-for="func in functions"
         :key="func.id"
         :type="func.buttonTypeName"
         @click="doParentMethod(func.functionName)"
@@ -37,6 +37,17 @@ export default {
   computed: {
     rowHeight() {
       return this.functionList == null ? '0px' : 'auto'
+    },
+    functions() {
+      return this.functionList
+    }
+  },
+  actived() {
+    console.log('actived')
+  },
+  watch: {
+    $route(to) {
+      console.log(to.path)
     }
   },
   methods: {
@@ -53,6 +64,6 @@ export default {
 
 <style lang="scss" scoped>
 .el-row {
-  height: v-bind(rowHeight)
+  height: v-bind(rowHeight);
 }
 </style>

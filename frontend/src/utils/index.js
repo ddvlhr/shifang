@@ -1,9 +1,9 @@
 /*
  * @Author: ddvlhr 354874258@qq.com
  * @Date: 2022-10-31 10:14:42
- * @LastEditors: ddvlhr 354874258@qq.com
- * @LastEditTime: 2022-11-22 14:30:44
- * @FilePath: /frontend/src/utils/index.js
+ * @LastEditors: thx 354874258@qq.com
+ * @LastEditTime: 2023-07-31 16:04:12
+ * @FilePath: \frontend\src\utils\index.js
  * @Description:
  */
 
@@ -48,15 +48,20 @@ utils.initAsyncRoutes = (routes) => {
  * @param {Number} rootId
  * @returns
  */
-utils.getPermissionButtons = (routes, rootId, path) => {
-  const root = routes.filter((c) => c.id == rootId)
-  const item = root[0].children.filter((c) => c.path == path)
-  return item[0].children
+utils.getPermissionButtons = (routes, path) => {
+  let item = {}
+  routes.map((route) => {
+    route.children.map((c) => {
+      if (c.path === path) {
+        item = c
+      }
+    })
+  })
+  return item.children
 }
 
 /**
  * 初始化表格右边按钮
- * @param {*} methods 当前页面 methods
  * @param {*} that 当前页面 this
  * @returns
  */
@@ -79,6 +84,11 @@ utils.initRightButtons = async (that) => {
   return result
 }
 
+/**
+ * 表格查询方法
+ * @param {*} that 当前页面 this
+ * @param {function} func 查询方法
+ */
 utils.queryTable = (that, func) => {
   const size = that.$refs.table.size
   const page = that.$refs.table.page
@@ -103,7 +113,7 @@ utils.getCacheSize = (cache) => {
     storage = window.sessionStorage
   }
   if (storage !== '') {
-    for (let item in storage) {
+    for (const item in storage) {
       if (storage.hasOwnProperty(item)) {
         size += storage.getItem(item).length
       }
@@ -129,6 +139,12 @@ utils.reloadCurrentRoute = (tabs, store) => {
   store.commit('app/setActivePath', currentTab)
 }
 
+/**
+ * @description: 获取当前环境下的api地址
+ * @param {Boolean} ssl 是否是https
+ * @param {Number} port 端口号
+ * @return {String}
+ */
 utils.getCurrentApiUrl = (ssl = false, port = 9527) => {
   let url = `${window.location.protocol}//${window.location.hostname}:${port}`
   if (ssl) {

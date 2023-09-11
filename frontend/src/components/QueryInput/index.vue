@@ -4,7 +4,7 @@
  * @LastEditors: ddvlhr 354874258@qq.com
  * @LastEditTime: 2022-11-24 22:26:32
  * @FilePath: /frontend/src/components/QueryInput/index.vue
- * @Description: 
+ * @Description: 查询输入框组件
 -->
 <template>
   <el-input
@@ -13,7 +13,11 @@
     :placeholder="placeholder"
     v-on="$listeners"
   >
-    <el-button slot="append" v-on="$listeners" icon="el-icon-search"></el-button>
+    <el-button
+      slot="append"
+      v-on="$listeners"
+      icon="el-icon-search"
+    ></el-button>
   </el-input>
 </template>
 

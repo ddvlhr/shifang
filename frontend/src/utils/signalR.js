@@ -61,6 +61,10 @@ sr.init = (url, token, machine) => {
     store.dispatch('app/setServerInfo', res.data)
   })
 
+  sr.connection.on('EquipmentMessage', (data) => {
+    store.dispatch('app/setEquipment', data.data)
+  })
+
   sr.connection
     .start()
     .then(() => {

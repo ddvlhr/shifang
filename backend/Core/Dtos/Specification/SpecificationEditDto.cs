@@ -26,6 +26,9 @@ public class Rule
     public string Upper { get; set; }
     public string Lower { get; set; }
 
+    public string QualityUpper { get; set; }
+    public string QualityLower { get; set; }
+
     /// <summary>
     ///     是否包含等于上下限值
     /// </summary>

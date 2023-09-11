@@ -7,12 +7,10 @@ using Core.Dtos;
 using Core.Dtos.Specification;
 using Core.Dtos.MetricalData;
 using Core.Entities;
-using Core.Models;
 using Core.SugarEntities;
 using Infrastructure.DataBase;
 using Infrastructure.Extensions;
 using Infrastructure.Helper;
-using Infrastructure.Services.Reports;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -27,9 +25,6 @@ using Team = Core.SugarEntities.Team;
 using Turn = Core.SugarEntities.Turn;
 using System.Threading.Tasks;
 using Core.Enums;
-using System.Text;
-using MiniExcelLibs;
-using SixLabors.ImageSharp.ColorSpaces.Conversion;
 using ShiFangSettings = Core.Models.ShiFangSettings;
 
 namespace Infrastructure.Services.MetricalData.Impl;
@@ -92,7 +87,7 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
     {
         //TODO 添加测量数据时会重复添加
         failReason = string.Empty;
-        var items = (JArray) JsonConvert.DeserializeObject(dto.DataInfo);
+        var items = (JArray)JsonConvert.DeserializeObject(dto.DataInfo);
         var dataList = new List<Data>();
         foreach (var item in items)
         {
@@ -241,7 +236,7 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
             }
 
         var deleteIds = inDbIds.Where(c => !updateIds.Contains(c))
-            .Select(c => new Core.SugarEntities.MetricalData {Id = c}).ToList();
+            .Select(c => new Core.SugarEntities.MetricalData { Id = c }).ToList();
         // var deleteList = _dRepo.All().Where(c => deleteIds.Contains(c.Id));
 
         var ret = _db.Storageable(dataList).ExecuteCommand();
@@ -389,14 +384,14 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
         var departmentType = _accessor.HttpContext.getDepartmentType();
         var equipmentTypes = dto.EquipmentTypeId == null
             ? new List<EquipmentType>()
-            : new List<EquipmentType> {(EquipmentType) int.Parse(dto.EquipmentTypeId)};
+            : new List<EquipmentType> { (EquipmentType)int.Parse(dto.EquipmentTypeId) };
         if (departmentType == DepartmentType.Cigarette)
         {
-            equipmentTypes = new List<EquipmentType>() {EquipmentType.Mts, EquipmentType.Rt};
+            equipmentTypes = new List<EquipmentType>() { EquipmentType.Mts, EquipmentType.Rt };
         }
         else if (departmentType == DepartmentType.Cigar)
         {
-            equipmentTypes = new List<EquipmentType>() {EquipmentType.SingleResistance};
+            equipmentTypes = new List<EquipmentType>() { EquipmentType.SingleResistance };
         }
 
         var exp = Expressionable.Create<MetricalGroup>()
@@ -442,13 +437,18 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
                 OrderNo = c.OrderNo ?? "",
                 Instance = c.Instance,
                 UserName = c.UserName,
-                EquipmentType = c.EquipmentType
+                EquipmentType = c.EquipmentType,
+                UserData = c.UserData
             })
             .ToPageList(dto.PageNum, dto.PageSize, ref total);
 
         foreach (var item in list)
         {
             item.EquipmentTypeName = item.EquipmentType.toDescription();
+            if (item.EquipmentType == EquipmentType.SingleResistance)
+            {
+                item.UserName = item.UserData;
+            }
         }
 
         return list;
@@ -463,9 +463,9 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
         foreach (var rule in singleRules)
         {
             var indicator = _iRepo.Get(rule.Id);
-            var column = new JObject {{"prop", rule.Id}, {"label", indicator.Name}};
-            var content = new JObject {{"type", "el-input"}};
-            var attrs = new JObject {{"type", "number"}, {"step", "0.0000001"}};
+            var column = new JObject { { "prop", rule.Id }, { "label", indicator.Name } };
+            var content = new JObject { { "type", "el-input" } };
+            var attrs = new JObject { { "type", "number" }, { "step", "0.0000001" } };
             content.Add("attrs", attrs);
             column.Add("content", content);
             columns.Add(column);
@@ -532,7 +532,7 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
         var dataInfo = new JArray();
         foreach (var item in data)
         {
-            var info = (JObject) JsonConvert.DeserializeObject(item.Data);
+            var info = (JObject)JsonConvert.DeserializeObject(item.Data);
             if (info == null)
                 continue;
             if (!info.ContainsKey("id"))
@@ -557,7 +557,7 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
         var info = new BaseStatisticInfoDto();
         failReason = "";
         var indicators = _iRepo.All().ToList();
-        var statisticItems = new[] {"平均值", "最大值", "最小值", "SD", "CV", "CPK", "Offs", "上超", "下超", "合格数", "合格率"};
+        var statisticItems = new[] { "平均值", "最大值", "最小值", "SD", "CV", "CPK", "Offs", "上超", "下超", "合格数", "合格率" };
         var group = _db.Queryable<MetricalGroup>().Single(c => c.Id == groupId);
         if (group == null)
         {
@@ -638,7 +638,7 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
                     {
                         if (kv.Key == "testTime")
                         {
-                            temp.Add(kv.Key, new {text = kv.Value?.ToString(), high = 0, low = 0});
+                            temp.Add(kv.Key, new { text = kv.Value?.ToString(), high = 0, low = 0 });
                         }
 
                         if (kv.Key != "testTime" && kv.Key != "id")
@@ -704,7 +704,7 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
                     _ => ""
                 };
 
-                var baseInfoItems = new[] {"平均值", "最大值", "最小值"};
+                var baseInfoItems = new[] { "平均值", "最大值", "最小值" };
                 var itemInfo = new Dictionary<string, object>();
                 if (baseInfoItems.Contains(item))
                 {
@@ -741,7 +741,7 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
     {
         failReason = string.Empty;
         var dto = new MetricalDataStatisticDto();
-        var statisticItems = new[] {"平均值", "最大值", "最小值", "SD", "CV", "CPK", "Offs", "上超", "下超", "合格数", "合格率"};
+        var statisticItems = new[] { "平均值", "最大值", "最小值", "SD", "CV", "CPK", "Offs", "上超", "下超", "合格数", "合格率" };
         var group = _gRepo.Get(id);
         var specification = _spRepo.Get(group.SpecificationId);
         var rules = JsonConvert.DeserializeObject<List<Rule>>(specification.SingleRules);
@@ -754,16 +754,16 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
             return dto;
         }
 
-        var columns = new JObject {{"itemName", new JObject {{"text", "统计项目"}}}};
-        var originColumns = new JObject {{"testTime", new JObject {{"text", "测量时间"}}}};
+        var columns = new JObject { { "itemName", new JObject { { "text", "统计项目" } } } };
+        var originColumns = new JObject { { "testTime", new JObject { { "text", "测量时间" } } } };
         var dataInfo = new JArray();
         var originDataInfo = new JArray();
-        foreach (var item in statisticItems) dataInfo.Add(new JObject {{"itemName", item}});
+        foreach (var item in statisticItems) dataInfo.Add(new JObject { { "itemName", item } });
 
         var index = 0;
         foreach (var rule in rules)
         {
-            var firstData = (JObject) JsonConvert.DeserializeObject(data.FirstOrDefault());
+            var firstData = (JObject)JsonConvert.DeserializeObject(data.FirstOrDefault());
             // 指标标准值为 0 的为外观指标, 不需要统计数据
             if (rule.Standard == "0") continue;
 
@@ -772,7 +772,7 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
             {
                 var indicatorName = rule.Name;
                 if (string.IsNullOrEmpty(rule.Name)) indicatorName = _iRepo.Get(rule.Id).Name;
-                var column = new JObject {{"text", indicatorName}};
+                var column = new JObject { { "text", indicatorName } };
                 columns.Add($"a{rule.Id}", column);
                 originColumns.Add($"a{rule.Id}", column);
             }
@@ -781,7 +781,7 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
 
             foreach (var item in data)
             {
-                var obj = (JObject) JsonConvert.DeserializeObject(item);
+                var obj = (JObject)JsonConvert.DeserializeObject(item);
                 if (index == 0)
                 {
                     var tempObj = new JObject();
@@ -856,31 +856,35 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
 
     public MemoryStream Download(MetricalDataQueryDto dto)
     {
-        var data = _dRepo.All().AsNoTracking();
-
-        var exp = Expressionable.Create<Core.SugarEntities.MetricalData>()
-            .AndIF(dto.SpecificationId != null, c => c.Group.SpecificationId == int.Parse(dto.SpecificationId))
+        var exp = Expressionable
+            .Create<Core.SugarEntities.MetricalData, MetricalGroup, Core.SugarEntities.Specification, MeasureType, Turn,
+                Machine>()
+            .AndIF(dto.SpecificationId != null,
+                (c, g, s, mt, turn, mac) => g.SpecificationId == int.Parse(dto.SpecificationId))
             .AndIF(dto.BeginTime != null && dto.EndTime != null,
-                c => c.Group.BeginTime >= Convert.ToDateTime(dto.BeginTime).Date &&
-                     c.Group.BeginTime <= Convert.ToDateTime(dto.EndTime).Date)
+                (c, g, s, mt, turn, mac) => g.BeginTime.Date >= Convert.ToDateTime(dto.BeginTime).Date &&
+                                            g.BeginTime.Date <= Convert.ToDateTime(dto.EndTime).Date)
             .AndIF(dto.SpecificationTypeId != null,
-                c => c.Group.Specification.SpecificationTypeId == int.Parse(dto.SpecificationTypeId))
-            .AndIF(dto.TurnId != null, c => c.Group.TurnId == int.Parse(dto.TurnId))
-            .AndIF(dto.MeasureTypeId != null, c => c.Group.MeasureTypeId == int.Parse(dto.MeasureTypeId))
-            .AndIF(dto.MachineModelId != null, c => c.Group.MachineId == int.Parse(dto.MachineModelId))
+                (c, g, s, mt, turn, mac) => s.SpecificationTypeId == int.Parse(dto.SpecificationTypeId))
+            .AndIF(dto.TurnId != null, (c, g, s, mt, turn, mac) => g.TurnId == int.Parse(dto.TurnId))
+            .AndIF(dto.MeasureTypeId != null,
+                (c, g, s, mt, turn, mac) => g.MeasureTypeId == int.Parse(dto.MeasureTypeId))
+            .AndIF(dto.MachineModelId != null, (c, g, s, mt, turn, mac) => g.MachineId == int.Parse(dto.MachineModelId))
             .AndIF(dto.EquipmentTypeId != null,
-                c => c.Group.EquipmentType == (EquipmentType) int.Parse(dto.EquipmentTypeId))
+                (c, g, s, mt, turn, mac) => g.EquipmentType == (EquipmentType)int.Parse(dto.EquipmentTypeId))
             .ToExpression();
-        var list = _db.Queryable<Core.SugarEntities.MetricalData>()
-            .LeftJoin<MetricalGroup>((c, g) => c.GroupId == g.Id)
-            .LeftJoin<Core.SugarEntities.Specification>((c, g, s) => g.SpecificationId == s.Id)
-            .LeftJoin<Team>((c, g, s, team) => g.TeamId == team.Id)
-            .LeftJoin<Turn>((c, g, s, team, turn) => g.TurnId == turn.Id)
-            .LeftJoin<Machine>((c, g, s, team, turn, mac) => g.MachineId == mac.Id)
-            .LeftJoin<MeasureType>((c, g, s, team, turn, mac, mt) => g.MeasureTypeId == mt.Id)
-            .Where(exp).Select((c, g, s, team, turn, mac, mt) => new
+        var list = _db
+            .Queryable<Core.SugarEntities.MetricalData, MetricalGroup, Core.SugarEntities.Specification, MeasureType,
+                Turn, Machine>((c, g, s, mt, turn, mac) => new JoinQueryInfos(
+                JoinType.Left, c.GroupId == g.Id,
+                JoinType.Left, g.SpecificationId == s.Id,
+                JoinType.Left, g.MeasureTypeId == mt.Id,
+                JoinType.Left, g.TurnId == turn.Id,
+                JoinType.Left, g.MachineId == mac.Id
+            )).Where(exp).Select((c, g, s, mt, turn, mac) => new
             {
                 c.Id,
+                c.GroupId,
                 specificationId = g.SpecificationId,
                 specificationName = s.Name,
                 turnName = turn.Name,
@@ -889,18 +893,35 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
                 testTime = c.TestTime,
                 data = c.Data,
                 userData = g.UserData,
-                instance = g.Instance
+                instance = g.Instance,
+                equipmentType = g.EquipmentType
             }).ToList();
 
         var indicators = _iRepo.All().ToList();
         using var package = new ExcelPackage();
-        var equipmentTypeId = Convert.ToInt32(dto.EquipmentTypeId);
 
-
-        if (!string.IsNullOrEmpty(dto.EquipmentTypeId) && equipmentTypeId == (int) EquipmentType.SingleResistance)
+        var specificationGroups = list.GroupBy(c => c.specificationId).ToList();
+        var specifications = _spRepo.All().Select(c => new { c.Id, c.SingleRules }).ToList();
+        foreach (var specificationGroup in specificationGroups)
         {
-            var resistanceIndicator = indicators.FirstOrDefault(c => c.Id == _settings.Resistance);
-            var ws = package.Workbook.Worksheets.Add("雪茄吸阻原始数据");
+            var first = specificationGroup.First();
+            if (first == null)
+                continue;
+            var singleRules = specifications.FirstOrDefault(c => c.Id == specificationGroup.Key);
+            if (singleRules == null)
+                continue;
+            var ws = package.Workbook.Worksheets.Add(first.specificationName);
+
+            var rules = JsonConvert.DeserializeObject<List<Rule>>(singleRules.SingleRules);
+            var ruleDic = new Dictionary<Rule, Core.Entities.Indicator>();
+            foreach (var rule in rules)
+            {
+                var indicator = indicators.FirstOrDefault(c => c.Id == rule.Id);
+                if (first.equipmentType == EquipmentType.SingleResistance)
+                    indicator.Unit = "mmWG";
+                ruleDic.Add(rule, indicator);
+            }
+
             ws.Cells.Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
             ws.Cells.Style.VerticalAlignment = ExcelVerticalAlignment.Center;
             ws.Column(1).Width = 25;
@@ -908,95 +929,52 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
             ws.Column(3).Width = 25;
             ws.Column(4).Width = 25;
             ws.Column(5).Width = 25;
+            ws.Column(6).Width = 25;
             ws.Cells[1, 1].Value = "测量时间";
-            ws.Cells[1, 2].Value = "牌号";
-            ws.Cells[1, 3].Value = "仪器名称";
-            ws.Cells[1, 4].Value = "工号";
-            ws.Cells[1, 5].Value = resistanceIndicator?.Name + "(mmWG)";
+            ws.Cells[1, 2].Value = "班次";
+            ws.Cells[1, 3].Value = "机台";
+            ws.Cells[1, 4].Value = "仪器名称";
+            ws.Cells[1, 5].Value = "工号";
+            ws.Cells[1, 6].Value = "测量类型";
+            var col = 7;
+            foreach (var ruleItem in ruleDic)
+            {
+                ws.Column(col).Width = 25;
+                ws.Cells[1, col].Value = ruleItem.Value.Name + "(" + ruleItem.Value.Unit + ")";
+                col++;
+            }
 
             var row = 2;
-            foreach (var item in list.OrderBy(c => c.testTime).ToList())
+            foreach (var item in specificationGroup.OrderBy(c => c.testTime))
             {
                 ws.Cells[row, 1].Value = item.testTime.ToString("yyyy-MM-dd HH:mm:ss");
-                ws.Cells[row, 2].Value = item.specificationName;
-                ws.Cells[row, 3].Value = item.instance;
-                ws.Cells[row, 4].Value = item.userData;
+                ws.Cells[row, 2].Value = item.turnName;
+                ws.Cells[row, 3].Value = item.machineName;
+                ws.Cells[row, 4].Value = item.instance;
+                ws.Cells[row, 5].Value = item.userData;
+                ws.Cells[row, 6].Value = item.measureTypeName;
+                var valueCol = 7;
                 var obj = JsonConvert.DeserializeObject<JObject>(item.data);
-                var value = "";
-                if (obj[$"{resistanceIndicator.Id}"] != null) value = obj[$"{resistanceIndicator.Id}"].ToString();
-                var resistance = 0.0;
-                if (!string.IsNullOrEmpty(value))
-                {
-                    var temp = double.Parse(value);
-                    resistance = ConvertHelper.paToMMWG(temp);
-                    resistance = Math.Round(resistance, 0, MidpointRounding.ToPositiveInfinity);
-                }
-
-                ws.Cells[row, 5].Value = resistance;
-
-                row++;
-            }
-        }
-        else
-        {
-            var specificationGroups = list.GroupBy(c => c.specificationId).ToList();
-            var specifications = _spRepo.All().Select(c => new {c.Id, c.SingleRules}).ToList();
-            foreach (var specificationGroup in specificationGroups)
-            {
-                var first = specificationGroup.First();
-                if (first == null)
-                    continue;
-                var singleRules = specifications.FirstOrDefault(c => c.Id == specificationGroup.Key);
-                if (singleRules == null)
-                    continue;
-                var ws = package.Workbook.Worksheets.Add(first.specificationName);
-
-                var rules = JsonConvert.DeserializeObject<List<Rule>>(singleRules.SingleRules);
-                var ruleDic = new Dictionary<int, string>();
-                foreach (var rule in rules)
-                {
-                    var name = indicators.FirstOrDefault(c => c.Id == rule.Id).Name;
-                    ruleDic.Add(rule.Id, name);
-                }
-
-                ws.Cells.Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
-                ws.Cells.Style.VerticalAlignment = ExcelVerticalAlignment.Center;
-                ws.Column(1).Width = 25;
-                ws.Column(2).Width = 25;
-                ws.Column(3).Width = 25;
-                ws.Column(4).Width = 25;
-                ws.Cells[1, 1].Value = "测量时间";
-                ws.Cells[1, 2].Value = "班次";
-                ws.Cells[1, 3].Value = "机台";
-                ws.Cells[1, 4].Value = "测量类型";
-                var col = 5;
                 foreach (var ruleItem in ruleDic)
                 {
-                    ws.Column(col).Width = 25;
-                    ws.Cells[1, col].Value = ruleItem.Value;
-                    col++;
-                }
+                    var value = "";
+                    if (obj[$"{ruleItem.Key.Id}"] != null) value = obj[$"{ruleItem.Key.Id}"].ToString();
 
-                var row = 2;
-                foreach (var item in specificationGroup.OrderBy(c => c.testTime))
-                {
-                    ws.Cells[row, 1].Value = item.testTime.ToString("yyyy-MM-dd HH:mm:ss");
-                    ws.Cells[row, 2].Value = item.turnName;
-                    ws.Cells[row, 3].Value = item.machineName;
-                    ws.Cells[row, 4].Value = item.measureTypeName;
-                    var valueCol = 5;
-                    var obj = JsonConvert.DeserializeObject<JObject>(item.data);
-                    foreach (var ruleItem in ruleDic)
+                    if (item.equipmentType == EquipmentType.SingleResistance &&
+                        ruleItem.Key.Id == _settings.Resistance)
                     {
-                        var value = "";
-                        if (obj[$"{ruleItem.Key}"] != null) value = obj[$"{ruleItem.Key}"].ToString();
-
-                        ws.Cells[row, valueCol].Value = value;
-                        valueCol++;
+                        double.TryParse(value, out var temp);
+                        var resistance = ConvertHelper.paToMMWG(temp);
+                        resistance = Math.Round(resistance, 0, MidpointRounding.ToPositiveInfinity);
+                        ws.Cells[row, valueCol].Value = resistance;
                     }
+                    else
+                        ws.Cells[row, valueCol].Value = value;
 
-                    row++;
+                    valueCol++;
                 }
+
+                row++;
             }
         }
 
@@ -1007,29 +985,36 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
         return file;
     }
 
+
     public MemoryStream DownloadStatistic(MetricalDataQueryDto dto)
     {
-        var exp = Expressionable.Create<Core.SugarEntities.MetricalData>()
-            .AndIF(dto.SpecificationId != null, c => c.Group.SpecificationId == int.Parse(dto.SpecificationId))
+        var exp = Expressionable
+            .Create<Core.SugarEntities.MetricalData, MetricalGroup, Core.SugarEntities.Specification, MeasureType,
+                Turn, Machine>()
+            .AndIF(dto.SpecificationId != null,
+                (c, g, s, mt, turn, mac) => g.SpecificationId == int.Parse(dto.SpecificationId))
             .AndIF(dto.BeginTime != null && dto.EndTime != null,
-                c => c.Group.BeginTime.Date >= Convert.ToDateTime(dto.BeginTime).Date &&
-                     c.Group.BeginTime.Date <= Convert.ToDateTime(dto.EndTime).Date)
+                (c, g, s, mt, turn, mac) => g.BeginTime.Date >= Convert.ToDateTime(dto.BeginTime).Date &&
+                                            g.BeginTime.Date <= Convert.ToDateTime(dto.EndTime).Date)
             .AndIF(dto.SpecificationTypeId != null,
-                c => c.Group.Specification.SpecificationTypeId == int.Parse(dto.SpecificationTypeId))
-            .AndIF(dto.TurnId != null, c => c.Group.TurnId == int.Parse(dto.TurnId))
-            .AndIF(dto.MeasureTypeId != null, c => c.Group.MeasureTypeId == int.Parse(dto.MeasureTypeId))
-            .AndIF(dto.MachineModelId != null, c => c.Group.MachineId == int.Parse(dto.MachineModelId))
+                (c, g, s, mt, turn, mac) => s.SpecificationTypeId == int.Parse(dto.SpecificationTypeId))
+            .AndIF(dto.TurnId != null, (c, g, s, mt, turn, mac) => g.TurnId == int.Parse(dto.TurnId))
+            .AndIF(dto.MeasureTypeId != null,
+                (c, g, s, mt, turn, mac) => g.MeasureTypeId == int.Parse(dto.MeasureTypeId))
+            .AndIF(dto.MachineModelId != null,
+                (c, g, s, mt, turn, mac) => g.MachineId == int.Parse(dto.MachineModelId))
             .AndIF(dto.EquipmentTypeId != null,
-                c => c.Group.EquipmentType == (EquipmentType) int.Parse(dto.EquipmentTypeId))
+                (c, g, s, mt, turn, mac) => g.EquipmentType == (EquipmentType)int.Parse(dto.EquipmentTypeId))
             .ToExpression();
-        var list = _db.Queryable<Core.SugarEntities.MetricalData>()
-            .LeftJoin<MetricalGroup>((c, g) => c.GroupId == g.Id)
-            .LeftJoin<Core.SugarEntities.Specification>((c, g, s) => g.SpecificationId == s.Id)
-            .LeftJoin<Team>((c, g, s, team) => g.TeamId == team.Id)
-            .LeftJoin<Turn>((c, g, s, team, turn) => g.TurnId == turn.Id)
-            .LeftJoin<Machine>((c, g, s, team, turn, mac) => g.MachineId == mac.Id)
-            .LeftJoin<MeasureType>((c, g, s, team, turn, mac, mt) => g.MeasureTypeId == mt.Id)
-            .Where(exp).Select((c, g, s, team, turn, mac, mt) => new
+        var list = _db
+            .Queryable<Core.SugarEntities.MetricalData, MetricalGroup, Core.SugarEntities.Specification, MeasureType
+                , Turn, Machine>((c, g, s, mt, turn, mac) => new JoinQueryInfos(
+                JoinType.Left, c.GroupId == g.Id,
+                JoinType.Left, g.SpecificationId == s.Id,
+                JoinType.Left, g.MeasureTypeId == mt.Id,
+                JoinType.Left, g.TurnId == turn.Id,
+                JoinType.Left, g.MachineId == mac.Id
+            )).Where(exp).Select((c, g, s, mt, turn, mac) => new
             {
                 c.Id,
                 c.GroupId,
@@ -1039,16 +1024,19 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
                 machineName = mac.Name,
                 measureTypeName = mt.Name,
                 testTime = c.TestTime,
-                data = c.Data
+                data = c.Data,
+                userData = g.UserData,
+                instance = g.Instance,
+                equipmentType = g.EquipmentType
             }).ToList();
 
         var specificationGroups = list.GroupBy(c => c.specificationId).ToList();
 
-        var specifications = _spRepo.All().Select(c => new {c.Id, c.SingleRules}).ToList();
+        var specifications = _spRepo.All().Select(c => new { c.Id, c.SingleRules }).ToList();
         var indicators = _iRepo.All().ToList();
         using var package = new ExcelPackage();
         var statisticItems = new List<string>
-            {"平均值", "最大值", "最小值", "SD", "CV", "CPK", "Offs", "上超", "下超", "合格数", "合格率"};
+            {"平均值", "最大值", "最小值", "SD", "CV", "CPK", "Offs", "上超", "下超", "合格数", "总数", "合格率"};
 
         foreach (var specificationGroup in specificationGroups)
         {
@@ -1061,11 +1049,17 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
             var ws = package.Workbook.Worksheets.Add(first.specificationName);
 
             var rules = JsonConvert.DeserializeObject<List<Rule>>(singleRules.SingleRules);
-            var ruleDic = new Dictionary<Rule, string>();
+            var ruleDic = new Dictionary<Rule, Core.Entities.Indicator>();
             foreach (var rule in rules)
             {
-                var name = indicators.FirstOrDefault(c => c.Id == rule.Id).Name;
-                ruleDic.Add(rule, name);
+                var indicator = indicators.FirstOrDefault(c => c.Id == rule.Id);
+                if (rule.Id == _settings.Resistance &&
+                    first.equipmentType == EquipmentType.SingleResistance)
+                {
+                    indicator.Unit = "mmWG";
+                }
+
+                ruleDic.Add(rule, indicator);
             }
 
             ws.Cells.Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
@@ -1089,7 +1083,8 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
             var col = 5;
             foreach (var ruleItem in ruleDic)
             {
-                ws.Cells[1, col].Value = ruleItem.Value;
+                var value = ruleItem.Value.Name + "(" + ruleItem.Value.Unit + ")";
+                ws.Cells[1, col].Value = value;
                 ws.Cells[1, col, 1, col + statisticItems.Count - 1].Merge = true;
                 ws.Cells[1, col, 1, col + statisticItems.Count - 1].Style.Border
                     .BorderAround(ExcelBorderStyle.Thin, Color.Black);
@@ -1136,7 +1131,8 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
                         }
                     }
 
-                    var statistic = tempList.toStatistic(ruleItem.Key.Standard, ruleItem.Key.Upper, ruleItem.Key.Lower);
+                    var statistic = tempList.toStatistic(ruleItem.Key.Standard, ruleItem.Key.Upper,
+                        ruleItem.Key.Lower);
                     ws.Cells[row, valueCol].Style.Border.BorderAround(ExcelBorderStyle.Thin, Color.Black);
                     ws.Cells[row, valueCol++].Value = statistic.Mean.format(_settings.IndicatorDecimal.Mean);
                     ws.Cells[row, valueCol].Style.Border.BorderAround(ExcelBorderStyle.Thin, Color.Black);
@@ -1156,7 +1152,9 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
                     ws.Cells[row, valueCol].Style.Border.BorderAround(ExcelBorderStyle.Thin, Color.Black);
                     ws.Cells[row, valueCol++].Value = statistic.LowCnt;
                     ws.Cells[row, valueCol].Style.Border.BorderAround(ExcelBorderStyle.Thin, Color.Black);
-                    ws.Cells[row, valueCol++].Value = statistic.Quality;
+                    ws.Cells[row, valueCol++].Value = statistic.QualityCount;
+                    ws.Cells[row, valueCol].Style.Border.BorderAround(ExcelBorderStyle.Thin, Color.Black);
+                    ws.Cells[row, valueCol++].Value = statistic.TotalCount;
                     ws.Cells[row, valueCol].Style.Border.BorderAround(ExcelBorderStyle.Thin, Color.Black);
                     ws.Cells[row, valueCol++].Value = statistic.QualityRate;
                 }
@@ -1174,27 +1172,33 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
 
     public MemoryStream DownloadStatisticInfo(MetricalDataQueryDto dto)
     {
-        var exp = Expressionable.Create<Core.SugarEntities.MetricalData>()
-            .AndIF(dto.SpecificationId != null, c => c.Group.SpecificationId == int.Parse(dto.SpecificationId))
+        var exp = Expressionable
+            .Create<Core.SugarEntities.MetricalData, MetricalGroup, Core.SugarEntities.Specification, MeasureType,
+                Turn, Machine>()
+            .AndIF(dto.SpecificationId != null,
+                (c, g, s, mt, turn, mac) => g.SpecificationId == int.Parse(dto.SpecificationId))
             .AndIF(dto.BeginTime != null && dto.EndTime != null,
-                c => c.Group.BeginTime.Date >= Convert.ToDateTime(dto.BeginTime).Date &&
-                     c.Group.BeginTime.Date <= Convert.ToDateTime(dto.EndTime).Date)
+                (c, g, s, mt, turn, mac) => g.BeginTime.Date >= Convert.ToDateTime(dto.BeginTime).Date &&
+                                            g.BeginTime.Date <= Convert.ToDateTime(dto.EndTime).Date)
             .AndIF(dto.SpecificationTypeId != null,
-                c => c.Group.Specification.SpecificationTypeId == int.Parse(dto.SpecificationTypeId))
-            .AndIF(dto.TurnId != null, c => c.Group.TurnId == int.Parse(dto.TurnId))
-            .AndIF(dto.MeasureTypeId != null, c => c.Group.MeasureTypeId == int.Parse(dto.MeasureTypeId))
-            .AndIF(dto.MachineModelId != null, c => c.Group.MachineId == int.Parse(dto.MachineModelId))
+                (c, g, s, mt, turn, mac) => s.SpecificationTypeId == int.Parse(dto.SpecificationTypeId))
+            .AndIF(dto.TurnId != null, (c, g, s, mt, turn, mac) => g.TurnId == int.Parse(dto.TurnId))
+            .AndIF(dto.MeasureTypeId != null,
+                (c, g, s, mt, turn, mac) => g.MeasureTypeId == int.Parse(dto.MeasureTypeId))
+            .AndIF(dto.MachineModelId != null,
+                (c, g, s, mt, turn, mac) => g.MachineId == int.Parse(dto.MachineModelId))
             .AndIF(dto.EquipmentTypeId != null,
-                c => c.Group.EquipmentType == (EquipmentType) int.Parse(dto.EquipmentTypeId))
+                (c, g, s, mt, turn, mac) => g.EquipmentType == (EquipmentType)int.Parse(dto.EquipmentTypeId))
             .ToExpression();
-        var list = _db.Queryable<Core.SugarEntities.MetricalData>()
-            .LeftJoin<MetricalGroup>((c, g) => c.GroupId == g.Id)
-            .LeftJoin<Core.SugarEntities.Specification>((c, g, s) => g.SpecificationId == s.Id)
-            .LeftJoin<Team>((c, g, s, team) => g.TeamId == team.Id)
-            .LeftJoin<Turn>((c, g, s, team, turn) => g.TurnId == turn.Id)
-            .LeftJoin<Machine>((c, g, s, team, turn, mac) => g.MachineId == mac.Id)
-            .LeftJoin<MeasureType>((c, g, s, team, turn, mac, mt) => g.MeasureTypeId == mt.Id)
-            .Where(exp).Select((c, g, s, team, turn, mac, mt) => new
+        var list = _db
+            .Queryable<Core.SugarEntities.MetricalData, MetricalGroup, Core.SugarEntities.Specification, MeasureType
+                , Turn, Machine>((c, g, s, mt, turn, mac) => new JoinQueryInfos(
+                JoinType.Left, c.GroupId == g.Id,
+                JoinType.Left, g.SpecificationId == s.Id,
+                JoinType.Left, g.MeasureTypeId == mt.Id,
+                JoinType.Left, g.TurnId == turn.Id,
+                JoinType.Left, g.MachineId == mac.Id
+            )).Where(exp).Select((c, g, s, mt, turn, mac) => new
             {
                 c.Id,
                 c.GroupId,
@@ -1204,16 +1208,19 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
                 machineName = mac.Name,
                 measureTypeName = mt.Name,
                 testTime = c.TestTime,
-                data = c.Data
+                data = c.Data,
+                userData = g.UserData,
+                instance = g.Instance,
+                equipmentType = g.EquipmentType
             }).ToList();
 
         var specificationGroups = list.GroupBy(c => c.specificationId).ToList();
 
-        var specifications = _spRepo.All().Select(c => new {c.Id, c.SingleRules}).ToList();
+        var specifications = _spRepo.All().Select(c => new { c.Id, c.SingleRules }).ToList();
         var indicators = _iRepo.All().ToList();
         using var package = new ExcelPackage();
         var statisticItems = new List<string>
-            {"平均值", "最大值", "最小值", "SD", "CV", "CPK", "Offs", "上超", "下超", "合格数", "合格率"};
+            {"平均值", "最大值", "最小值", "SD", "CV", "CPK", "Offs", "上超", "下超", "合格数", "合格数(优)", "总数", "合格率", "合格率(优)"};
         var sheets = new Dictionary<string, object>();
         foreach (var specificationGroup in specificationGroups)
         {
@@ -1227,11 +1234,17 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
             var ws = package.Workbook.Worksheets.Add(first.specificationName);
 
             var rules = JsonConvert.DeserializeObject<List<Rule>>(singleRules.SingleRules);
-            var ruleDic = new Dictionary<Rule, string>();
+            var ruleDic = new Dictionary<Rule, Core.Entities.Indicator>();
             foreach (var rule in rules)
             {
-                var name = indicators.FirstOrDefault(c => c.Id == rule.Id).Name;
-                ruleDic.Add(rule, name);
+                var indicator = indicators.FirstOrDefault(c => c.Id == rule.Id);
+                if (rule.Id == _settings.Resistance &&
+                    Convert.ToInt32(dto.EquipmentTypeId) == (int)EquipmentType.SingleResistance)
+                {
+                    indicator.Unit = "mmWG";
+                }
+
+                ruleDic.Add(rule, indicator);
             }
 
             ws.Cells.Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
@@ -1263,10 +1276,13 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
                 row++;
                 ws.Cells[row, 1].Value = "序号";
                 ws.Cells[row, 1].Style.Border.BorderAround(ExcelBorderStyle.Thin, Color.Black);
+                ws.Column(1).Width = 15;
                 foreach (var ruleItem in ruleDic)
                 {
-                    ws.Cells[row, col].Value = ruleItem.Value;
+                    var value = ruleItem.Value.Name + "(" + ruleItem.Value.Unit + ")";
+                    ws.Cells[row, col].Value = value;
                     ws.Cells[row, col].Style.Border.BorderAround(ExcelBorderStyle.Thin, Color.Black);
+                    ws.Column(col).Width = 20;
                     col++;
                 }
 
@@ -1284,16 +1300,35 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
                         var value = "";
                         if (obj[$"{ruleItem.Key.Id}"] != null)
                             value = obj[$"{ruleItem.Key.Id}"].ToString();
+                        double doubleValue = 0;
                         if (!string.IsNullOrEmpty(value))
                         {
-                            var doubleValue = Convert.ToDouble(value);
-                            if (originDataDic.ContainsKey(ruleItem.Key.Id))
-                                originDataDic[ruleItem.Key.Id].Add(doubleValue);
+                            doubleValue = Convert.ToDouble(value);
+                            if (originDataDic.TryGetValue(ruleItem.Key.Id, out var valueList))
+                                valueList.Add(doubleValue);
                             else
-                                originDataDic.Add(ruleItem.Key.Id, new List<double> {doubleValue});
+                                originDataDic.Add(ruleItem.Key.Id, new List<double> { doubleValue });
                         }
 
-                        ws.Cells[row, valueCol].Value = value;
+                        ws.Cells[row, valueCol].Value = doubleValue == 0 ? "" : doubleValue;
+                        ws.Cells[row, valueCol].Style.Numberformat.Format = doubleValue.getDecimalCountStr();
+                        var standard = Convert.ToDouble(ruleItem.Key.Standard);
+                        var high = Convert.ToDouble(ruleItem.Key.Upper);
+                        var low = Convert.ToDouble(ruleItem.Key.Lower);
+                        if (item.equipmentType == EquipmentType.Rt)
+                        {
+                            high = standard + high;
+                            low = standard - low;
+                        }
+
+                        if (doubleValue > 0)
+                        {
+                            if (doubleValue > high)
+                                ws.Cells[row, valueCol].Style.Font.Color.SetColor(Color.Red);
+                            else if (doubleValue < low)
+                                ws.Cells[row, valueCol].Style.Font.Color.SetColor(Color.Blue);
+                        }
+
                         ws.Cells[row, valueCol].Style.Border.BorderAround(ExcelBorderStyle.Thin, Color.Black);
                         valueCol++;
                     }
@@ -1308,7 +1343,8 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
                 ws.Cells[row, 1].Style.Border.BorderAround(ExcelBorderStyle.Thin, Color.Black);
                 foreach (var ruleItem in ruleDic)
                 {
-                    ws.Cells[row, col].Value = ruleItem.Value;
+                    var value = ruleItem.Value.Name + "(" + ruleItem.Value.Unit + ")";
+                    ws.Cells[row, col].Value = value;
                     ws.Cells[row, col].Style.Border.BorderAround(ExcelBorderStyle.Thin, Color.Black);
                     col++;
                 }
@@ -1331,16 +1367,27 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
                         var tempRow = row;
                         foreach (var st in statisticItems)
                         {
-                            ws.Cells[tempRow, valueCol].Style.Border.BorderAround(ExcelBorderStyle.Thin, Color.Black);
+                            ws.Cells[tempRow, valueCol].Style.Border
+                                .BorderAround(ExcelBorderStyle.Thin, Color.Black);
                             tempRow++;
                         }
+
                         valueCol++;
                         continue;
                     }
 
+                    var high = Convert.ToDouble(ruleItem.Key.Upper);
+                    var low = Convert.ToDouble(ruleItem.Key.Lower);
+                    var standard = Convert.ToDouble(ruleItem.Key.Standard);
+                    if (item.equipmentType == EquipmentType.Rt)
+                    {
+                        high = standard + high;
+                        low = standard - low;
+                    }
+
                     var originDataList = originDataDic[ruleItem.Key.Id];
                     var statistic =
-                        originDataList.toStatistic(ruleItem.Key.Standard, ruleItem.Key.Upper, ruleItem.Key.Lower);
+                        originDataList.toStatistic(ruleItem.Key, item.equipmentType != EquipmentType.Rt);
                     ws.Cells[row, valueCol].Style.Border.BorderAround(ExcelBorderStyle.Thin, Color.Black);
                     ws.Cells[row++, valueCol].Value = statistic.Mean.format(_settings.IndicatorDecimal.Mean);
                     ws.Cells[row, valueCol].Style.Border.BorderAround(ExcelBorderStyle.Thin, Color.Black);
@@ -1360,58 +1407,21 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
                     ws.Cells[row, valueCol].Style.Border.BorderAround(ExcelBorderStyle.Thin, Color.Black);
                     ws.Cells[row++, valueCol].Value = statistic.LowCnt;
                     ws.Cells[row, valueCol].Style.Border.BorderAround(ExcelBorderStyle.Thin, Color.Black);
-                    ws.Cells[row++, valueCol].Value = statistic.Quality;
+                    ws.Cells[row++, valueCol].Value = statistic.QualityCount;
+                    ws.Cells[row, valueCol].Style.Border.BorderAround(ExcelBorderStyle.Thin, Color.Black);
+                    ws.Cells[row++, valueCol].Value = statistic.QualityQualityCount;
+                    ws.Cells[row, valueCol].Style.Border.BorderAround(ExcelBorderStyle.Thin, Color.Black);
+                    ws.Cells[row++, valueCol].Value = statistic.TotalCount;
                     ws.Cells[row, valueCol].Style.Border.BorderAround(ExcelBorderStyle.Thin, Color.Black);
                     ws.Cells[row++, valueCol].Value = statistic.QualityRate;
+                    ws.Cells[row, valueCol].Style.Border.BorderAround(ExcelBorderStyle.Thin, Color.Black);
+                    ws.Cells[row++, valueCol].Value = statistic.QualityQualityRate;
 
                     valueCol++;
                     row = beginRow;
                 }
 
                 row += statisticItems.Count + 2;
-
-                // foreach (var ruleItem in ruleDic)
-                // {
-                //     var tempList = new List<double>();
-                //     foreach (var data in dataList)
-                //     {
-                //         var obj = JsonConvert.DeserializeObject<JObject>(data);
-                //         if (obj[$"{ruleItem.Key.Id}"] != null)
-                //         {
-                //             var value = obj[$"{ruleItem.Key.Id}"].ToString();
-                //             if (!string.IsNullOrEmpty(value))
-                //             {
-                //                 tempList.Add(Convert.ToDouble(value));
-                //             }
-                //         }
-                //     }
-                //
-                //     var statistic = tempList.toStatistic(ruleItem.Key.Standard, ruleItem.Key.Upper, ruleItem.Key.Lower);
-                //     ws.Cells[row, valueCol].Style.Border.BorderAround(ExcelBorderStyle.Thin, Color.Black);
-                //     ws.Cells[row, valueCol++].Value = statistic.Mean.format(_settings.IndicatorDecimal.Mean);
-                //     ws.Cells[row, valueCol].Style.Border.BorderAround(ExcelBorderStyle.Thin, Color.Black);
-                //     ws.Cells[row, valueCol++].Value = statistic.Max.format(_settings.IndicatorDecimal.Max);
-                //     ws.Cells[row, valueCol].Style.Border.BorderAround(ExcelBorderStyle.Thin, Color.Black);
-                //     ws.Cells[row, valueCol++].Value = statistic.Min.format(_settings.IndicatorDecimal.Min);
-                //     ws.Cells[row, valueCol].Style.Border.BorderAround(ExcelBorderStyle.Thin, Color.Black);
-                //     ws.Cells[row, valueCol++].Value = statistic.Sd.format(_settings.IndicatorDecimal.Sd);
-                //     ws.Cells[row, valueCol].Style.Border.BorderAround(ExcelBorderStyle.Thin, Color.Black);
-                //     ws.Cells[row, valueCol++].Value = statistic.Cv.format(_settings.IndicatorDecimal.Cv);
-                //     ws.Cells[row, valueCol].Style.Border.BorderAround(ExcelBorderStyle.Thin, Color.Black);
-                //     ws.Cells[row, valueCol++].Value = statistic.Cpk.format(_settings.IndicatorDecimal.Cpk);
-                //     ws.Cells[row, valueCol].Style.Border.BorderAround(ExcelBorderStyle.Thin, Color.Black);
-                //     ws.Cells[row, valueCol++].Value = statistic.Offset.format(_settings.IndicatorDecimal.Offs);
-                //     ws.Cells[row, valueCol].Style.Border.BorderAround(ExcelBorderStyle.Thin, Color.Black);
-                //     ws.Cells[row, valueCol++].Value = statistic.HighCnt;
-                //     ws.Cells[row, valueCol].Style.Border.BorderAround(ExcelBorderStyle.Thin, Color.Black);
-                //     ws.Cells[row, valueCol++].Value = statistic.LowCnt;
-                //     ws.Cells[row, valueCol].Style.Border.BorderAround(ExcelBorderStyle.Thin, Color.Black);
-                //     ws.Cells[row, valueCol++].Value = statistic.Quality;
-                //     ws.Cells[row, valueCol].Style.Border.BorderAround(ExcelBorderStyle.Thin, Color.Black);
-                //     ws.Cells[row, valueCol++].Value = statistic.QualityRate;
-                // }
-
-                // row++;
             }
         }
 
@@ -1446,14 +1456,14 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
     {
         var group = _gRepo.Get(id);
         var specification = _spRepo.Get(group.SpecificationId);
-        var label = new JObject {{"label", "原始数据"}, {"type", "table-editor"}};
+        var label = new JObject { { "label", "原始数据" }, { "type", "table-editor" } };
         var columns = new JArray();
         var rules = JsonConvert.DeserializeObject<List<Rule>>(specification.SingleRules);
 
-        var idObj = new JObject {{"prop", "id"}, {"label", "ID"}, {"width", "150"}};
+        var idObj = new JObject { { "prop", "id" }, { "label", "ID" }, { "width", "150" } };
         columns.Add(idObj);
-        var testTime = new JObject {{"prop", "testTime"}, {"label", "测量时间"}, {"width", "300"}};
-        var testTimeContent = new JObject {{"type", "el-date-picker"}};
+        var testTime = new JObject { { "prop", "testTime" }, { "label", "测量时间" }, { "width", "300" } };
+        var testTimeContent = new JObject { { "type", "el-date-picker" } };
         var testTimeAttrs = new JObject
         {
             {"type", "datetime"}, {"value-format", "yyyy-MM-dd HH:mm:ss"},
@@ -1470,19 +1480,19 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
             if (indicator == null) continue;
             var indicatorName = indicator.Name;
             if (rule.Standard == "0") indicatorName += "(外观)";
-            var column = new JObject {{"prop", rule.Id.ToString()}, {"label", indicatorName}, {"width", 150}};
-            var content = new JObject {{"type", "el-input"}};
-            var attrs = new JObject {{"type", "number"}, {"step", "0.0000001"}};
+            var column = new JObject { { "prop", rule.Id.ToString() }, { "label", indicatorName }, { "width", 150 } };
+            var content = new JObject { { "type", "el-input" } };
+            var attrs = new JObject { { "type", "number" }, { "step", "0.0000001" } };
             content.Add("attrs", attrs);
             column.Add("content", content);
             columns.Add(column);
         }
 
-        var tableAttrs = new JObject {{"ref", "dataTable"}, {"height", "500"}};
-        var parentAttrs = new JObject {{"tableAttrs", tableAttrs}, {"columns", columns}};
+        var tableAttrs = new JObject { { "ref", "dataTable" }, { "height", "500" } };
+        var parentAttrs = new JObject { { "tableAttrs", tableAttrs }, { "columns", columns } };
         label.Add("attrs", parentAttrs);
-        var dataObj = new JObject {{"data", label}};
-        var specificationObj = new JObject {{"id", specification.Id}, {"desc", dataObj}};
+        var dataObj = new JObject { { "data", label } };
+        var specificationObj = new JObject { { "id", specification.Id }, { "desc", dataObj } };
 
         return specificationObj;
     }
@@ -1523,7 +1533,7 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
             {
                 var item = new MetricalDataInfoDto();
                 var groupTotal = group.Count();
-                var dataTotal = group.Sum(c => c.DataList.Count());
+                var dataTotal = group.Sum(c => c.DataList.Count);
                 item.Name = group.Key.ToString();
                 item.GroupTotal = groupTotal;
                 item.DataTotal = dataTotal;
@@ -1537,7 +1547,7 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
             {
                 var item = new MetricalDataInfoDto();
                 var groupTotal = group.Count();
-                var dataTotal = group.Sum(c => c.DataList.Count());
+                var dataTotal = group.Sum(c => c.DataList.Count);
                 item.Name = group.Key.ToString();
                 item.GroupTotal = groupTotal;
                 item.DataTotal = dataTotal;
@@ -1551,7 +1561,7 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
             {
                 var item = new MetricalDataInfoDto();
                 var groupTotal = group.Count();
-                var dataTotal = group.Sum(c => c.DataList.Count());
+                var dataTotal = group.Sum(c => c.DataList.Count);
                 item.Name = group.Key.ToString();
                 item.GroupTotal = groupTotal;
                 item.DataTotal = dataTotal;
