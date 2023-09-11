@@ -1,0 +1,130 @@
+2023/5/26 星期五 9:29:49
+System.InvalidOperationException: The transaction associated with this command is not the connection's active transaction; see https://fl.vu/mysql-trans
+   在 System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   在 System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)
+   在 MySqlConnector.MySqlCommand.<ExecuteReaderAsync>d__84.MoveNext()
+--- 引发异常的上一位置中堆栈跟踪的末尾 ---
+   在 System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   在 System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)
+   在 MySqlConnector.MySqlCommand.ExecuteDbDataReader(CommandBehavior behavior)
+   在 System.Data.Common.DbDataAdapter.FillInternal(DataSet dataset, DataTable[] datatables, Int32 startRecord, Int32 maxRecords, String srcTable, IDbCommand command, CommandBehavior behavior)
+   在 System.Data.Common.DbDataAdapter.Fill(DataTable[] dataTables, Int32 startRecord, Int32 maxRecords, IDbCommand command, CommandBehavior behavior)
+   在 System.Data.Common.DbDataAdapter.Fill(DataTable dataTable)
+   在 WebService.DataService.uploadMeasureData(Int32 equipmentType, String xmlData, String& failReason) 位置 E:\code\DCS\shifang\service\WebService\DataService.asmx.cs:行号 361
+
+
+2023/5/26 星期五 9:29:49
+<upload><info specificationId="366" machineId="3" turnId="6" typeId="24" pickupWay="2" instance="" productionTime="" deliverTime="" userData="" beginTime="2023/05/26 09:29:03" endTime="2023/05/26 09:29:46"><data time="2023/05/26 09:29:03" weight="0.446" circleRate="0.24" length="119.69" /><data time="2023/05/26 09:29:14" weight="0.442" circleRate="0.22" length="119.79" /><data time="2023/05/26 09:29:25" weight="0.458" circleRate="0.42" length="119.91" /><data time="2023/05/26 09:29:36" weight="0.459" circleRate="0.18" length="119.98" /><data time="2023/05/26 09:29:46" weight="0.450" circleRate="0.24" length="119.93" /></info></upload>
+
+
+2023/5/26 星期五 9:38:21
+MySqlConnector.MySqlException (0x80004005): You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near 'select LAST_INSERT_ID()' at line 1
+   在 System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   在 MySqlConnector.Core.ResultSet.<ReadResultSetHeaderAsync>d__2.MoveNext()
+--- 引发异常的上一位置中堆栈跟踪的末尾 ---
+   在 System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   在 MySqlConnector.MySqlDataReader.ActivateResultSet(CancellationToken cancellationToken)
+   在 MySqlConnector.MySqlDataReader.<CreateAsync>d__107.MoveNext()
+--- 引发异常的上一位置中堆栈跟踪的末尾 ---
+   在 System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   在 System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)
+   在 MySqlConnector.Core.CommandExecutor.<ExecuteReaderAsync>d__0.MoveNext()
+--- 引发异常的上一位置中堆栈跟踪的末尾 ---
+   在 System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   在 System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)
+   在 MySqlConnector.MySqlCommand.<ExecuteScalarAsync>d__80.MoveNext()
+--- 引发异常的上一位置中堆栈跟踪的末尾 ---
+   在 System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   在 System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)
+   在 MySqlConnector.MySqlCommand.ExecuteScalar()
+   在 WebService.DataService.uploadMeasureData(Int32 equipmentType, String xmlData, String& failReason) 位置 E:\code\DCS\shifang\service\WebService\DataService.asmx.cs:行号 356
+
+
+2023/5/26 星期五 9:38:21
+<upload><info specificationId="366" machineId="3" turnId="6" typeId="24" pickupWay="2" instance="" productionTime="" deliverTime="" userData="" beginTime="2023/05/26 09:37:55" endTime="2023/05/26 09:38:17"><data time="2023/05/26 09:37:55" weight="0.467" circleRate="0.32" length="119.86" /><data time="2023/05/26 09:38:05" weight="0.461" circleRate="0.29" length="119.73" /><data time="2023/05/26 09:38:17" weight="0.464" circleRate="0.45" length="119.74" /></info></upload>
+
+
+2023/5/26 星期五 9:40:56
+MySqlConnector.MySqlException (0x80004005): You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near 'select @@IDENTITY' at line 1
+   在 System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   在 MySqlConnector.Core.ResultSet.<ReadResultSetHeaderAsync>d__2.MoveNext()
+--- 引发异常的上一位置中堆栈跟踪的末尾 ---
+   在 System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   在 MySqlConnector.MySqlDataReader.ActivateResultSet(CancellationToken cancellationToken)
+   在 MySqlConnector.MySqlDataReader.<CreateAsync>d__107.MoveNext()
+--- 引发异常的上一位置中堆栈跟踪的末尾 ---
+   在 System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   在 System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)
+   在 MySqlConnector.Core.CommandExecutor.<ExecuteReaderAsync>d__0.MoveNext()
+--- 引发异常的上一位置中堆栈跟踪的末尾 ---
+   在 System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   在 System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)
+   在 MySqlConnector.MySqlCommand.<ExecuteScalarAsync>d__80.MoveNext()
+--- 引发异常的上一位置中堆栈跟踪的末尾 ---
+   在 System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   在 System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)
+   在 MySqlConnector.MySqlCommand.ExecuteScalar()
+   在 WebService.DataService.uploadMeasureData(Int32 equipmentType, String xmlData, String& failReason) 位置 E:\code\DCS\shifang\service\WebService\DataService.asmx.cs:行号 356
+
+
+2023/5/26 星期五 9:40:56
+<upload><info specificationId="366" machineId="3" turnId="6" typeId="24" pickupWay="2" instance="" productionTime="" deliverTime="" userData="" beginTime="2023/05/26 09:40:31" endTime="2023/05/26 09:40:52"><data time="2023/05/26 09:40:31" weight="0.467" circleRate="0.42" length="119.87" /><data time="2023/05/26 09:40:42" weight="0.468" circleRate="0.28" length="119.84" /><data time="2023/05/26 09:40:52" weight="0.444" circleRate="0.17" length="119.99" /></info></upload>
+
+
+2023/5/26 星期五 9:50:17
+System.InvalidOperationException: The transaction associated with this command is not the connection's active transaction; see https://fl.vu/mysql-trans
+   在 System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   在 System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)
+   在 MySqlConnector.MySqlCommand.<ExecuteReaderAsync>d__84.MoveNext()
+--- 引发异常的上一位置中堆栈跟踪的末尾 ---
+   在 System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   在 System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)
+   在 MySqlConnector.MySqlCommand.ExecuteDbDataReader(CommandBehavior behavior)
+   在 System.Data.Common.DbDataAdapter.FillInternal(DataSet dataset, DataTable[] datatables, Int32 startRecord, Int32 maxRecords, String srcTable, IDbCommand command, CommandBehavior behavior)
+   在 System.Data.Common.DbDataAdapter.Fill(DataTable[] dataTables, Int32 startRecord, Int32 maxRecords, IDbCommand command, CommandBehavior behavior)
+   在 System.Data.Common.DbDataAdapter.Fill(DataTable dataTable)
+   在 RTLib.MariaDBHelper.excuteToTable(String commend) 位置 E:\code\Lib\RTLib\RTLib.Ex.MariaDB\MariaDBHelper.cs:行号 441
+   在 WebService.DataService.uploadMeasureData(Int32 equipmentType, String xmlData, String& failReason) 位置 E:\code\DCS\shifang\service\WebService\DataService.asmx.cs:行号 372
+
+
+2023/5/26 星期五 9:50:17
+<upload><info specificationId="366" machineId="3" turnId="6" typeId="24" pickupWay="2" instance="" productionTime="" deliverTime="" userData="" beginTime="2023/05/26 09:49:51" endTime="2023/05/26 09:50:12"><data time="2023/05/26 09:49:51" weight="0.464" circleRate="0.21" length="119.86" /><data time="2023/05/26 09:50:01" weight="0.440" circleRate="0.25" length="119.76" /><data time="2023/05/26 09:50:12" weight="0.448" circleRate="0.15" length="119.83" /></info></upload>
+
+
+2023/5/26 星期五 9:52:04
+System.InvalidOperationException: The transaction associated with this command is not the connection's active transaction; see https://fl.vu/mysql-trans
+   在 System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   在 System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)
+   在 MySqlConnector.MySqlCommand.<ExecuteReaderAsync>d__84.MoveNext()
+--- 引发异常的上一位置中堆栈跟踪的末尾 ---
+   在 System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   在 System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)
+   在 MySqlConnector.MySqlCommand.ExecuteDbDataReader(CommandBehavior behavior)
+   在 System.Data.Common.DbDataAdapter.FillInternal(DataSet dataset, DataTable[] datatables, Int32 startRecord, Int32 maxRecords, String srcTable, IDbCommand command, CommandBehavior behavior)
+   在 System.Data.Common.DbDataAdapter.Fill(DataTable[] dataTables, Int32 startRecord, Int32 maxRecords, IDbCommand command, CommandBehavior behavior)
+   在 System.Data.Common.DbDataAdapter.Fill(DataTable dataTable)
+   在 RTLib.MariaDBHelper.excuteToTable(String commend) 位置 E:\code\Lib\RTLib\RTLib.Ex.MariaDB\MariaDBHelper.cs:行号 441
+   在 WebService.DataService.uploadMeasureData(Int32 equipmentType, String xmlData, String& failReason) 位置 E:\code\DCS\shifang\service\WebService\DataService.asmx.cs:行号 373
+
+
+2023/5/26 星期五 9:52:04
+<upload><info specificationId="366" machineId="3" turnId="6" typeId="24" pickupWay="2" instance="" productionTime="" deliverTime="" userData="" beginTime="2023/05/26 09:51:38" endTime="2023/05/26 09:52:00"><data time="2023/05/26 09:51:38" weight="0.467" circleRate="0.27" length="119.82" /><data time="2023/05/26 09:51:49" weight="0.450" circleRate="0.40" length="119.76" /><data time="2023/05/26 09:52:00" weight="0.472" circleRate="0.33" length="119.89" /></info></upload>
+
+
+2023/5/26 星期五 14:39:12
+System.InvalidOperationException: Connection property must be non-null.
+   在 System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   在 System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)
+   在 MySqlConnector.MySqlCommand.<ExecuteReaderAsync>d__84.MoveNext()
+--- 引发异常的上一位置中堆栈跟踪的末尾 ---
+   在 System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   在 System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)
+   在 MySqlConnector.MySqlCommand.ExecuteReader()
+   在 RTLib.MariaDBHelper.excuteToTable(String command, MySqlTransaction trans) 位置 E:\code\Lib\RTLib\RTLib.Ex.MariaDB\MariaDBHelper.cs:行号 458
+   在 WebService.DataService.uploadMeasureData(Int32 equipmentType, String xmlData, String& failReason) 位置 E:\code\DCS\shifang\service\WebService\DataService.asmx.cs:行号 358
+
+
+2023/5/26 星期五 14:39:12
+<upload><info specificationId="366" machineId="3" turnId="6" typeId="24" pickupWay="2" instance="" productionTime="" deliverTime="" userData="" beginTime="2023/05/26 14:38:44" endTime="2023/05/26 14:39:06"><data time="2023/05/26 14:38:44" weight="0.452" circleRate="0.22" length="119.80" /><data time="2023/05/26 14:38:55" weight="0.467" circleRate="0.46" length="119.67" /><data time="2023/05/26 14:39:06" weight="0.443" circleRate="0.17" length="119.92" /></info></upload>
+
+

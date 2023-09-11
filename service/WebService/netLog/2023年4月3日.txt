@@ -1,0 +1,21 @@
+2023/4/3 星期一 14:19:22
+SignalR连接成功
+
+
+2023/4/3 星期一 14:19:22
+SignalR连接失败: System.NullReferenceException: 未将对象引用设置到对象的实例。
+   在 RTLib.MBox.doShow(String title, Run[] contents, String[] operators, MBoxType type, Int32 limitSec, MBoxResult autoEndResult) 位置 E:\code\Lib\RTLib\RTLib.Raw\MBox\MBox.xaml.cs:行号 247
+   在 RTLib.MBox.Show(String title, Run[] contents, MBoxType type) 位置 E:\code\Lib\RTLib\RTLib.Raw\MBox\MBox.xaml.cs:行号 209
+   在 RTLib.Log.LogBase.save(String content, Boolean showMbox, Boolean writeLock) 位置 E:\code\Lib\RTLib\RTLib.Raw\Log\LogBase.cs:行号 48
+   在 RTLib.NetLog.save(String content) 位置 E:\code\Lib\RTLib\RTLib.Raw\Log\Logs.cs:行号 45
+   在 WebService.DataService.startSignalR() 位置 E:\code\DCS\shifang\service\WebService\DataService.asmx.cs:行号 54
+
+
+2023/4/3 星期一 14:19:38
+SignalR连接成功
+
+
+2023/4/3 星期一 14:27:14
+SignalR连接成功
+
+
