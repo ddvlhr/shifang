@@ -86,6 +86,87 @@
           <metrical-push-data :showChart="true" />
         </el-card>
       </el-tab-pane>
+      <el-tab-pane label="车间测量数据推送">
+        <el-card id="workshopMetricalPushData" shadow="never" :body-style="{padding: '20px'}">
+          <div slot="header">
+            <el-row :gutter="10">
+              <el-col :span="6" :offset="0">
+                <query-select
+                  v-model="workShopId"
+                  :options="workshopOptions"
+                  placeholder="请选择手工车间"
+                />
+              </el-col>
+              <el-col :span="4">
+                <el-button
+                  type="primary"
+                  @click="workshopMetricalDataPush"
+                  v-if="workshopPushDataState"
+                >开启推送</el-button
+                >
+                <el-button type="danger" @click="stopWorkshopMetricalDataPush" v-else
+                >停止推送</el-button
+                >
+              </el-col>
+              <el-col :span="4" :offset="10">
+                <el-button
+                  icon="el-icon-full-screen"
+                  type="primary"
+                  @click="workshopMetricalPushDataFullscreen"
+                  class="items-center"
+                >全屏/退出全屏</el-button
+                >
+              </el-col>
+            </el-row>
+            <el-row class="mt-3">
+              <el-col :span="8" style="vertical-align: middle">
+                <el-tag type="dark">
+                  当前推送数据测量时间:
+                  {{
+                    workshopMetricalPushData.length > 0
+                      ? workshopMetricalPushData[0].testTime
+                      : ''
+                  }}
+                </el-tag>
+              </el-col>
+            </el-row>
+            <el-row :gutter="20">
+              <el-col :span="15" style="border: 1px red solid;height: 570px">
+<!--                推送统计信息组件还未更改为 选择车间推送-->
+                <metrical-push-data :showChart="true" />
+              </el-col>
+              <el-col :span="8" :offset="1" style="border: 1px black solid">
+<!--                <ele-table style="height: 570px"-->
+<!--                  :columns-desc="columnsDesc"-->
+<!--                  :is-show-selection="false"-->
+<!--                  :request-fn="getSpecifications"-->
+<!--                  :is-show-right-delete="false"-->
+<!--                  :is-show-top-delete="false"-->
+<!--                  ref="table"-->
+<!--                ></ele-table>-->
+              </el-col>
+            </el-row>
+          </div>
+          <div>
+            <el-button
+              style="padding: 3px 0px"
+              type="text"
+              @click="getMetricalDataInfo(3)"
+            >月</el-button>
+            <el-button
+              style="padding: 3px 0px"
+              type="text"
+              @click="getMetricalDataInfo(2)"
+            >周</el-button>
+            <el-button
+              style="padding: 3px 0px"
+              type="text"
+              @click="getMetricalDataInfo(1)"
+            >天</el-button>
+          </div>
+          <v-chart class="chart" :option="workshopOption" autoresize />
+        </el-card>
+      </el-tab-pane>
     </el-tabs>
   </div>
 </template>
@@ -157,8 +238,67 @@ export default {
           }
         ]
       },
+      workshopOption: {
+        tooltip: {
+          trigger: 'axis',
+          axisPointer: {
+            type: 'cross'
+          }
+        },
+        legend: {
+          data: ['测量支数', '合格情况']
+        },
+        calculable: true,
+        xAxis: [
+          {
+            type: 'category',
+            axisTick: {
+              alignWithLabel: true
+            },
+            data: []
+          }
+        ],
+        yAxis: [
+          {
+            type: 'value',
+            name: '测量支数',
+            position: 'left',
+            alignTicks: true
+          },
+          {
+            type: 'value',
+            name: '合格情况',
+            position: 'right',
+            alignTicks: true
+          }
+        ],
+        series: [
+          {
+            name: '测量支数',
+            type: 'bar',
+            data: []
+          },
+          {
+            name: '合格情况',
+            type: 'line',
+            yAxisIndex: 1,
+            data: []
+          }
+        ]
+      },
+      workshopOptions: [],
+      workShopId: '',
       machineOptions: [],
       machineId: '',
+      tableDesc: {},
+      columnsDesc: {
+        number: {
+          text: '数量'
+        },
+        userName: {
+          text: '检验员'
+        }
+      },
       queryInfo: {
         specificationId: '',
         turnId: '',
@@ -174,7 +314,10 @@ export default {
     this.getMetricalDataInfo(2)
     // this.loadDataList()
     this.getOptions()
+    this.getHandicraftWorkshop()
     this.machineId = this.$store.state.user.metricalPushDataMachine
+    console.log(this.$store.state.user)
+    // console.log(this.machineId)
   },
   mounted() {
     this.initSignalR()
@@ -192,8 +335,14 @@ export default {
     metricalPushData() {
       return this.$store.state.user.metricalPushData
     },
+    workshopMetricalPushData() {
+      return this.$store.state.user.workshopMetricalData
+    },
     pushDataState() {
       return this.$store.state.user.metricalPushDataState === false
+    },
+    workshopPushDataState() {
+      return this.$store.state.user.workshopMetricalDataState === false
     }
   },
   methods: {
@@ -229,7 +378,21 @@ export default {
       if (res.meta.code !== 0) {
         return this.$message.error('获取选项失败: ' + res.meta.message)
       }
+      // this.workshopOptions = res.data.workShops
       this.machineOptions = res.data.machines
+    },
+    async getHandicraftWorkshop() {
+      const { data: res } = await this.$api.getHandicraftWorkshop()
+      if (res.meta.code !== 0) {
+        return this.$message.error('获取选项失败：' + res.meta.message)
+      }
+      // for (let i = 0; i < res.data.length; i++) {
+      //   this.workshopOptions.push(res.data[i].name)
+      // }
+      console.log(111)
+      console.log(res.data)
+      this.workshopOptions = res.data
+      console.log(this.workshopOptions)
     },
     initSignalR() {
       const metricalPushDataState = this.$store.state.user.metricalPushDataState
@@ -271,12 +434,40 @@ export default {
         this.$store.dispatch('user/setMetricalPushDataMachine', this.machineId)
       }
     },
+    // 车间推送
+    workshopMetricalDataPush() {
+      if (!this.workShopId) {
+        return this.$message.error('请选择车间再开启推送')
+      }
+      this.$store.dispatch('user/clearWorkshopMetricalPushData')
+      // 初始化SignalR, 在登录和刷新页面时调用, 判断是否需要初始化, 防止重复初始化
+      if (!sr.connection || sr.connection.state === 'Disconnected') {
+        sr.init(
+          this.$utils.getCurrentApiUrl(process.env.NODE_ENV === 'development') +
+          '/ServerHub',
+          this.$store.state.user.userInfo,
+          this.machineId
+        )
+      } else {
+        const connectionId = sr.connection.connectionId
+        sr.send('LoginPushData', [connectionId, this.workShopId])
+        this.$store.dispatch('user/setWorkshopMetricalPushDataState', true)
+        this.$store.dispatch('user/setMetricalPushDataWorkshop', this.workShopId)
+      }
+    },
     stopMetricalDataPush() {
       sr.send('LogoutPushData', [sr.connection.connectionId])
       this.$store.dispatch('user/setMetricalPushDataState', false)
     },
+    stopWorkshopMetricalDataPush() {
+      sr.send('LogoutPushData', [sr.connection.connectionId])
+      this.$store.dispatch('user/setWorkshopMetricalPushDataState', false)
+    },
     metricalPushDataFullscreen() {
       this.$utils.handleFullscreen('#metricalPushData')
+    },
+    workshopMetricalPushDataFullscreen() {
+      this.$utils.handleFullscreen('#workshopMetricalPushData')
     }
   }
 }

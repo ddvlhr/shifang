@@ -15,6 +15,10 @@ export default {
     metricalPushData: [],
     metricalPushDataState: false,
     metricalPushDataMachine: '',
+    // 车间推送相关
+    metricalPushDataWorkShop: '',
+    workshopMetricalData: [],
+    workshopMetricalDataState: false,
     rememberPassword: false,
     loginInfo: {}
   },
@@ -54,6 +58,16 @@ export default {
     setMetricalPushDataMachine(state, machine) {
       state.metricalPushDataMachine = machine
     },
+    // 车间相关
+    clearWorkshopMetricalPushData(state) {
+      state.workshopMetricalData = []
+    },
+    setMetricalPushDataWorkshop(state, workshop) {
+      state.metricalPushDataWorkShop = workshop
+    },
+    setWorkshopMetricalPushDataState(state, info) {
+      state.workshopMetricalDataState = info
+    },
     setRememberPasswordState(state, remember) {
       state.rememberPassword = remember
     },
@@ -89,6 +103,16 @@ export default {
     },
     setMetricalPushDataMachine({ commit }, machine) {
       commit('setMetricalPushDataMachine', machine)
+    },
+    // 根据车间推送消息状态
+    setWorkshopMetricalPushDataState({ commit }, info) {
+      commit('setWorkshopMetricalPushDataState', info)
+    },
+    clearWorkshopMetricalPushData({ commit }) {
+      commit('clearWorkshopMetricalPushData')
+    },
+    setMetricalPushDataWorkshop({ commit }, workshop) {
+      commit('setMetricalPushDataWorkshop', workshop)
     },
     setRememberPasswordState({ commit }, remember) {
       commit('setRememberPasswordState', remember)
