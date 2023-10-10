@@ -33,4 +33,8 @@ public interface IMetricalDataService
         int measureTypeId);
 
     Task<IEnumerable<MetricalDataInfoDto>> GetMetricalDataInfoAsync(int type);
+    Task<IEnumerable<MetricalDataInfoDto>> GetManualMetricalDataInfoAsync(int type, string workShopName);
+    List<DashboardDto.ManualCheckerInfo> GetManualCheckerInfos(string workshopName);
+    Task<IEnumerable<MaterialDataHandicraftWorkshop>> GetHandicraftWorkshopAsync();
+    IEnumerable<MetricalDataTableDto> GetHandicraftWorkshopMatrialData(string WorkShopLetter,int PageSize,int PageNum, out int total);
 }

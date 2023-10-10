@@ -1,4 +1,7 @@
-﻿using System;
+﻿using Core.Enums;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using SqlSugar;
+using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -56,6 +59,9 @@ public abstract class BaseGroup : Entity
     
     [Column("user_data"), MaxLength(255)]
     public string UserData { get; set; }
+
+    [Column("equipment_type")]
+    public EquipmentType EquipmentType { get; set; } = EquipmentType.Rt;
 }
 
 public enum PickUpWay

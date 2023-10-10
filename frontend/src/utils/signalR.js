@@ -51,6 +51,10 @@ sr.init = (url, token, machine) => {
     store.dispatch('user/addMetricalPushData', data.data)
   })
 
+  sr.connection.on('ReceiveManualPushData', (data) => {
+    store.dispatch('user/addWorkShopMetricalPushData', data)
+  })
+
   sr.connection.on('OnlineUserMessage', (data) => {
     const res = JSON.parse(data)
     store.dispatch('app/setOnlineUsers', res.data)

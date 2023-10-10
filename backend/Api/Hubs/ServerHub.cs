@@ -96,7 +96,8 @@ public class ServerHub: Hub
             ConnectionId = connId,
             UserId = tokenObj["userId"]?.ToString(),
             UserName = tokenObj["userName"]?.ToString(),
-            Machine = tokenObj["machine"]?.ToString() == "" ? 0 : int.Parse(tokenObj["machine"].ToString())
+            Machine = tokenObj["machine"]?.ToString() == "" ? 0 : int.Parse(tokenObj["machine"].ToString()),
+            Instance = ""
         };
         
         OnlineUsers.Add(user);
@@ -158,11 +159,27 @@ public class ServerHub: Hub
         await Clients.Clients(clients).SendAsync("ReceiveMetricalPushData", result);
     }
 
+    public async Task PushManualData(int groupId, string instance, string testTime)
+    {
+        // 获取仪器名称第一位字母, 如果为 J Y B 中的其中一个, 则推送手工车间数据到对应订阅用户
+        var workShopName = instance.Substring(0, 1);
+        var clients = OnlineUsers.Where(c => c.Instance.Contains(workShopName)).Select(c => c.ConnectionId).ToList();
+        await Clients.Clients(clients).SendAsync("ReceiveManualPushData", new {groupId, testTime});
+    }
+
     public Task LoginPushData(string connectionId, int machineId)
     {
         var client = OnlineUsers.FirstOrDefault(c => c.ConnectionId == connectionId);
         if (client != null)
             client.Machine = machineId;
+        return Task.CompletedTask;
+    }
+
+    public Task LoginManualPushData(string connectionId, string workShopName)
+    {
+        var client = OnlineUsers.FirstOrDefault(c => c.ConnectionId == connectionId);
+        if (client != null)
+            client.Instance = workShopName;
         return Task.CompletedTask;
     }
 

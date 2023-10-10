@@ -9,6 +9,7 @@
         <AssemblyName>Api</AssemblyName>
         <RootNamespace>Api</RootNamespace>
         <PlatformTarget>x64</PlatformTarget>
+        <BaseOutputPath>E:\code\DCS\shifang\backend\Api\bin\net6.0</BaseOutputPath>
     </PropertyGroup>
 
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">

@@ -26,6 +26,8 @@ using Turn = Core.SugarEntities.Turn;
 using System.Threading.Tasks;
 using Core.Enums;
 using ShiFangSettings = Core.Models.ShiFangSettings;
+using RTLib;
+using EquipmentType = Core.Enums.EquipmentType;
 
 namespace Infrastructure.Services.MetricalData.Impl;
 
@@ -1502,8 +1504,8 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
         var dataRepository = base.ChangeRepository<SugarRepository<Core.SugarEntities.MetricalData>>();
 
         var list = new List<MetricalDataInfoDto>();
-        var begin = DateTime.Now;
-        var end = DateTime.Now;
+        var begin = DateTime.Now.Date;
+        var end = DateTime.Now.Date;
 
         switch (type)
         {
@@ -1570,5 +1572,169 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
         }
 
         return list.OrderBy(c => int.Parse(c.Name)).ToList();
+    }
+
+    public async Task<IEnumerable<MetricalDataInfoDto>> GetManualMetricalDataInfoAsync(int type, string workShopName)
+    {
+        var dataRepository = base.ChangeRepository<SugarRepository<Core.SugarEntities.MetricalData>>();
+
+        var list = new List<MetricalDataInfoDto>();
+        var begin = DateTime.Now.Date;
+        var end = DateTime.Now.Date;
+
+        switch (type)
+        {
+            case 1:
+                break;
+            case 2:
+                begin = end.AddDays(-7);
+                break;
+            case 3:
+                begin = end.AddMonths(-1);
+                break;
+        }
+
+        var filter = Expressionable.Create<Core.SugarEntities.MetricalData>()
+            .And(c => c.Group.BeginTime.Date >= begin && c.Group.EndTime.Date <= end)
+            .And(c=>c.Group.EquipmentType == EquipmentType.SingleResistance)
+            .ToExpression();
+        var groupList = await base.Context.Queryable<MetricalGroup>()
+            .Includes(c => c.DataList)
+            .Where(c => c.BeginTime.Date >= begin && c.EndTime.Date <= end &&
+                        c.EquipmentType == EquipmentType.SingleResistance &&
+                        c.Instance.Contains(workShopName))
+            .ToListAsync();
+
+        if (type == 1)
+        {
+            var temp = groupList.GroupBy(c => c.BeginTime.Date.Hour).ToList();
+            foreach (var group in temp)
+            {
+                var item = new MetricalDataInfoDto();
+                var groupTotal = group.Count();
+                var dataTotal = group.Sum(c => c.DataList.Count);
+                item.Name = group.Key.ToString();
+                item.GroupTotal = groupTotal;
+                item.DataTotal = dataTotal;
+                list.Add(item);
+            }
+        }
+        else if (type == 2)
+        {
+            var temp = groupList.GroupBy(c => c.BeginTime.Date.Day).ToList();
+            foreach (var group in temp)
+            {
+                var item = new MetricalDataInfoDto();
+                var groupTotal = group.Count();
+                var dataTotal = group.Sum(c => c.DataList.Count);
+                item.Name = group.Key.ToString();
+                item.GroupTotal = groupTotal;
+                item.DataTotal = dataTotal;
+                list.Add(item);
+            }
+        }
+        else if (type == 3)
+        {
+            var temp = groupList.GroupBy(c => c.BeginTime.Day).ToList();
+            foreach (var group in temp)
+            {
+                var item = new MetricalDataInfoDto();
+                var groupTotal = group.Count();
+                var dataTotal = group.Sum(c => c.DataList.Count);
+                item.Name = group.Key.ToString();
+                item.GroupTotal = groupTotal;
+                item.DataTotal = dataTotal;
+                list.Add(item);
+            }
+        }
+
+        return list.OrderBy(c => int.Parse(c.Name)).ToList();
+    }
+
+    public List<DashboardDto.ManualCheckerInfo> GetManualCheckerInfos(string workshopName)
+    {
+        var begin = DateTime.Now.Date;
+        var end = DateTime.Now.Date;
+        var list = base.Context.Queryable<MetricalGroup>()
+            .Where(c => c.Instance.Contains(workshopName) && c.BeginTime.Date >= begin && c.EndTime.Date <= end)
+            .Select(c => new {c.UserData, c.Count}).ToList();
+        var groups = list.GroupBy(c => c.UserData).ToList();
+        var result = new List<DashboardDto.ManualCheckerInfo>();
+        foreach (var group in groups)
+        {
+            result.Add(new DashboardDto.ManualCheckerInfo() { No = group.Key, Count = group.Sum(c=>c.Count)});
+        }
+
+        return result;
+    }
+    // <summary>
+    /// 获取手工车间
+    /// </summary>
+    /// <returns></returns>
+    public async Task<IEnumerable<MaterialDataHandicraftWorkshop>> GetHandicraftWorkshopAsync()
+    {
+
+        List<MaterialDataHandicraftWorkshop> HandicraftWorkshops = new List<MaterialDataHandicraftWorkshop>()
+        {
+            new MaterialDataHandicraftWorkshop() {ID = Guid.NewGuid().ToString(), Name = "甲", letters = "J"},
+            new MaterialDataHandicraftWorkshop(){ID = Guid.NewGuid().ToString(), Name = "乙", letters = "Y"},
+            new MaterialDataHandicraftWorkshop(){ID = Guid.NewGuid().ToString(), Name = "丙", letters = "B"},
+        };
+        return await Task.FromResult(HandicraftWorkshops) ;
+     }
+
+    public  IEnumerable<MetricalDataTableDto> GetHandicraftWorkshopMatrialData(string WorkShopLetter,
+        int PageSize, int PageNum, out int total)
+    {
+        total = 0;
+        var exp = Expressionable.Create<MetricalGroup>()
+            .AndIF(WorkShopLetter != null, c => SqlFunc.StartsWith(c.Instance, WorkShopLetter))
+            .ToExpression();
+        var list = _db.Queryable<MetricalGroup>()
+          .LeftJoin<Core.SugarEntities.Specification>((c, s) => c.SpecificationId == s.Id)
+          .LeftJoin<Team>((c, s, team) => c.TeamId == team.Id)
+          .LeftJoin<Turn>((c, s, team, turn) => c.TurnId == turn.Id)
+          .LeftJoin<Machine>((c, s, team, turn, mac) => c.MachineId == mac.Id)
+          .LeftJoin<MeasureType>((c, s, team, turn, mac, mt) => c.MeasureTypeId == mt.Id)
+          .Where(exp)
+          .OrderByDescending(c => c.BeginTime)
+          .Select((c, s, team, turn, mac, mt) => new MetricalDataTableDto()
+          {
+              Id = c.Id,
+              SpecificationId = c.SpecificationId,
+              SpecificationName = s.Name,
+              SpecificationTypeId = c.Specification.SpecificationTypeId,
+              TeamId = c.TeamId,
+              TeamName = team.Name,
+              TurnName = turn.Name,
+              MachineId = c.MachineId,
+              MachineName = mac.Name,
+              MeasureTypeName = mt.Name,
+              BeginTime = c.BeginTime.ToString("yyyy-MM-dd HH:mm:ss"),
+              EndTime = c.EndTime.ToString("yyyy-MM-dd HH:mm:ss"),
+              ProductionTime = c.ProductionTime == null
+                  ? ""
+                  : Convert.ToDateTime(c.ProductionTime).ToString("yyyy-MM-dd"),
+              TurnId = c.TurnId,
+              MeasureTypeId = c.MeasureTypeId,
+              DeliverTime = c.DeliverTime == null ? "" : Convert.ToDateTime(c.DeliverTime).ToString("yyyy-MM-dd"),
+              OrderNo = c.OrderNo ?? "",
+              Instance = c.Instance,
+              UserName = c.UserName,
+              EquipmentType = c.EquipmentType,
+              UserData = c.UserData
+          })
+          .ToPageList(PageNum,PageSize, ref total);
+
+        foreach (var item in list)
+        {
+            item.EquipmentTypeName = item.EquipmentType.toDescription();
+            if (item.EquipmentType == EquipmentType.SingleResistance)
+            {
+                item.UserName = item.UserData;
+            }
+        }
+
+        return list;
     }
 }

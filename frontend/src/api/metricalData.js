@@ -83,3 +83,11 @@ export const getMetricalDataStatisticInfo = (data) => {
 export const getMetricalDataInfo = (type) => {
   return http.request(`/metricalData/info/${type}`, 'get')
 }
+
+export const getManualMetricalDataInfo = (type, name) => {
+  return http.request(`/metricalData/info/manual/${type}/${name}`, 'get')
+}
+
+export const getManualCheckerInfos = (name) => {
+  return http.request(`/metricalData/info/manual/${name}`, 'get')
+}

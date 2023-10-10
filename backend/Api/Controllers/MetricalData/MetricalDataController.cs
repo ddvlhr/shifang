@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing.Printing;
 using System.Threading.Tasks;
 using Core.Dtos;
 using Core.Dtos.MetricalData;
@@ -204,6 +205,57 @@ public class MetricalDataController : BaseController
     public async Task<IActionResult> GetInfo(int id)
     {
         var list = await _mdService.GetMetricalDataInfoAsync(id);
+        return Success(list);
+    }
+
+    [HttpGet("metricalData/info/manual/{id}/{workShopName}")]
+    public async Task<IActionResult> GetManualInfo(int id, string workShopName)
+    {
+        var list = await _mdService.GetManualMetricalDataInfoAsync(id, workShopName);
+        return Success(list);
+    }
+
+    [HttpGet("metricalData/info/manual/{workShopName}")]
+    public IActionResult GetManualCheckerInfos(string workShopName)
+    {
+        var result = _mdService.GetManualCheckerInfos(workShopName);
+        return Success(result);
+    }
+    /// <summary>
+    /// 获取手工车间
+    /// </summary>
+    /// <returns></returns>
+
+    [HttpGet("metricalData/getHandicraftWorkshop")]
+    public async Task<IActionResult> GetHandicraftWorkshop()
+    {
+        var list = await _mdService.GetHandicraftWorkshopAsync();
+        return Success(list);
+    }
+
+    /// <summary>
+    /// 获取手工车间的测量数据
+    /// </summary>
+    /// <param name="WorkShopLetter">手工车间字符</param>
+    /// <param name="PageSize"></param>
+    /// <param name="PageNum"></param>
+    /// <returns></returns>
+    [HttpPost]
+    [Route("metricalData/GetHandicraftWorkshopMatrialData")]
+    public  IActionResult getHandicraftWorkshopMatrialData(string WorkShopLetter, int PageSize, int PageNum)
+    {
+        var list =  _mdService.GetHandicraftWorkshopMatrialData( WorkShopLetter,  PageSize,  PageNum, out int total);
+        return Success(list);
+    }
+    /// <summary>
+    /// 获取手工车间统计数据
+    /// </summary>
+    /// <returns></returns>
+    [HttpPost]
+    [Route("metricalData/GetHandicraftWorkshopStatisticsData")]
+    public IActionResult GetHandicraftWorkshopStatisticsData(string WorkShopLetter, int PageSize, int PageNum)
+    {
+        var list = _mdService.GetHandicraftWorkshopMatrialData(WorkShopLetter, PageSize, PageNum, out int total);
         return Success(list);
     }
 }

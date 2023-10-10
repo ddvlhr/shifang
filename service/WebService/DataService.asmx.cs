@@ -120,6 +120,13 @@ namespace WebService
             _connection.InvokeAsync("PushMetricalData", groupId, 3, DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
             return true;
         }
+
+        [WebMethod]
+        public bool manualSignalRTest(int groupId)
+        {
+            _connection.InvokeAsync("PushManualData", groupId, "J04-1", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
+            return true;
+        }
         
 
         /// <summary>
@@ -285,7 +292,7 @@ namespace WebService
         public bool uploadMeasureData(int equipmentType, string xmlData, out string failReason)
         {
             failReason = "";
-            MySqlTransaction transction = null;
+            MySqlTransaction transaction = null;
             MySqlConnection conn = null;
             try
             {
@@ -342,9 +349,10 @@ namespace WebService
                 var turnId = xInfo.Attributes["turnId"].Value;
                 var machineId = xInfo.Attributes["machineId"].Value;
                 var measureTypeId = xInfo.Attributes["typeId"].Value;
-                transction = conn.BeginTransaction();
+                var instance = xInfo.Attributes["instance"].Value;
+                transaction = conn.BeginTransaction();
                 cmd.Parameters.Clear();
-                cmd.Transaction = transction;
+                cmd.Transaction = transaction;
                 cmd.CommandText =
                     "insert into t_group (begin_time, end_time, production_time, deliver_time, instance, specification_id, turn_id, machine_id," +
                     " measure_type_id, team_id, pickup_way, count, created_at_utc, modified_at_utc, user_data, equipment_type)" +
@@ -358,7 +366,7 @@ namespace WebService
                 var deliverTime = xInfo.Attributes["deliverTime"].Value;
                 cmd.Parameters.AddWithValue("productionTime", productionTime == "" ? null : productionTime);
                 cmd.Parameters.AddWithValue("deliverTime", deliverTime == "" ? null : deliverTime);
-                cmd.Parameters.AddWithValue("instance", xInfo.Attributes["instance"].Value);
+                cmd.Parameters.AddWithValue("instance", instance);
                 cmd.Parameters.AddWithValue("specificationId", specificationId);
                 cmd.Parameters.AddWithValue("teamId", teamId == "" ? 0 : int.Parse(teamId));
                 cmd.Parameters.AddWithValue("turnId", turnId == "" ? 0 : int.Parse(turnId));
@@ -374,7 +382,7 @@ namespace WebService
                 cmd.ExecuteNonQuery();
 
                 var strGid = "";
-                var dtGid = db.excuteToTable(cmd, "select LAST_INSERT_ID()", transction);
+                var dtGid = db.excuteToTable(cmd, "select LAST_INSERT_ID()", transaction);
                 strGid = dtGid.Rows[0][0].ToString();
                 // cmd.Transaction = transction;
                 // cmd.CommandText = "select LAST_INSERT_ID()";
@@ -390,8 +398,11 @@ namespace WebService
                 if (machineId != "")
                     _connection.InvokeAsync("PushMetricalData", int.Parse(strGid), int.Parse(machineId), xInfo.Attributes["beginTime"].Value);
 
+                if (!string.IsNullOrEmpty(instance))
+                    _connection.InvokeAsync("PushManualMetricalData", int.Parse(strGid), instance, xInfo.Attributes["beginTime"].Value);
+
                 // 记录详细数据t_data
-                var dtIndicator = db.excuteToTable(cmd, "select id, alias from t_indicator", transction);
+                var dtIndicator = db.excuteToTable(cmd, "select id, alias from t_indicator", transaction);
                 // dtIndicator = db.excuteToTable("select id, alias from t_indicator");
                 var indicators = ConvertHelper<Indicator>.dataTableToList(dtIndicator);
                 foreach (XmlElement d in xDetails)
@@ -420,13 +431,13 @@ namespace WebService
                     cmd.Parameters.AddWithValue("modifiedTime", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
                     cmd.ExecuteNonQuery();
                 }
-                transction?.Commit();
+                transaction?.Commit();
                 UploadLog.save("上传成功: " + xmlData, false);
                 return true;
             }
             catch (Exception ex)
             {
-                transction?.Rollback();
+                transaction?.Rollback();
                 failReason += ex.ToString();
                 UploadLog.save(ex.ToString(), false);
                 UploadLog.save(xmlData, false);

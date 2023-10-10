@@ -206,6 +206,27 @@
             <param name="id">组数据ID</param>
             <returns></returns>
         </member>
+        <member name="M:Api.Controllers.MetricalData.MetricalDataController.GetHandicraftWorkshop">
+            <summary>
+            获取手工车间
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Api.Controllers.MetricalData.MetricalDataController.getHandicraftWorkshopMatrialData(System.String,System.Int32,System.Int32)">
+            <summary>
+            获取手工车间的测量数据
+            </summary>
+            <param name="WorkShopLetter">手工车间字符</param>
+            <param name="PageSize"></param>
+            <param name="PageNum"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Api.Controllers.MetricalData.MetricalDataController.GetHandicraftWorkshopStatisticsData(System.String,System.Int32,System.Int32)">
+            <summary>
+            获取手工车间统计数据
+            </summary>
+            <returns></returns>
+        </member>
         <member name="T:Api.Controllers.Reports.ProcessDisciplineReportController">
             <summary>
             工艺纪律执行情况

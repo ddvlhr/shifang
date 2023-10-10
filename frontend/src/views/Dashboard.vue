@@ -1,9 +1,9 @@
 <!--
  * @Author: ddvlhr 354874258@qq.com
  * @Date: 2022-10-31 09:56:45
- * @LastEditors: ddvlhr 354874258@qq.com
- * @LastEditTime: 2022-11-02 15:54:58
- * @FilePath: /frontend/src/views/Dashboard.vue
+ * @LastEditors: thx 354874258@qq.com
+ * @LastEditTime: 2023-10-10 08:37:03
+ * @FilePath: \frontend\src\views\Dashboard.vue
  * @Description: Dashboard
 -->
 <template>
@@ -83,11 +83,16 @@
               </el-col>
             </el-row>
           </div>
-          <metrical-push-data :showChart="true" />
+          <metrical-push-data :showChart="true" :tabCharts="false" />
         </el-card>
       </el-tab-pane>
       <el-tab-pane label="车间测量数据推送">
-        <el-card id="workshopMetricalPushData" shadow="never" :body-style="{padding: '20px'}">
+        <el-card
+          id="workshopMetricalPushData"
+          shadow="never"
+          :body-style="{ padding: '20px' }"
+          style="max-height: 1080px; overflow-y: auto"
+        >
           <div slot="header">
             <el-row :gutter="10">
               <el-col :span="6" :offset="0">
@@ -102,10 +107,13 @@
                   type="primary"
                   @click="workshopMetricalDataPush"
                   v-if="workshopPushDataState"
-                >开启推送</el-button
+                  >开启推送</el-button
                 >
-                <el-button type="danger" @click="stopWorkshopMetricalDataPush" v-else
-                >停止推送</el-button
+                <el-button
+                  type="danger"
+                  @click="stopWorkshopMetricalDataPush"
+                  v-else
+                  >停止推送</el-button
                 >
               </el-col>
               <el-col :span="4" :offset="10">
@@ -114,7 +122,7 @@
                   type="primary"
                   @click="workshopMetricalPushDataFullscreen"
                   class="items-center"
-                >全屏/退出全屏</el-button
+                  >全屏/退出全屏</el-button
                 >
               </el-col>
             </el-row>
@@ -131,19 +139,19 @@
               </el-col>
             </el-row>
             <el-row :gutter="20">
-              <el-col :span="15" style="border: 1px red solid;height: 570px">
-<!--                推送统计信息组件还未更改为 选择车间推送-->
-                <metrical-push-data :showChart="true" />
+              <el-col :span="16" style="height: 570px; overflow-y: auto">
+                <!--                推送统计信息组件还未更改为 选择车间推送-->
+                <manual-metrical-push-data
+                  :showChart="true"
+                  :tabCharts="false"
+                />
               </el-col>
-              <el-col :span="8" :offset="1" style="border: 1px black solid">
-<!--                <ele-table style="height: 570px"-->
-<!--                  :columns-desc="columnsDesc"-->
-<!--                  :is-show-selection="false"-->
-<!--                  :request-fn="getSpecifications"-->
-<!--                  :is-show-right-delete="false"-->
-<!--                  :is-show-top-delete="false"-->
-<!--                  ref="table"-->
-<!--                ></ele-table>-->
+              <el-col :span="8">
+                <el-table height="570" :data="manualCheckerInfo" border>
+                  <el-table-column type="index" label="#"></el-table-column>
+                  <el-table-column label="工号" prop="no"></el-table-column>
+                  <el-table-column label="数量" prop="count"></el-table-column>
+                </el-table>
               </el-col>
             </el-row>
           </div>
@@ -151,18 +159,21 @@
             <el-button
               style="padding: 3px 0px"
               type="text"
-              @click="getMetricalDataInfo(3)"
-            >月</el-button>
+              @click="getManualMetricalDataInfo(1)"
+              >天</el-button
+            >
             <el-button
               style="padding: 3px 0px"
               type="text"
-              @click="getMetricalDataInfo(2)"
-            >周</el-button>
+              @click="getManualMetricalDataInfo(2)"
+              >周</el-button
+            >
             <el-button
               style="padding: 3px 0px"
               type="text"
-              @click="getMetricalDataInfo(1)"
-            >天</el-button>
+              @click="getManualMetricalDataInfo(3)"
+              >月</el-button
+            >
           </div>
           <v-chart class="chart" :option="workshopOption" autoresize />
         </el-card>
@@ -246,7 +257,7 @@ export default {
           }
         },
         legend: {
-          data: ['测量支数', '合格情况']
+          data: ['测量组数', '测量总数']
         },
         calculable: true,
         xAxis: [
@@ -261,25 +272,25 @@ export default {
         yAxis: [
           {
             type: 'value',
-            name: '测量支数',
+            name: '测量组数',
             position: 'left',
             alignTicks: true
           },
           {
             type: 'value',
-            name: '合格情况',
+            name: '测量总数',
             position: 'right',
             alignTicks: true
           }
         ],
         series: [
           {
-            name: '测量支数',
+            name: '测量组数',
             type: 'bar',
             data: []
           },
           {
-            name: '合格情况',
+            name: '测量总数',
             type: 'line',
             yAxisIndex: 1,
             data: []
@@ -299,6 +310,7 @@ export default {
           text: '检验员'
         }
       },
+      manualCheckerInfo: [],
       queryInfo: {
         specificationId: '',
         turnId: '',
@@ -316,8 +328,7 @@ export default {
     this.getOptions()
     this.getHandicraftWorkshop()
     this.machineId = this.$store.state.user.metricalPushDataMachine
-    console.log(this.$store.state.user)
-    // console.log(this.machineId)
+    this.workShopId = this.$store.state.user.metricalPushDataWorkShop
   },
   mounted() {
     this.initSignalR()
@@ -343,6 +354,14 @@ export default {
     },
     workshopPushDataState() {
       return this.$store.state.user.workshopMetricalDataState === false
+    }
+  },
+  watch: {
+    workshopMetricalPushData(newVal) {
+      if (newVal.length > 0) {
+        this.getManualMetricalDataInfo(3)
+        this.getManualCheckerInfos()
+      }
     }
   },
   methods: {
@@ -373,6 +392,36 @@ export default {
       this.option.series[0].data = groupTotalList
       this.option.series[1].data = dataTotalList
     },
+    async getManualMetricalDataInfo(type) {
+      const { data: res } = await this.$api.getManualMetricalDataInfo(
+        type,
+        this.workShopId
+      )
+      if (res.meta.code !== 0) {
+        return this.$message.error('获取测量数据信息失败: ' + res.meta.message)
+      }
+      const times = res.data.map((item) => {
+        let fix = ' 时'
+        switch (type) {
+          case 1:
+            fix = ' 时'
+            break
+          case 2:
+            fix = ' 日'
+            break
+          case 3:
+            fix = ' 日'
+            break
+        }
+
+        return item.name + fix
+      })
+      const groupTotalList = res.data.map((item) => item.groupTotal)
+      const dataTotalList = res.data.map((item) => item.dataTotal)
+      this.workshopOption.xAxis[0].data = times
+      this.workshopOption.series[0].data = groupTotalList
+      this.workshopOption.series[1].data = dataTotalList
+    },
     async getOptions() {
       const { data: res } = await this.$api.getOptions()
       if (res.meta.code !== 0) {
@@ -386,16 +435,18 @@ export default {
       if (res.meta.code !== 0) {
         return this.$message.error('获取选项失败：' + res.meta.message)
       }
-      // for (let i = 0; i < res.data.length; i++) {
-      //   this.workshopOptions.push(res.data[i].name)
-      // }
-      console.log(111)
+
       console.log(res.data)
-      this.workshopOptions = res.data
+      const options = res.data.map((item) => {
+        return { text: item.name, value: item.letters }
+      })
+      this.workshopOptions = options
       console.log(this.workshopOptions)
     },
     initSignalR() {
       const metricalPushDataState = this.$store.state.user.metricalPushDataState
+      const workshopPushDataState =
+        this.$store.state.user.workshopMetricalDataState
       if (!sr.connection || sr.connection.state === 'Disconnected') {
         sr.init(
           this.$utils.getCurrentApiUrl(process.env.NODE_ENV === 'development') +
@@ -408,6 +459,10 @@ export default {
         const connectionId = sr.connection.connectionId
         const machineId = this.$store.state.user.metricalPushDataMachine
         sr.send('LoginPushData', [connectionId, machineId])
+      } else if (workshopPushDataState && sr.connection.state === 'Connected') {
+        const connectionId = sr.connection.connectionId
+        const workshopName = this.$store.state.user.metricalPushDataWorkShop
+        sr.send('LoginManualPushData', [connectionId, workshopName])
       } else {
         setTimeout(() => {
           this.initSignalR()
@@ -439,21 +494,42 @@ export default {
       if (!this.workShopId) {
         return this.$message.error('请选择车间再开启推送')
       }
+      this.getManualMetricalDataInfo(3)
+      this.getManualCheckerInfos()
       this.$store.dispatch('user/clearWorkshopMetricalPushData')
       // 初始化SignalR, 在登录和刷新页面时调用, 判断是否需要初始化, 防止重复初始化
       if (!sr.connection || sr.connection.state === 'Disconnected') {
         sr.init(
           this.$utils.getCurrentApiUrl(process.env.NODE_ENV === 'development') +
-          '/ServerHub',
+            '/ServerHub',
           this.$store.state.user.userInfo,
           this.machineId
         )
       } else {
         const connectionId = sr.connection.connectionId
-        sr.send('LoginPushData', [connectionId, this.workShopId])
+        sr.send('LoginManualPushData', [connectionId, this.workShopId])
         this.$store.dispatch('user/setWorkshopMetricalPushDataState', true)
-        this.$store.dispatch('user/setMetricalPushDataWorkshop', this.workShopId)
+        this.$store.dispatch(
+          'user/setMetricalPushDataWorkshop',
+          this.workShopId
+        )
       }
+    },
+    async getManualCheckerInfos() {
+      const { data: res } = await this.$api.getManualCheckerInfos(
+        this.workShopId
+      )
+      if (res.meta.code !== 0) {
+        return this.$message.error('获取信息失败：' + res.meta.message)
+      }
+
+      const list = res.data.sort((a, b) => {
+        return b.count - a.count
+      })
+      this.manualCheckerInfo = list
+    },
+    compareNumbers(a, b) {
+      return a - b
     },
     stopMetricalDataPush() {
       sr.send('LogoutPushData', [sr.connection.connectionId])

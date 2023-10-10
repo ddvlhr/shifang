@@ -1,9 +1,9 @@
 /*
  * @Author: ddvlhr 354874258@qq.com
  * @Date: 2022-10-28 00:31:39
- * @LastEditors: ddvlhr 354874258@qq.com
- * @LastEditTime: 2022-10-30 00:42:56
- * @FilePath: /frontend/src/store/modules/user.js
+ * @LastEditors: thx 354874258@qq.com
+ * @LastEditTime: 2023-10-10 04:07:10
+ * @FilePath: \frontend\src\store\modules\user.js
  * @Description: 用户数据
  */
 export default {
@@ -62,6 +62,9 @@ export default {
     clearWorkshopMetricalPushData(state) {
       state.workshopMetricalData = []
     },
+    addWorkShopMetricalPushData(state, data) {
+      state.workshopMetricalData.unshift(data)
+    },
     setMetricalPushDataWorkshop(state, workshop) {
       state.metricalPushDataWorkShop = workshop
     },
@@ -110,6 +113,9 @@ export default {
     },
     clearWorkshopMetricalPushData({ commit }) {
       commit('clearWorkshopMetricalPushData')
+    },
+    addWorkShopMetricalPushData({ commit }, data) {
+      commit('addWorkShopMetricalPushData', data)
     },
     setMetricalPushDataWorkshop({ commit }, workshop) {
       commit('setMetricalPushDataWorkshop', workshop)

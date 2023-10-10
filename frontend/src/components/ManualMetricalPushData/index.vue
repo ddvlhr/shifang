@@ -187,7 +187,7 @@ export default {
   },
   computed: {
     metricalPushData() {
-      return this.$store.state.user.metricalPushData
+      return this.$store.state.user.workshopMetricalData
     }
   },
   watch: {

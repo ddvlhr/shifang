@@ -12,4 +12,6 @@ public class SignalRUserDto
     public string Token { get; set; }
     [JsonProperty("machine")]
     public int Machine { get; set; }
+    [JsonProperty("instance")]
+    public string Instance { get; set; }
 }

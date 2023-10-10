@@ -16,6 +16,8 @@ import MeasureDataDialog from '@/components/MeasureDataDialog'
 import StatisticDialog from '@/components/StatisticDialog'
 import FullScreen from '@/components/FullScreen'
 import MetricalPushData from '@/components/MetricalPushData'
+import ManualMetricalPushData from '@/components/ManualMetricalPushData'
+import OriginDataStatistic from '@/components/OriginDataStatistic'
 
 export const setupCustomComponents = () => {
   Vue.component('function-button', FunctionButton)
@@ -27,4 +29,6 @@ export const setupCustomComponents = () => {
   Vue.component('statistic-dialog', StatisticDialog)
   Vue.component('full-screen', FullScreen)
   Vue.component('metrical-push-data', MetricalPushData)
+  Vue.component('manual-metrical-push-data', ManualMetricalPushData)
+  Vue.component('origin-data-statistic', OriginDataStatistic)
 }

@@ -27,7 +27,7 @@
     "core-js": "^3.17.1",
     "dayjs": "^1.11.6",
     "echarts": "^5.4.0",
-    "element-ui": "^2.15.10",
+    "element-ui": "^2.15.14",
     "normalize.css": "^8.0.1",
     "nprogress": "^0.2.0",
     "screenfull": "^6.0.2",
