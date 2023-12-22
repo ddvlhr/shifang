@@ -1845,8 +1845,8 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
             }
 
             result.QualifiedRate =
-                Math.Round((Convert.ToDouble(result.QualityCount) / result.Count) * 100, 2).ToString("F2");
-            result.GoodRate = Math.Round((Convert.ToDouble(result.GoodCount) / result.Count) * 100, 2).ToString("F2");
+                Math.Round((Convert.ToDouble(result.QualityCount) / result.Count) * 100, 2);
+            result.GoodRate = Math.Round((Convert.ToDouble(result.GoodCount) / result.Count) * 100, 2);
             
 
             list.Add(result);

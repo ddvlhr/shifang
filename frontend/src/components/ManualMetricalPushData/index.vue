@@ -174,13 +174,67 @@
         <!-- <el-divider></el-divider> -->
         <el-row style="max-height: 640px; margin: 10px 0 10px 0">
           <el-col>
-            <el-table :data="manualDataTableInfo" max-height="300">
-              <el-table-column prop="specificationName" label="牌号" />
-              <el-table-column prop="mean" label="均值(mmWG)" />
-              <el-table-column prop="total" label="总数" />
-              <el-table-column prop="quality" label="合格数" />
-              <el-table-column prop="qualityInfo" label="优质品率" />
-              <el-table-column prop="rate" label="合格率" />
+            <el-table
+              :data="manualDataTableInfo"
+              max-height="300"
+              @mouseenter.native="tableAutoScroll(true)"
+              @mouseleave.native="tableAutoScroll()"
+            >
+              <el-table-column
+                align="center"
+                prop="specificationName"
+                label="牌号"
+              />
+              <el-table-column
+                align="center"
+                prop="mean"
+                :label="statisticItemShowStr.mean + '(mmWG)'"
+              />
+              <el-table-column
+                align="center"
+                prop="max"
+                :label="statisticItemShowStr.max + '(mmWG)'"
+              />
+              <el-table-column
+                align="center"
+                prop="min"
+                :label="statisticItemShowStr.min + '(mmWG)'"
+              />
+              <el-table-column
+                align="center"
+                prop="total"
+                :label="statisticItemShowStr.total"
+              />
+              <el-table-column
+                align="center"
+                prop="quality"
+                :label="statisticItemShowStr.qualified"
+              />
+              <el-table-column
+                align="center"
+                prop="qualityInfo"
+                :label="statisticItemShowStr.goodQualifiedRate"
+              />
+              <el-table-column
+                align="center"
+                prop="rate"
+                :label="statisticItemShowStr.qualifiedRate"
+              />
+              <el-table-column
+                align="center"
+                prop="sd"
+                :label="statisticItemShowStr.sd"
+              />
+              <el-table-column
+                align="center"
+                prop="cpk"
+                :label="statisticItemShowStr.cpk"
+              />
+              <el-table-column
+                align="center"
+                prop="offset"
+                :label="statisticItemShowStr.offs"
+              />
             </el-table>
             <v-chart
               class="chart quality-pie"
@@ -237,6 +291,7 @@ export default {
     }
   },
   data() {
+    const that = this
     return {
       tabSelected: 'statistic',
       chartTabSelected: '',
@@ -252,6 +307,9 @@ export default {
       chartMarkLineInfo: [],
       manualDataTableInfo: [],
       tableSelected: 'table',
+      settings: this.$store.state.app.settings,
+      statisticItemShowStr: this.$store.state.app.settings.statisticItemShowStr,
+      checkerStatisticData: [],
       chartType: '柱状图',
       timer: {},
       option: {
@@ -306,7 +364,7 @@ export default {
       },
       pieOption: {
         title: {
-          text: '吸阻不合格占比情况',
+          text: '吸阻合格占比情况',
           left: 'center'
         },
         tooltip: {
@@ -327,12 +385,25 @@ export default {
         },
         series: [
           {
-            name: '吸阻不合格占比情况',
+            name: '吸阻合格占比情况',
             type: 'pie',
             radius: '50%',
             data: [],
             label: {
-              formatter: '{b}: {c}({d}%)'
+              show: true,
+              formatter: function (params) {
+                const item = params.data
+                return (
+                  item.name +
+                  ':' +
+                  item.resistanceMean +
+                  '(' +
+                  item.qualifiedRate +
+                  ' / ' +
+                  item.goodQualifiedRate +
+                  ')'
+                )
+              }
             },
             emphasis: {
               itemStyle: {
@@ -403,6 +474,23 @@ export default {
             },
             emphasis: {
               focus: 'series'
+            },
+            data: []
+          },
+          {
+            name: '统计',
+            type: 'bar',
+            stack: 'total',
+            label: {
+              normal: {
+                show: true,
+                position: 'right',
+                distance: 20,
+                formatter: function (params) {
+                  const item = that.checkerStatisticData[params.dataIndex]
+                  return item[5] + '% / ' + item[6] + '%'
+                }
+              }
             },
             data: []
           }
@@ -637,12 +725,24 @@ export default {
       const lessData = []
       const qualityData = []
       const moreData = []
+      const staData = []
+      const statisticData = []
       res.data.forEach((item) => {
         yList.push(item.no)
         seriesData.push(item.count)
         lessData.push(item.lessCount)
         qualityData.push(item.qualityCount)
         moreData.push(item.moreCount)
+        staData.push(0)
+        statisticData.push([
+          item.no,
+          item.count,
+          item.lessCount,
+          item.qualityCount,
+          item.moreCount,
+          item.qualifiedRate,
+          item.goodRate
+        ])
       })
 
       const clsName =
@@ -655,9 +755,14 @@ export default {
       console.log(this.dataMaxOption)
       const tempOption = this.dataMaxOption
       tempOption.yAxis.data = yList
+      this.checkerStatisticData = statisticData
       tempOption.series[1].data = lessData
       tempOption.series[0].data = qualityData
       tempOption.series[2].data = moreData
+      tempOption.series[3].data = staData
+      tempOption.series[1].name = this.statisticItemShowStr.lowCnt
+      tempOption.series[0].name = this.statisticItemShowStr.qualified
+      tempOption.series[2].name = this.statisticItemShowStr.highCnt
       const dataZoom = [
         {
           type: 'slider',
@@ -688,6 +793,30 @@ export default {
         this.$utils.switchMode('dark')
       } else {
         this.$utils.switchMode('light')
+      }
+    },
+    // 设置自动滚动
+    tableAutoScroll(stop) {
+      const table = this.$refs.manualDataTableInfoRef // 拿到表格中承载数据的div元素
+      const divData = table.$refs.bodyWrapper // 拿到元素后，对元素进行定时增加距离顶部距离，实现滚动效果 (此配置为每150毫秒移动1像素)
+      if (stop) {
+        // 再通过事件监听，监听到 组件销毁 后，再执行关闭计时器。
+        window.clearInterval(this.scrolltimer)
+      } else {
+        this.scrolltimer = window.setInterval(() => {
+          // 元素自增距离顶部1像素
+          divData.scrollTop += 1
+          // 判断元素是否滚动到底部 (可视高度+距离顶部=整个高度)
+          if (
+            divData.clientHeight + divData.scrollTop ===
+            divData.scrollHeight
+          ) {
+            // 重置table距离顶部距离
+            divData.scrollTop = 0
+            // 重置table距离顶部距离。 值= (滚动到底部时，距离顶部的大小) - 整个高度/2
+            // divData.scrollTop = divData.scrollTop - divData.scrollHeight / 2
+          }
+        }, 100) // 滚动速度
       }
     }
   }

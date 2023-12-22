@@ -17,8 +17,8 @@ namespace Core.Dtos
             public int MoreCount { get; set; }
             public int LessCount { get; set; }
             public int GoodCount { get; set; }
-            public string QualifiedRate { get; set; }
-            public string GoodRate { get; set; }
+            public double QualifiedRate { get; set; }
+            public double GoodRate { get; set; }
         }
 
         public class ManualQueryInfoDto : BaseQueryInfoDto

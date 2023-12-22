@@ -106,21 +106,6 @@
                   />
                   <el-table-column
                     align="center"
-                    prop="sd"
-                    :label="statisticItemShowStr.sd"
-                  />
-                  <el-table-column
-                    align="center"
-                    prop="cpk"
-                    :label="statisticItemShowStr.cpk"
-                  />
-                  <el-table-column
-                    align="center"
-                    prop="offset"
-                    :label="statisticItemShowStr.offs"
-                  />
-                  <el-table-column
-                    align="center"
                     prop="total"
                     :label="statisticItemShowStr.total"
                   />
@@ -139,21 +124,36 @@
                     prop="rate"
                     :label="statisticItemShowStr.qualifiedRate"
                   />
+                  <el-table-column
+                    align="center"
+                    prop="sd"
+                    :label="statisticItemShowStr.sd"
+                  />
+                  <el-table-column
+                    align="center"
+                    prop="cpk"
+                    :label="statisticItemShowStr.cpk"
+                  />
+                  <el-table-column
+                    align="center"
+                    prop="offset"
+                    :label="statisticItemShowStr.offs"
+                  />
                 </el-table>
                 <el-divider></el-divider>
                 <v-chart
                   class="chart quality-pie"
-                  style="min-height: 340px"
+                  style="min-height: 600px"
                   :option="pieOption"
                   autoresize
                 />
               </el-col>
               <el-col :span="8">
                 <h3 class="text-center">卷制情况</h3>
-                <div style="min-height: 900px">
+                <div style="min-height: 1230px">
                   <v-chart
                     class="chart checker-chart"
-                    style="height: 780px"
+                    style="height: 1230px"
                     autoresize
                   />
                 </div>
@@ -177,6 +177,7 @@ export default {
     [THEME_KEY]: 'dark'
   },
   data() {
+    const that = this
     return {
       departmentSelect: '卷包',
       tabSelect: 'manual',
@@ -192,6 +193,7 @@ export default {
       scrolltimer: '',
       settings: this.$store.state.app.settings,
       statisticItemShowStr: this.$store.state.app.settings.statisticItemShowStr,
+      checkerStatisticData: [],
       queryInfo: {
         begin: '',
         end: '',
@@ -209,8 +211,8 @@ export default {
           trigger: 'item'
         },
         legend: {
-          orient: 'vertical',
-          left: 'left'
+          orient: 'horizontal',
+          bottom: 'left'
         },
         toolbox: {
           show: true,
@@ -233,7 +235,7 @@ export default {
                 const item = params.data
                 return (
                   item.name +
-                  ':' +
+                  '∶' +
                   item.resistanceMean +
                   '(' +
                   item.qualifiedRate +
@@ -335,13 +337,10 @@ export default {
               normal: {
                 show: true,
                 position: 'right',
+                distance: 20,
                 formatter: function (params) {
-                  const item = params.item
-                  return item[5]
-                },
-                fontSize: 16,
-                textStyle: {
-                  color: '#FFF'
+                  const item = that.checkerStatisticData[params.dataIndex]
+                  return item[5] + '% / ' + item[6] + '%'
                 }
               }
             },
@@ -442,6 +441,7 @@ export default {
         lessData.push(item.lessCount)
         qualityData.push(item.qualityCount)
         moreData.push(item.moreCount)
+        // staData.push(item.qualifiedRate + '% / ' + item.goodRate + '%')
         staData.push(0)
         statsticData.push([
           item.no,
@@ -461,6 +461,7 @@ export default {
       }
       const tempCheckerOption = this.dataMaxOption
       tempCheckerOption.dataset.source = statsticData
+      this.checkerStatisticData = statsticData
       tempCheckerOption.yAxis.data = yList
       tempCheckerOption.series[1].data = lessData
       tempCheckerOption.series[0].data = qualityData
