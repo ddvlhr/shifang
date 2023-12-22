@@ -1,9 +1,9 @@
 <!--
  * @Author: ddvlhr 354874258@qq.com
  * @Date: 2022-10-28 16:00:59
- * @LastEditors: ddvlhr 354874258@qq.com
- * @LastEditTime: 2022-11-02 15:44:33
- * @FilePath: /frontend/src/components/UserInfo/index.vue
+ * @LastEditors: thx 354874258@qq.com
+ * @LastEditTime: 2023-11-16 15:17:00
+ * @FilePath: \frontend\src\components\UserInfo\index.vue
  * @Description: 用户信息组件
 -->
 <template>
@@ -35,7 +35,7 @@ import sr from '@/utils/signalR'
 export default {
   data() {
     return {
-      user: {},
+      user: this.$store.state.user.userInfo,
       formData: {},
       formDesc: {
         origin: {
@@ -59,9 +59,6 @@ export default {
       formError: false
     }
   },
-  created() {
-    this.user = this.$store.state.user.userInfo
-  },
   methods: {
     logOut() {
       this.$store.commit('user/clearToken')
@@ -69,12 +66,17 @@ export default {
       this.$router.push('/login')
     },
     handleCommand(command) {
-      if (command === 'logOut') {
-        sr.off()
-        this.logOut()
-      } else {
-        this.dialogFormVisible = true
+      console.log(command)
+      const commands = {
+        logOut: () => {
+          sr.off()
+          this.logOut()
+        },
+        modify: () => {
+          this.dialogFormVisible = true
+        }
       }
+      commands[command]()
     },
     async handleSubmit(data) {
       this.formError = false

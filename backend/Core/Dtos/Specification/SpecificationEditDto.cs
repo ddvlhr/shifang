@@ -43,4 +43,6 @@ public class DoubleRule
     public double Standard { get; set; }
     public double Upper { get; set; }
     public double Lower { get; set; }
+    public double QualityUpper { get; set; }
+    public double QualityLower { get; set; }
 }

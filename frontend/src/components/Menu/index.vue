@@ -21,7 +21,7 @@
         v-for="item in permissions"
         :key="item.id"
       >
-        <template slot="title">
+        <template v-slot:title>
           <i :class="item.icon"></i>
           <span>{{ item.name }}</span>
         </template>
@@ -31,7 +31,7 @@
           :key="child.id"
           @click="saveNavState('/' + child.path, item.id)"
         >
-          <template slot="title">
+          <template v-slot:title>
             <span>{{ child.name }}</span>
           </template>
         </el-menu-item>
@@ -45,16 +45,28 @@ export default {
   name: 'Menu',
   computed: {
     isCollapse() {
-      return this.$store.state.app.collapse
+      const {
+        app: { collapse }
+      } = this.$store.state
+      return collapse
     },
     permissions() {
-      return this.$store.state.permission.addRoutes
+      const {
+        permission: { addRoutes }
+      } = this.$store.state
+      return addRoutes
     },
     activePath() {
-      return this.$store.state.app.activePath
+      const {
+        app: { activePath }
+      } = this.$store.state
+      return activePath
     },
     user() {
-      return this.$store.state.user.userInfo
+      const {
+        user: { userInfo }
+      } = this.$store.state
+      return userInfo
     }
   },
   methods: {

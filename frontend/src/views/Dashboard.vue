@@ -2,7 +2,7 @@
  * @Author: ddvlhr 354874258@qq.com
  * @Date: 2022-10-31 09:56:45
  * @LastEditors: thx 354874258@qq.com
- * @LastEditTime: 2023-10-10 08:37:03
+ * @LastEditTime: 2023-11-29 10:45:43
  * @FilePath: \frontend\src\views\Dashboard.vue
  * @Description: Dashboard
 -->
@@ -34,12 +34,8 @@
           <v-chart class="chart" :option="option" autoresize />
         </el-card>
       </el-tab-pane>
-      <el-tab-pane label="测量数据推送">
-        <el-card
-          id="metricalPushData"
-          shadow="never"
-          :body-style="{ padding: '20px' }"
-        >
+      <el-tab-pane label="机台看板">
+        <el-card shadow="never" :body-style="{ padding: '20px' }">
           <div slot="header">
             <el-row :gutter="20">
               <el-col :span="6" :offset="0">
@@ -60,33 +56,12 @@
                   >停止推送</el-button
                 >
               </el-col>
-              <el-col :span="4" :offset="10">
-                <el-button
-                  icon="el-icon-full-screen"
-                  type="primary"
-                  @click="metricalPushDataFullscreen"
-                  class="items-center"
-                  >全屏/退出全屏</el-button
-                >
-              </el-col>
-            </el-row>
-            <el-row class="mt-3">
-              <el-col :span="8" style="vertical-align: middle">
-                <el-tag type="dark">
-                  当前推送数据测量时间:
-                  {{
-                    metricalPushData.length > 0
-                      ? metricalPushData[0].testTime
-                      : ''
-                  }}
-                </el-tag>
-              </el-col>
             </el-row>
           </div>
           <metrical-push-data :showChart="true" :tabCharts="false" />
         </el-card>
       </el-tab-pane>
-      <el-tab-pane label="车间测量数据推送">
+      <el-tab-pane label="手工车间看板">
         <el-card
           id="workshopMetricalPushData"
           shadow="never"
@@ -116,66 +91,13 @@
                   >停止推送</el-button
                 >
               </el-col>
-              <el-col :span="4" :offset="10">
-                <el-button
-                  icon="el-icon-full-screen"
-                  type="primary"
-                  @click="workshopMetricalPushDataFullscreen"
-                  class="items-center"
-                  >全屏/退出全屏</el-button
-                >
-              </el-col>
-            </el-row>
-            <el-row class="mt-3">
-              <el-col :span="8" style="vertical-align: middle">
-                <el-tag type="dark">
-                  当前推送数据测量时间:
-                  {{
-                    workshopMetricalPushData.length > 0
-                      ? workshopMetricalPushData[0].testTime
-                      : ''
-                  }}
-                </el-tag>
-              </el-col>
-            </el-row>
-            <el-row :gutter="20">
-              <el-col :span="16" style="height: 570px; overflow-y: auto">
-                <!--                推送统计信息组件还未更改为 选择车间推送-->
-                <manual-metrical-push-data
-                  :showChart="true"
-                  :tabCharts="false"
-                />
-              </el-col>
-              <el-col :span="8">
-                <el-table height="570" :data="manualCheckerInfo" border>
-                  <el-table-column type="index" label="#"></el-table-column>
-                  <el-table-column label="工号" prop="no"></el-table-column>
-                  <el-table-column label="数量" prop="count"></el-table-column>
-                </el-table>
-              </el-col>
             </el-row>
           </div>
-          <div>
-            <el-button
-              style="padding: 3px 0px"
-              type="text"
-              @click="getManualMetricalDataInfo(1)"
-              >天</el-button
-            >
-            <el-button
-              style="padding: 3px 0px"
-              type="text"
-              @click="getManualMetricalDataInfo(2)"
-              >周</el-button
-            >
-            <el-button
-              style="padding: 3px 0px"
-              type="text"
-              @click="getManualMetricalDataInfo(3)"
-              >月</el-button
-            >
-          </div>
-          <v-chart class="chart" :option="workshopOption" autoresize />
+          <manual-metrical-push-data
+            :showChart="true"
+            :tabCharts="false"
+            :workShopId="workShopId"
+          />
         </el-card>
       </el-tab-pane>
     </el-tabs>
@@ -183,6 +105,7 @@
 </template>
 
 <script>
+import * as echarts from 'echarts'
 import VChart, { THEME_KEY } from 'vue-echarts'
 import sr from '@/utils/signalR'
 export default {
@@ -298,9 +221,13 @@ export default {
         ]
       },
       workshopOptions: [],
+      lastMachineConnection: null,
+      lastWorkShopConnection: null,
+      lastWorkShopId: '',
       workShopId: '',
       machineOptions: [],
       machineId: '',
+      lastMachineId: '',
       tableDesc: {},
       columnsDesc: {
         number: {
@@ -444,25 +371,35 @@ export default {
       console.log(this.workshopOptions)
     },
     initSignalR() {
-      const metricalPushDataState = this.$store.state.user.metricalPushDataState
-      const workshopPushDataState =
-        this.$store.state.user.workshopMetricalDataState
+      const {
+        metricalPushDataState,
+        workshopMetricalDataState,
+        metricalPushDataMachine,
+        metricalPushDataWorkShop,
+        userInfo
+      } = this.$store.state.user
+
       if (!sr.connection || sr.connection.state === 'Disconnected') {
         sr.init(
           this.$utils.getCurrentApiUrl(process.env.NODE_ENV === 'development') +
             '/ServerHub',
-          this.$store.state.user.userInfo,
+          userInfo,
           0
         )
       }
-      if (metricalPushDataState && sr.connection.state === 'Connected') {
+
+      if (sr.connection && sr.connection.state === 'Connected') {
         const connectionId = sr.connection.connectionId
-        const machineId = this.$store.state.user.metricalPushDataMachine
-        sr.send('LoginPushData', [connectionId, machineId])
-      } else if (workshopPushDataState && sr.connection.state === 'Connected') {
-        const connectionId = sr.connection.connectionId
-        const workshopName = this.$store.state.user.metricalPushDataWorkShop
-        sr.send('LoginManualPushData', [connectionId, workshopName])
+
+        if (metricalPushDataState) {
+          const machineId = metricalPushDataMachine
+          sr.send('LoginPushData', [connectionId, machineId])
+          this.lastMachineConnection = sr.connection
+        } else if (workshopMetricalDataState) {
+          const workshopName = metricalPushDataWorkShop
+          sr.send('LoginManualPushData', [connectionId, workshopName])
+          this.lastWorkShopConnection = sr.connection
+        }
       } else {
         setTimeout(() => {
           this.initSignalR()
@@ -470,9 +407,11 @@ export default {
       }
     },
     metricalDataPush() {
-      if (!this.machineId) {
-        return this.$message.error('请选择机台再开启推送')
+      if (this.lastMachineConnection !== null) {
+        sr.send('LogoutPushData', [this.lastMachineConnection.connectionId])
+        this.$store.dispatch('user/setMetricalPushDataState', false)
       }
+
       this.$store.dispatch('user/clearMetricalPushData')
       // 初始化SignalR, 在登录和刷新页面时调用, 判断是否需要初始化, 防止重复初始化
       if (!sr.connection || sr.connection.state === 'Disconnected') {
@@ -488,14 +427,14 @@ export default {
         this.$store.dispatch('user/setMetricalPushDataState', true)
         this.$store.dispatch('user/setMetricalPushDataMachine', this.machineId)
       }
+      this.lastMachineConnection = sr.connection
+      this.lastMachineId = this.machineId
     },
     // 车间推送
     workshopMetricalDataPush() {
       if (!this.workShopId) {
         return this.$message.error('请选择车间再开启推送')
       }
-      this.getManualMetricalDataInfo(3)
-      this.getManualCheckerInfos()
       this.$store.dispatch('user/clearWorkshopMetricalPushData')
       // 初始化SignalR, 在登录和刷新页面时调用, 判断是否需要初始化, 防止重复初始化
       if (!sr.connection || sr.connection.state === 'Disconnected') {
@@ -523,10 +462,19 @@ export default {
         return this.$message.error('获取信息失败：' + res.meta.message)
       }
 
-      const list = res.data.sort((a, b) => {
-        return b.count - a.count
+      const yList = []
+      const seriesData = []
+      res.data.forEach((item) => {
+        yList.push(item.no)
+        seriesData.push(item.count)
       })
-      this.manualCheckerInfo = list
+
+      const dom = document.querySelector('.checker-chart')
+      const chart = echarts.getInstanceByDom(dom)
+      const tempOption = JSON.parse(JSON.stringify(this.dataMaxOption))
+      tempOption.yAxis.data = yList
+      tempOption.series[0].data = seriesData
+      chart.setOption(tempOption)
     },
     compareNumbers(a, b) {
       return a - b

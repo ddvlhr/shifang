@@ -1,6 +1,7 @@
 import * as signalR from '@microsoft/signalr'
 import { Notification } from 'element-ui'
 import store from '@/store'
+import utils from '@/utils'
 
 const sr = {
   name: 'ReceiveMessage',
@@ -13,6 +14,8 @@ const sr = {
  * @param {Object} token 用户信息
  */
 sr.init = (url, token, machine) => {
+  const dev = process.env.NODE_ENV === 'development'
+  url = utils.getCurrentApiUrl(dev) + '/ServerHub'
   // console.log(url, token)
   const user = {
     userId: token.id,

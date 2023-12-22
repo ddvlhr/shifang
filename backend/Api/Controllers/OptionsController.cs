@@ -27,6 +27,7 @@ public class OptionsController : BaseController
     private readonly IReportOrderService _roService;
     private readonly IDefectService _defectService;
     private readonly ISpecificationService _speService;
+    private readonly ITeamService _teamService;
     private readonly ISpecificationTypeService _stService;
     private readonly ITurnService _turnService;
     private readonly IUserService _uService;
@@ -37,6 +38,7 @@ public class OptionsController : BaseController
 
     public OptionsController(
         ISpecificationService speService,
+        ITeamService teamService,
         ITurnService turnService,
         IMachineService macService,
         IMeasureTypeService mtService,
@@ -57,6 +59,7 @@ public class OptionsController : BaseController
         IDepartmentService departmentService)
     {
         _speService = speService;
+        _teamService = teamService;
         _turnService = turnService;
         _macService = macService;
         _mtService = mtService;
@@ -78,10 +81,12 @@ public class OptionsController : BaseController
     }
 
     [HttpGet]
-    [Route("options")]
-    public async Task<IActionResult> Get()
+    [Route("options/{isManual}")]
+    public async Task<IActionResult> Get(bool isManual = false)
     {
-        var specifications = _speService.GetOptions();
+        var specifications = _speService.GetOptions(isManual);
+
+        var teams = _teamService.GetOptions();
 
         var turns = _turnService.GetOptions();
 
@@ -132,6 +137,7 @@ public class OptionsController : BaseController
         return Success(new
         {
             specifications,
+            teams,
             turns,
             machines,
             measureTypes,

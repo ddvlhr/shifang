@@ -16,6 +16,7 @@
       </div>
       <Notice />
       <Setting v-if="showSetting" />
+      <!-- <Dark /> -->
       <UserInfo />
     </div>
   </el-header>
@@ -26,7 +27,6 @@ import Collapse from '@/components/Collapse'
 import Setting from '@/components/Setting'
 import UserInfo from '@/components/UserInfo'
 import Notice from '@/components/Notice'
-import sr from '@/utils/signalR'
 export default {
   components: {
     Collapse,

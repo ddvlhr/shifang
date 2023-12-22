@@ -15,6 +15,8 @@ using Infrastructure.Services.System;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Http;
+using System.Reflection.PortableExecutable;
+using Org.BouncyCastle.Crypto.IO;
 
 namespace Api.Hubs;
 
@@ -155,6 +157,7 @@ public class ServerHub: Hub
     public async Task PushMetricalData(int groupId, int machine, string testTime)
     {
         var result = new Response(0, "", new {groupId, testTime});
+        _logger.LogInformation($"收到机台 {machine} 推送的数据, groupId: {groupId}, testTime: {testTime}");
         var clients = OnlineUsers.Where(c => c.Machine == machine).Select(c => c.ConnectionId).ToList();
         await Clients.Clients(clients).SendAsync("ReceiveMetricalPushData", result);
     }
@@ -163,6 +166,7 @@ public class ServerHub: Hub
     {
         // 获取仪器名称第一位字母, 如果为 J Y B 中的其中一个, 则推送手工车间数据到对应订阅用户
         var workShopName = instance.Substring(0, 1);
+        _logger.LogInformation($"收到车间 {workShopName} 推送的数据, groupId: {groupId}, testTime: {testTime}");
         var clients = OnlineUsers.Where(c => c.Instance.Contains(workShopName)).Select(c => c.ConnectionId).ToList();
         await Clients.Clients(clients).SendAsync("ReceiveManualPushData", new {groupId, testTime});
     }
@@ -172,6 +176,7 @@ public class ServerHub: Hub
         var client = OnlineUsers.FirstOrDefault(c => c.ConnectionId == connectionId);
         if (client != null)
             client.Machine = machineId;
+        _logger.LogInformation($"机台看板: 机台 {machineId} 已登录");
         return Task.CompletedTask;
     }
 
@@ -180,14 +185,25 @@ public class ServerHub: Hub
         var client = OnlineUsers.FirstOrDefault(c => c.ConnectionId == connectionId);
         if (client != null)
             client.Instance = workShopName;
+        _logger.LogInformation($"手工看板: 车间 {workShopName} 已登录");
         return Task.CompletedTask;
     }
 
     public Task LogoutPushData(string connectionId)
     {
         var client = OnlineUsers.FirstOrDefault(c => c.ConnectionId == connectionId);
+        _logger.LogInformation($"机台看板: 机台 {client?.Machine} 已登出");
         if (client != null)
             client.Machine = 0;
+        return Task.CompletedTask;
+    }
+
+    public Task LogoutManualPushData(string connectionId)
+    {
+        var client = OnlineUsers.FirstOrDefault(c => c.ConnectionId == connectionId);
+        _logger.LogInformation($"手工看板: 车间 {client?.Instance} 已登出");
+        if (client != null)
+            client.Instance = "";
         return Task.CompletedTask;
     }
 }

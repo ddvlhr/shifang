@@ -11,7 +11,7 @@ public interface ISpecificationService
     bool Add(SpecificationEditDto dto, out string failReason);
     bool Update(SpecificationEditDto dto, out string failReason);
     SpecificationEditDto GetInfo(int id);
-    IEnumerable<BaseOptionDto> GetOptions();
+    IEnumerable<BaseOptionDto> GetOptions(bool isManual = false);
     IEnumerable<BaseOptionDto> GetSpecificationsByTypeId(int id);
     bool GetIndicatorsTableDescById(int id, out TableEditor result, out string message, int measureTypeId = 0, int machineModelId = 0);
 }

@@ -82,4 +82,9 @@ export default {
 .el-empty {
   height: calc(100vh - 140px);
 }
+
+.el-row {
+  display: flex;
+  flex-wrap: wrap;
+}
 </style>

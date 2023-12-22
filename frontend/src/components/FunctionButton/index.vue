@@ -1,20 +1,23 @@
 <!--
  * @Author: ddvlhr 354874258@qq.com
  * @Date: 2022-10-28 20:26:09
- * @LastEditors: ddvlhr 354874258@qq.com
- * @LastEditTime: 2022-11-03 09:43:56
- * @FilePath: /frontend/src/components/FunctionButton/index.vue
+ * @LastEditors: thx 354874258@qq.com
+ * @LastEditTime: 2023-11-16 15:23:13
+ * @FilePath: \frontend\src\components\FunctionButton\index.vue
  * @Description:
 -->
 <template>
   <div>
     <el-row
       :gutter="10"
-      :style="functionList != null ? 'margin-bottom: 15px' : ''"
+      :style="{
+        marginBottom: functionList != null ? '15px' : '0',
+        marginLeft: '0'
+      }"
       style="margin-left: 0"
     >
       <el-button
-        v-for="func in functions"
+        v-for="func in functionList"
         :key="func.id"
         :type="func.buttonTypeName"
         @click="doParentMethod(func.functionName)"
@@ -34,17 +37,6 @@ export default {
   created() {
     this.get()
   },
-  computed: {
-    rowHeight() {
-      return this.functionList == null ? '0px' : 'auto'
-    },
-    functions() {
-      return this.functionList
-    }
-  },
-  actived() {
-    console.log('actived')
-  },
   watch: {
     $route(to) {
       console.log(to.path)
@@ -56,7 +48,7 @@ export default {
       this.functionList = buttons.filter((c) => c.buttonPosition === 1)
     },
     doParentMethod(method) {
-      this.$emit('' + method + '')
+      this.$emit(`${method}`)
     }
   }
 }

@@ -30,11 +30,11 @@ export default {
   props: {
     value: {
       type: [String, Number, Array],
-      require: true
+      required: true
     },
     options: {
       type: Array,
-      require: true
+      required: true
     },
     multiple: {
       type: Boolean,
@@ -63,16 +63,12 @@ export default {
     }
   },
   computed: {
-    listeners: function () {
-      var vm = this
-      return Object.assign({}, this.$listeners, {
-        change: function (event) {
-          vm.$emit('change', event.target.value)
-        },
-        clear: function(event) {
-          vm.$emit('clear', event.targe.value)
-        }
-      })
+    listeners() {
+      return {
+        ...this.$listeners,
+        change: (event) => this.$emit('change', event.target.value),
+        clear: (event) => this.$emit('clear', event.target.value)
+      }
     }
   },
   watch: {

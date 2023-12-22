@@ -15,4 +15,5 @@ public class ShiFangSettings
     public int Hardness { get; set; }
     public int CigarTypeId { get; set; }
     public DataFormatDecimal IndicatorDecimal { get; set; }
+    public StatisticItemShowStr StatisticItemShowStr { get; set; }
 }

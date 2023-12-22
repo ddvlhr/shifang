@@ -2,7 +2,7 @@
  * @Author: ddvlhr 354874258@qq.com
  * @Date: 2022-10-31 10:14:42
  * @LastEditors: thx 354874258@qq.com
- * @LastEditTime: 2023-07-31 16:04:12
+ * @LastEditTime: 2023-11-03 14:06:49
  * @FilePath: \frontend\src\utils\index.js
  * @Description:
  */
@@ -146,7 +146,7 @@ utils.reloadCurrentRoute = (tabs, store) => {
  * @return {String}
  */
 utils.getCurrentApiUrl = (ssl = false, port = 9527) => {
-  let url = `${window.location.protocol}//${window.location.hostname}:${port}`
+  let url = `${window.location.protocol}//${window.location.hostname}:${process.env.VUE_APP_API_PORT}`
   if (ssl) {
     url = url.replace('http', 'https')
   }
@@ -193,6 +193,73 @@ utils.handleFullscreen = (elementName) => {
   }
   const element = document.querySelector(elementName)
   screenfull.toggle(element)
+  return screenfull.isFullscreen
+}
+
+utils.hasClass = (el, cls) => {
+  if (!el || !cls) return false
+  if (cls.indexOf(' ') !== -1) {
+    throw new Error('className should not contain space.')
+  }
+  if (el.classList) {
+    return el.classList.contains(cls)
+  } else {
+    return (' ' + el.className + ' ').indexOf(' ' + cls + ' ') > -1
+  }
+}
+
+utils.addClass = (el, cls) => {
+  if (!el) return
+  let curClass = el.className
+  const classes = (cls || '').split(' ')
+
+  for (var i = 0, j = classes.length; i < j; i++) {
+    var clsName = classes[i]
+    if (!clsName) continue
+
+    if (el.classList) {
+      el.classList.add(clsName)
+    } else if (!utils.hasClass(el, clsName)) {
+      curClass += ' ' + clsName
+    }
+  }
+  if (!el.classList) {
+    el.setAttribute('class', curClass)
+  }
+}
+
+utils.removeClass = (el, cls) => {
+  if (!el || !cls) return
+  const classes = cls.split(' ')
+  let curClass = ' ' + el.className + ' '
+
+  for (var i = 0, j = classes.length; i < j; i++) {
+    var clsName = classes[i]
+    if (!clsName) continue
+
+    if (el.classList) {
+      el.classList.remove(clsName)
+    } else if (utils.hasClass(el, clsName)) {
+      curClass = curClass.replace(' ' + clsName + ' ', ' ')
+    }
+  }
+  if (!el.classList) {
+    el.setAttribute('class', curClass.trim())
+  }
+}
+
+utils.switchMode = (mode) => {
+  const isDark = mode === 'dark'
+  if (!isDark) {
+    store.commit('app/setDark', false)
+    utils.removeClass(document.documentElement, 'dark')
+  } else {
+    store.commit('app/setDark', true)
+    const withoutClassName = !utils.hasClass(document.documentElement, 'dark')
+    if (withoutClassName) {
+      utils.addClass(document.documentElement, 'dark')
+    }
+  }
 }
 
 export default utils

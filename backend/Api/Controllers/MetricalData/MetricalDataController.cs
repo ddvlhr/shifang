@@ -195,10 +195,10 @@ public class MetricalDataController : BaseController
         return Success(_mdService.GetMeasureDataBySpecificationIdAndMeasureTypeId(specificationId, measureTypeId));
     }
 
-    [HttpGet("metricalData/statistic/{id}")]
-    public IActionResult GetStatisticInfo(int id)
+    [HttpGet("metricalData/statistic/{id}/{dayStatistic}")]
+    public IActionResult GetStatisticInfo(int id, bool dayStatistic = false)
     {
-        return Success(_mdService.GetStatisticInfo(id, out var message));
+        return Success(_mdService.GetStatisticInfo(id, dayStatistic, out var message));
     }
 
     [HttpGet("metricalData/info/{id}")]
@@ -257,5 +257,30 @@ public class MetricalDataController : BaseController
     {
         var list = _mdService.GetHandicraftWorkshopMatrialData(WorkShopLetter, PageSize, PageNum, out int total);
         return Success(list);
+    }
+
+    [HttpGet("metricalData/manual/{workShopName}")]
+    public IActionResult GetManulDataTableInfo(string workShopName)
+    {
+        var result = _mdService.GetManualMetricalDataStatistic(workShopName);
+        return Success(result);
+    }
+
+    [HttpPost("metricalData/summary/groupIds")]
+    public IActionResult GetGroupIdsByMachine([FromBody] NewestGroupIdsQueryDto dto)
+    {
+        return Success(_mdService.GetNewestGroupIdsByMachine(dto));
+    }
+
+    [HttpPost("metricalData/summary/manual")]
+    public IActionResult GetManualSummaryInfo([FromBody] DashboardDto.ManualQueryInfoDto dto)
+    {
+        return Success(_mdService.GetManualSummaryInfo(dto));
+    }
+
+    [HttpPost("metricalData/specifications/team")]
+    public IActionResult GetSpecificationsByTeams([FromBody] GetSpecificationByTurnsQueryDto dto)
+    {
+        return Success(_mdService.GetSpecificationsByTeamIds(dto));
     }
 }

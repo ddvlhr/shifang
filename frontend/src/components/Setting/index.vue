@@ -1,9 +1,9 @@
 <!--
  * @Author: ddvlhr 354874258@qq.com
  * @Date: 2022-10-28 00:21:10
- * @LastEditors: ddvlhr 354874258@qq.com
- * @LastEditTime: 2022-10-28 20:24:24
- * @FilePath: /frontend/src/components/Setting/index.vue
+ * @LastEditors: thx 354874258@qq.com
+ * @LastEditTime: 2023-12-22 10:40:51
+ * @FilePath: \frontend\src\components\Setting\index.vue
  * @Description: 系统设置组件
 -->
 <template>
@@ -60,6 +60,67 @@
               v-model="formData.resistance"
               :options="indicatorOptions"
             />
+          </el-form-item>
+
+          <el-divider content-positon="center" class="text-center"
+            >统计分析名词</el-divider
+          >
+          <el-form-item label="均值">
+            <el-input v-model="statisticItemShowStr.mean"></el-input>
+          </el-form-item>
+
+          <el-form-item label="最大值">
+            <el-input v-model="statisticItemShowStr.max"></el-input>
+          </el-form-item>
+
+          <el-form-item label="最小值">
+            <el-input v-model="statisticItemShowStr.min"></el-input>
+          </el-form-item>
+
+          <el-form-item label="SD">
+            <el-input v-model="statisticItemShowStr.sd"></el-input>
+          </el-form-item>
+
+          <el-form-item label="CPK">
+            <el-input v-model="statisticItemShowStr.cpk"></el-input>
+          </el-form-item>
+
+          <el-form-item label="Cv">
+            <el-input v-model="statisticItemShowStr.cv"></el-input>
+          </el-form-item>
+
+          <el-form-item label="Offs">
+            <el-input v-model="statisticItemShowStr.offs"></el-input>
+          </el-form-item>
+
+          <el-form-item label="总数">
+            <el-input v-model="statisticItemShowStr.total"></el-input>
+          </el-form-item>
+
+          <el-form-item label="上超标">
+            <el-input v-model="statisticItemShowStr.highCnt"></el-input>
+          </el-form-item>
+
+          <el-form-item label="下超标">
+            <el-input v-model="statisticItemShowStr.lowCnt"></el-input>
+          </el-form-item>
+
+          <el-form-item label="合格数">
+            <el-input v-model="statisticItemShowStr.qualified"></el-input>
+          </el-form-item>
+
+          <el-form-item label="不合格数">
+            <el-input v-model="statisticItemShowStr.unqualified"></el-input>
+          </el-form-item>
+
+          <el-form-item label="合格率">
+            <el-input v-model="statisticItemShowStr.qualifiedRate"></el-input>
+          </el-form-item>
+
+          <el-form-item label="优质品率">
+            <el-input
+              v-model="statisticItemShowStr.goodQualifiedRate"
+            ></el-input>
           </el-form-item>
 
           <el-divider content-positon="center" class="text-center"
@@ -123,6 +184,22 @@ export default {
         cv: 0,
         cpk: 0,
         offs: 0
+      },
+      statisticItemShowStr: {
+        Mean: '',
+        Max: '',
+        Min: '',
+        Sd: '',
+        Cv: '',
+        Cpk: '',
+        Offs: '',
+        Total: '',
+        HighCnt: '',
+        LowCnt: '',
+        Qualified: '',
+        Unqualified: '',
+        QualifiedRate: '',
+        GoodQualifiedRate: ''
       }
     }
   },
@@ -142,13 +219,16 @@ export default {
     },
     handleSettings() {
       const settings = this.$store.state.app.settings
+      console.log(settings)
       this.formData = settings
       this.indicatorDecimal = settings.indicatorDecimal
+      this.statisticItemShowStr = settings.statisticItemShowStr
       this.settingVisible = true
     },
     async handleSubmit() {
       this.formError = false
       this.formData.indicatorDecimal = this.indicatorDecimal
+      this.formData.statisticItemShowStr = this.statisticItemShowStr
       const { data: res } = await this.$api.setSettings(this.formData)
       if (res.meta.code !== 0) {
         this.formError = true

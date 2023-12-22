@@ -76,8 +76,11 @@ export const getMetricalDataBySpecificationIdAndMeasureType = (data) => {
   )
 }
 
-export const getMetricalDataStatisticInfo = (data) => {
-  return http.request('/metricalData/statistic/' + data, 'get')
+export const getMetricalDataStatisticInfo = (data, dayStatistic = false) => {
+  return http.request(
+    '/metricalData/statistic/' + data + '/' + dayStatistic,
+    'get'
+  )
 }
 
 export const getMetricalDataInfo = (type) => {
@@ -90,4 +93,20 @@ export const getManualMetricalDataInfo = (type, name) => {
 
 export const getManualCheckerInfos = (name) => {
   return http.request(`/metricalData/info/manual/${name}`, 'get')
+}
+
+export const getManualTableInfo = (name) => {
+  return http.request(`/metricalData/manual/${name}`, 'get')
+}
+
+export const getNewestGroupIds = (data) => {
+  return http.request('/metricalData/summary/groupIds', 'post', data)
+}
+
+export const getManualSummaryInfo = (data) => {
+  return http.request('/metricalData/summary/manual', 'post', data)
+}
+
+export const getSpecificationsByTeams = (data) => {
+  return http.request('/metricalData/specifications/team', 'post', data)
 }

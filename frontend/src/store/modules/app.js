@@ -21,7 +21,8 @@ export default {
     sessionStorageSize: '',
     serverInfo: {},
     metricalDataPush: [],
-    equipment: {}
+    equipment: {},
+    dark: false
   },
   getters: {},
   mutations: {
@@ -55,6 +56,9 @@ export default {
     },
     setEquipment(state, equipment) {
       state.equipment = equipment
+    },
+    setDark(state, dark) {
+      state.dark = dark
     }
   },
   actions: {
@@ -69,6 +73,9 @@ export default {
     },
     setEquipment({ commit }, equipment) {
       commit('setEquipment', equipment)
+    },
+    setDark({ commit }, dark) {
+      commit('setDark', dark)
     }
   }
 }

@@ -24,10 +24,13 @@ using MeasureType = Core.SugarEntities.MeasureType;
 using Team = Core.SugarEntities.Team;
 using Turn = Core.SugarEntities.Turn;
 using System.Threading.Tasks;
+using System.Xml;
+using Core.Dtos.Statistics;
 using Core.Enums;
 using ShiFangSettings = Core.Models.ShiFangSettings;
 using RTLib;
 using EquipmentType = Core.Enums.EquipmentType;
+using static Core.Dtos.DashboardDto;
 
 namespace Infrastructure.Services.MetricalData.Impl;
 
@@ -89,7 +92,7 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
     {
         //TODO 添加测量数据时会重复添加
         failReason = string.Empty;
-        var items = (JArray)JsonConvert.DeserializeObject(dto.DataInfo);
+        var items = (JArray) JsonConvert.DeserializeObject(dto.DataInfo);
         var dataList = new List<Data>();
         foreach (var item in items)
         {
@@ -238,7 +241,7 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
             }
 
         var deleteIds = inDbIds.Where(c => !updateIds.Contains(c))
-            .Select(c => new Core.SugarEntities.MetricalData { Id = c }).ToList();
+            .Select(c => new Core.SugarEntities.MetricalData {Id = c}).ToList();
         // var deleteList = _dRepo.All().Where(c => deleteIds.Contains(c.Id));
 
         var ret = _db.Storageable(dataList).ExecuteCommand();
@@ -386,14 +389,14 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
         var departmentType = _accessor.HttpContext.getDepartmentType();
         var equipmentTypes = dto.EquipmentTypeId == null
             ? new List<EquipmentType>()
-            : new List<EquipmentType> { (EquipmentType)int.Parse(dto.EquipmentTypeId) };
+            : new List<EquipmentType> {(EquipmentType) int.Parse(dto.EquipmentTypeId)};
         if (departmentType == DepartmentType.Cigarette)
         {
-            equipmentTypes = new List<EquipmentType>() { EquipmentType.Mts, EquipmentType.Rt };
+            equipmentTypes = new List<EquipmentType>() {EquipmentType.Mts, EquipmentType.Rt};
         }
         else if (departmentType == DepartmentType.Cigar)
         {
-            equipmentTypes = new List<EquipmentType>() { EquipmentType.SingleResistance };
+            equipmentTypes = new List<EquipmentType>() {EquipmentType.SingleResistance};
         }
 
         var exp = Expressionable.Create<MetricalGroup>()
@@ -465,9 +468,9 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
         foreach (var rule in singleRules)
         {
             var indicator = _iRepo.Get(rule.Id);
-            var column = new JObject { { "prop", rule.Id }, { "label", indicator.Name } };
-            var content = new JObject { { "type", "el-input" } };
-            var attrs = new JObject { { "type", "number" }, { "step", "0.0000001" } };
+            var column = new JObject {{"prop", rule.Id}, {"label", indicator.Name}};
+            var content = new JObject {{"type", "el-input"}};
+            var attrs = new JObject {{"type", "number"}, {"step", "0.0000001"}};
             content.Add("attrs", attrs);
             column.Add("content", content);
             columns.Add(column);
@@ -534,13 +537,11 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
         var dataInfo = new JArray();
         foreach (var item in data)
         {
-            var info = (JObject)JsonConvert.DeserializeObject(item.Data);
-            if (info == null)
-                continue;
-            if (!info.ContainsKey("id"))
+            var info = JObject.Parse(item.Data);
+            if (!info.TryGetValue("id", out JToken token))
                 info.Add("id", item.Id);
             else
-                info["id"] = item.Id;
+                token.Replace(item.Id);
             dataInfo.Add(info);
         }
 
@@ -554,13 +555,13 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
         return JsonConvert.SerializeObject(temp);
     }
 
-    public BaseStatisticInfoDto GetStatisticInfo(int groupId, out string failReason)
+    public BaseStatisticInfoDto GetStatisticInfo(int groupId, bool dayStatistic, out string failReason)
     {
         var info = new BaseStatisticInfoDto();
         failReason = "";
         var indicators = _iRepo.All().ToList();
-        var statisticItems = new[] { "平均值", "最大值", "最小值", "SD", "CV", "CPK", "Offs", "上超", "下超", "合格数", "合格率" };
-        var group = _db.Queryable<MetricalGroup>().Single(c => c.Id == groupId);
+        var statisticItems = new[] {"平均值", "最大值", "最小值", "SD", "CV", "CPK", "Offs", "上超", "下超", "合格数", "合格率"};
+        var group = _db.Queryable<MetricalGroup>().Includes(c=>c.Specification).Includes(c=>c.Machine).Single(c => c.Id == groupId);
         if (group == null)
         {
             failReason = "没有找到对应的测试组";
@@ -582,8 +583,33 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
             return info;
         }
 
+        info.SpecificationName = group.Specification.Name;
+        info.MachineId = group.MachineId;
+        info.Instance = group.EquipmentType == EquipmentType.SingleResistance ? group.Instance : group.Machine.Name;
+        info.BeginTime = group.BeginTime.ToString("yyyy-MM-dd HH:mm:ss");
+        var wsName = group.Instance[..1];
+        info.WorkShopName = wsName switch
+        {
+            "J" => "甲班",
+            "Y" => "乙班",
+            "B" => "丙班",
+            _ => ""
+        };
+
         var data = _db.Queryable<Core.SugarEntities.MetricalData>().Where(c => c.GroupId == groupId)
             .Select(c => c.Data).ToList();
+        var specificationDataList = new List<string>();
+        if (dayStatistic)
+        {
+            var groupIds = _db.Queryable<MetricalGroup>().Where(c =>
+                c.SpecificationId == group.SpecificationId &&
+                c.Instance == group.Instance &&
+                c.BeginTime.Date >= group.BeginTime.Date &&
+                c.EndTime.Date <= group.EndTime.Date).Select(c => c.Id).ToList();
+            specificationDataList = _db.Queryable<Core.SugarEntities.MetricalData>()
+                .Where(c => groupIds.Contains(c.GroupId)).Select(c => c.Data).ToList();
+        }
+
         if (data.Count == 0)
         {
             failReason = "没有找到对应的测试数据";
@@ -596,7 +622,9 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
         var statisticColumns = new Dictionary<string, object>();
         var dataInfo = new List<Dictionary<string, object>>();
         var statisticDataInfo = new List<Dictionary<string, Dictionary<string, object>>>();
+        var dayStatisticDataInfo = new List<Dictionary<string, Dictionary<string, object>>>();
         var chartDataInfo = new Dictionary<string, List<double>>();
+        var chartMarkLineInfo = new Dictionary<string, Dictionary<string, int>>();
         foreach (var statisticItem in statisticItems)
         {
             var dic = new Dictionary<string, Dictionary<string, object>>()
@@ -604,6 +632,11 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
                 {"itemName", new Dictionary<string, object>() {{"text", statisticItem}, {"high", 0}, {"low", 0}}}
             };
             statisticDataInfo.Add(dic);
+            var dic2 = new Dictionary<string, Dictionary<string, object>>()
+            {
+                {"itemName", new Dictionary<string, object>() {{"text", statisticItem}, {"high", 0}, {"low", 0}}}
+            };
+            dayStatisticDataInfo.Add(dic2);
         }
 
         var index = 0;
@@ -640,7 +673,7 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
                     {
                         if (kv.Key == "testTime")
                         {
-                            temp.Add(kv.Key, new { text = kv.Value?.ToString(), high = 0, low = 0 });
+                            temp.Add(kv.Key, new {text = kv.Value?.ToString(), high = 0, low = 0});
                         }
 
                         if (kv.Key != "testTime" && kv.Key != "id")
@@ -671,20 +704,83 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
                     dataList.Add(double.Parse(value));
             }
 
+            var specificationDataItemList = new List<double>();
+            if (dayStatistic)
+            {
+                foreach (var item in specificationDataList)
+                {
+                    var dataItem = JsonConvert.DeserializeObject<JObject>(item);
+                    if (dataItem == null) continue;
+
+                    // 由于测量数据中可能会有没有填写所有指标的情况, 所以先判断是否存在该指标
+                    var currentDataItem = dataItem[$"{rule.Id}"];
+                    if (currentDataItem == null) continue;
+                    var value = currentDataItem.ToString();
+                    if (!string.IsNullOrEmpty(value))
+                        specificationDataItemList.Add(double.Parse(value));
+                }
+            }
+
             var ruleStandard = Convert.ToDouble(rule.Standard);
             var ruleUpper = Convert.ToDouble(rule.Upper);
             var ruleLower = Convert.ToDouble(rule.Lower);
+            var ruleQualityUpper = string.IsNullOrEmpty(rule.QualityUpper) ? 0 : Convert.ToDouble(rule.QualityUpper);
+            var ruleQualityLower = string.IsNullOrEmpty(rule.QualityLower) ? 0 : Convert.ToDouble(rule.QualityLower);
             var doubleRule = new DoubleRule()
             {
                 Standard = ruleStandard,
                 Upper = ruleStandard + ruleUpper,
-                Lower = ruleStandard - ruleLower
+                Lower = ruleStandard - ruleLower,
+                QualityUpper = ruleStandard + ruleQualityUpper,
+                QualityLower = ruleStandard - ruleQualityLower
             };
+
+            var chartMarkLineTemp = new Dictionary<string, int>()
+                {{"upper", 0}, {"lower", 0}, {"qualityUpper", 0}, {"qualityLower", 0}, {"standard", 0}};
+            foreach (var d in dataList)
+            {
+                if (!chartMarkLineInfo.TryGetValue(rule.Id.ToString(), out chartMarkLineTemp))
+                {
+                    chartMarkLineTemp = new Dictionary<string, int>()
+                        {{"upper", 0}, {"lower", 0}, {"qualityUpper", 0}, {"qualityLower", 0}, {"standard", 0}};
+                    chartMarkLineInfo.Add(rule.Id.ToString(), chartMarkLineTemp);
+                }
+
+                if (d > doubleRule.Upper)
+                {
+                    chartMarkLineTemp["upper"] += 1;
+                }
+                else if (d < doubleRule.Lower)
+                {
+                    chartMarkLineTemp["lower"] += 1;
+                }
+                else if (doubleRule.QualityUpper != doubleRule.Standard && d > doubleRule.QualityUpper &&
+                         d < doubleRule.Upper)
+                {
+                    chartMarkLineTemp["qualityUpper"] += 1;
+                }
+                else if (doubleRule.QualityLower != doubleRule.Standard && d < doubleRule.QualityLower &&
+                         d > doubleRule.Lower)
+                {
+                    chartMarkLineTemp["qualityLower"] += 1;
+                }
+                else
+                {
+                    chartMarkLineTemp["standard"] += 1;
+                }
+            }
+
+            chartMarkLineInfo[rule.ToString()] = chartMarkLineTemp;
+
             ruleDics.Add(rule.Id.ToString(), doubleRule);
             chartDataInfo.Add(rule.Id.ToString(), dataList);
 
-            var statistic = dataList.toStatistic(Convert.ToDouble(rule.Standard), Convert.ToDouble(rule.Upper),
-                Convert.ToDouble(rule.Lower));
+            var statistic = dataList.toStatistic(ruleStandard, ruleUpper,
+                ruleLower, ruleQualityUpper, ruleQualityLower);
+            var dayStatisticInfo = new StatisticItem();
+            if (dayStatistic)
+                dayStatisticInfo = specificationDataItemList.toStatistic(ruleStandard, ruleUpper, ruleLower,
+                    ruleQualityUpper, ruleQualityLower);
             foreach (var item in statisticItems)
             {
                 //var currentObj = statisticDataInfo.Where(c => c.Value == item);
@@ -706,8 +802,32 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
                     _ => ""
                 };
 
-                var baseInfoItems = new[] { "平均值", "最大值", "最小值" };
+                var spCurrent = new Dictionary<string, Dictionary<string, object>>();
+                var spCurrentItem = "";
+                if (dayStatistic)
+                {
+                    spCurrent = dayStatisticDataInfo.FirstOrDefault(c => c["itemName"]["text"].ToString() == item);
+                    if (spCurrent == null) continue;
+                    spCurrentItem = item switch
+                    {
+                        "平均值" => dayStatisticInfo.Mean.toString(_settings.IndicatorDecimal.Mean),
+                        "最大值" => dayStatisticInfo.Max.toString(_settings.IndicatorDecimal.Max),
+                        "最小值" => dayStatisticInfo.Min.toString(_settings.IndicatorDecimal.Min),
+                        "SD" => dayStatisticInfo.Sd.toString(_settings.IndicatorDecimal.Sd),
+                        "CV" => dayStatisticInfo.Cv.toString(_settings.IndicatorDecimal.Cv),
+                        "CPK" => dayStatisticInfo.Cpk.toString(_settings.IndicatorDecimal.Cpk),
+                        "Offs" => dayStatisticInfo.Offset.toString(_settings.IndicatorDecimal.Offs),
+                        "上超" => dayStatisticInfo.HighCnt.ToString(),
+                        "下超" => dayStatisticInfo.LowCnt.ToString(),
+                        "合格数" => dayStatisticInfo.Quality,
+                        "合格率" => dayStatisticInfo.QualityRate,
+                        _ => ""
+                    };
+                }
+
+                var baseInfoItems = new[] {"平均值", "最大值", "最小值"};
                 var itemInfo = new Dictionary<string, object>();
+                var spItemInfo = new Dictionary<string, object>();
                 if (baseInfoItems.Contains(item))
                 {
                     var standard = Convert.ToDouble(rule.Standard);
@@ -716,15 +836,29 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
                     itemInfo.Add("text", currentItem);
                     itemInfo.Add("high", standard + upper);
                     itemInfo.Add("low", standard - lower);
+                    if (dayStatistic)
+                    {
+                        spItemInfo.Add("text", spCurrentItem);
+                        spItemInfo.Add("high", standard + upper);
+                        spItemInfo.Add("low", standard - lower);
+                    }
                 }
                 else
                 {
                     itemInfo.Add("text", currentItem);
                     itemInfo.Add("high", 0);
                     itemInfo.Add("low", 0);
+                    if (dayStatistic)
+                    {
+                        spItemInfo.Add("text", spCurrentItem);
+                        spItemInfo.Add("high", 0);
+                        spItemInfo.Add("low", 0);
+                    }
                 }
 
                 current.Add($"a{rule.Id}", itemInfo);
+                if (dayStatistic)
+                    spCurrent.Add($"a{rule.Id}", spItemInfo);
                 index++;
             }
         }
@@ -735,6 +869,8 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
         info.StatisticDataInfo = statisticDataInfo;
         info.Standard = ruleDics;
         info.ChartDataInfo = chartDataInfo;
+        info.DayStatisticDataInfo = dayStatisticDataInfo;
+        info.ChartMarkLineInfo = chartMarkLineInfo;
 
         return info;
     }
@@ -743,7 +879,7 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
     {
         failReason = string.Empty;
         var dto = new MetricalDataStatisticDto();
-        var statisticItems = new[] { "平均值", "最大值", "最小值", "SD", "CV", "CPK", "Offs", "上超", "下超", "合格数", "合格率" };
+        var statisticItems = new[] {"平均值", "最大值", "最小值", "SD", "CV", "CPK", "Offs", "上超", "下超", "合格数", "合格率"};
         var group = _gRepo.Get(id);
         var specification = _spRepo.Get(group.SpecificationId);
         var rules = JsonConvert.DeserializeObject<List<Rule>>(specification.SingleRules);
@@ -756,16 +892,16 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
             return dto;
         }
 
-        var columns = new JObject { { "itemName", new JObject { { "text", "统计项目" } } } };
-        var originColumns = new JObject { { "testTime", new JObject { { "text", "测量时间" } } } };
+        var columns = new JObject {{"itemName", new JObject {{"text", "统计项目"}}}};
+        var originColumns = new JObject {{"testTime", new JObject {{"text", "测量时间"}}}};
         var dataInfo = new JArray();
         var originDataInfo = new JArray();
-        foreach (var item in statisticItems) dataInfo.Add(new JObject { { "itemName", item } });
+        foreach (var item in statisticItems) dataInfo.Add(new JObject {{"itemName", item}});
 
         var index = 0;
         foreach (var rule in rules)
         {
-            var firstData = (JObject)JsonConvert.DeserializeObject(data.FirstOrDefault());
+            var firstData = (JObject) JsonConvert.DeserializeObject(data.FirstOrDefault());
             // 指标标准值为 0 的为外观指标, 不需要统计数据
             if (rule.Standard == "0") continue;
 
@@ -774,7 +910,7 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
             {
                 var indicatorName = rule.Name;
                 if (string.IsNullOrEmpty(rule.Name)) indicatorName = _iRepo.Get(rule.Id).Name;
-                var column = new JObject { { "text", indicatorName } };
+                var column = new JObject {{"text", indicatorName}};
                 columns.Add($"a{rule.Id}", column);
                 originColumns.Add($"a{rule.Id}", column);
             }
@@ -783,7 +919,7 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
 
             foreach (var item in data)
             {
-                var obj = (JObject)JsonConvert.DeserializeObject(item);
+                var obj = (JObject) JsonConvert.DeserializeObject(item);
                 if (index == 0)
                 {
                     var tempObj = new JObject();
@@ -873,7 +1009,7 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
                 (c, g, s, mt, turn, mac) => g.MeasureTypeId == int.Parse(dto.MeasureTypeId))
             .AndIF(dto.MachineModelId != null, (c, g, s, mt, turn, mac) => g.MachineId == int.Parse(dto.MachineModelId))
             .AndIF(dto.EquipmentTypeId != null,
-                (c, g, s, mt, turn, mac) => g.EquipmentType == (EquipmentType)int.Parse(dto.EquipmentTypeId))
+                (c, g, s, mt, turn, mac) => g.EquipmentType == (EquipmentType) int.Parse(dto.EquipmentTypeId))
             .ToExpression();
         var list = _db
             .Queryable<Core.SugarEntities.MetricalData, MetricalGroup, Core.SugarEntities.Specification, MeasureType,
@@ -903,7 +1039,7 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
         using var package = new ExcelPackage();
 
         var specificationGroups = list.GroupBy(c => c.specificationId).ToList();
-        var specifications = _spRepo.All().Select(c => new { c.Id, c.SingleRules }).ToList();
+        var specifications = _spRepo.All().Select(c => new {c.Id, c.SingleRules}).ToList();
         foreach (var specificationGroup in specificationGroups)
         {
             var first = specificationGroup.First();
@@ -1006,7 +1142,7 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
             .AndIF(dto.MachineModelId != null,
                 (c, g, s, mt, turn, mac) => g.MachineId == int.Parse(dto.MachineModelId))
             .AndIF(dto.EquipmentTypeId != null,
-                (c, g, s, mt, turn, mac) => g.EquipmentType == (EquipmentType)int.Parse(dto.EquipmentTypeId))
+                (c, g, s, mt, turn, mac) => g.EquipmentType == (EquipmentType) int.Parse(dto.EquipmentTypeId))
             .ToExpression();
         var list = _db
             .Queryable<Core.SugarEntities.MetricalData, MetricalGroup, Core.SugarEntities.Specification, MeasureType
@@ -1034,7 +1170,7 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
 
         var specificationGroups = list.GroupBy(c => c.specificationId).ToList();
 
-        var specifications = _spRepo.All().Select(c => new { c.Id, c.SingleRules }).ToList();
+        var specifications = _spRepo.All().Select(c => new {c.Id, c.SingleRules}).ToList();
         var indicators = _iRepo.All().ToList();
         using var package = new ExcelPackage();
         var statisticItems = new List<string>
@@ -1190,7 +1326,7 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
             .AndIF(dto.MachineModelId != null,
                 (c, g, s, mt, turn, mac) => g.MachineId == int.Parse(dto.MachineModelId))
             .AndIF(dto.EquipmentTypeId != null,
-                (c, g, s, mt, turn, mac) => g.EquipmentType == (EquipmentType)int.Parse(dto.EquipmentTypeId))
+                (c, g, s, mt, turn, mac) => g.EquipmentType == (EquipmentType) int.Parse(dto.EquipmentTypeId))
             .ToExpression();
         var list = _db
             .Queryable<Core.SugarEntities.MetricalData, MetricalGroup, Core.SugarEntities.Specification, MeasureType
@@ -1218,7 +1354,7 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
 
         var specificationGroups = list.GroupBy(c => c.specificationId).ToList();
 
-        var specifications = _spRepo.All().Select(c => new { c.Id, c.SingleRules }).ToList();
+        var specifications = _spRepo.All().Select(c => new {c.Id, c.SingleRules}).ToList();
         var indicators = _iRepo.All().ToList();
         using var package = new ExcelPackage();
         var statisticItems = new List<string>
@@ -1241,7 +1377,7 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
             {
                 var indicator = indicators.FirstOrDefault(c => c.Id == rule.Id);
                 if (rule.Id == _settings.Resistance &&
-                    Convert.ToInt32(dto.EquipmentTypeId) == (int)EquipmentType.SingleResistance)
+                    Convert.ToInt32(dto.EquipmentTypeId) == (int) EquipmentType.SingleResistance)
                 {
                     indicator.Unit = "mmWG";
                 }
@@ -1309,7 +1445,7 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
                             if (originDataDic.TryGetValue(ruleItem.Key.Id, out var valueList))
                                 valueList.Add(doubleValue);
                             else
-                                originDataDic.Add(ruleItem.Key.Id, new List<double> { doubleValue });
+                                originDataDic.Add(ruleItem.Key.Id, new List<double> {doubleValue});
                         }
 
                         ws.Cells[row, valueCol].Value = doubleValue == 0 ? "" : doubleValue;
@@ -1458,14 +1594,14 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
     {
         var group = _gRepo.Get(id);
         var specification = _spRepo.Get(group.SpecificationId);
-        var label = new JObject { { "label", "原始数据" }, { "type", "table-editor" } };
+        var label = new JObject {{"label", "原始数据"}, {"type", "table-editor"}};
         var columns = new JArray();
         var rules = JsonConvert.DeserializeObject<List<Rule>>(specification.SingleRules);
 
-        var idObj = new JObject { { "prop", "id" }, { "label", "ID" }, { "width", "150" } };
+        var idObj = new JObject {{"prop", "id"}, {"label", "ID"}, {"width", "150"}};
         columns.Add(idObj);
-        var testTime = new JObject { { "prop", "testTime" }, { "label", "测量时间" }, { "width", "300" } };
-        var testTimeContent = new JObject { { "type", "el-date-picker" } };
+        var testTime = new JObject {{"prop", "testTime"}, {"label", "测量时间"}, {"width", "300"}};
+        var testTimeContent = new JObject {{"type", "el-date-picker"}};
         var testTimeAttrs = new JObject
         {
             {"type", "datetime"}, {"value-format", "yyyy-MM-dd HH:mm:ss"},
@@ -1482,19 +1618,19 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
             if (indicator == null) continue;
             var indicatorName = indicator.Name;
             if (rule.Standard == "0") indicatorName += "(外观)";
-            var column = new JObject { { "prop", rule.Id.ToString() }, { "label", indicatorName }, { "width", 150 } };
-            var content = new JObject { { "type", "el-input" } };
-            var attrs = new JObject { { "type", "number" }, { "step", "0.0000001" } };
+            var column = new JObject {{"prop", rule.Id.ToString()}, {"label", indicatorName}, {"width", 150}};
+            var content = new JObject {{"type", "el-input"}};
+            var attrs = new JObject {{"type", "number"}, {"step", "0.0000001"}};
             content.Add("attrs", attrs);
             column.Add("content", content);
             columns.Add(column);
         }
 
-        var tableAttrs = new JObject { { "ref", "dataTable" }, { "height", "500" } };
-        var parentAttrs = new JObject { { "tableAttrs", tableAttrs }, { "columns", columns } };
+        var tableAttrs = new JObject {{"ref", "dataTable"}, {"height", "500"}};
+        var parentAttrs = new JObject {{"tableAttrs", tableAttrs}, {"columns", columns}};
         label.Add("attrs", parentAttrs);
-        var dataObj = new JObject { { "data", label } };
-        var specificationObj = new JObject { { "id", specification.Id }, { "desc", dataObj } };
+        var dataObj = new JObject {{"data", label}};
+        var specificationObj = new JObject {{"id", specification.Id}, {"desc", dataObj}};
 
         return specificationObj;
     }
@@ -1596,7 +1732,7 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
 
         var filter = Expressionable.Create<Core.SugarEntities.MetricalData>()
             .And(c => c.Group.BeginTime.Date >= begin && c.Group.EndTime.Date <= end)
-            .And(c=>c.Group.EquipmentType == EquipmentType.SingleResistance)
+            .And(c => c.Group.EquipmentType == EquipmentType.SingleResistance)
             .ToExpression();
         var groupList = await base.Context.Queryable<MetricalGroup>()
             .Includes(c => c.DataList)
@@ -1651,39 +1787,152 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
         return list.OrderBy(c => int.Parse(c.Name)).ToList();
     }
 
+    private List<DashboardDto.ManualCheckerInfo> getManualCheckerInfos(string workshopName, DateTime begin,
+        DateTime end, List<int> specificationIds, List<int> turnIds)
+    {
+        var query = base.Context.Queryable<MetricalGroup>()
+            .Includes(c => c.DataList)
+            .Where(c => c.BeginTime.Date >= begin &&
+                        c.EndTime.Date <= end && !string.IsNullOrEmpty(c.UserData));
+        if (!string.IsNullOrEmpty(workshopName))
+        {
+            query = query.Where(c => c.Instance.Contains(workshopName));
+        }
+        if (specificationIds.Count > 0)
+        {
+            query = query.Where(c => specificationIds.Contains(c.SpecificationId));
+        }
+
+        if (turnIds.Count > 0)
+        {
+            query = query.Where(c => turnIds.Contains(c.TurnId));
+        }
+        var groups = query.ToList().GroupBy(c => c.UserData).ToList();
+        var specifications = _spRepo.All().ToList();
+        var list = new List<DashboardDto.ManualCheckerInfo>();
+        foreach (var group in groups)
+        {
+            var result = new DashboardDto.ManualCheckerInfo()
+            {
+                No = group.Key
+            };
+            foreach (var g in group)
+            {
+                var specification = specifications.FirstOrDefault(c => c.Id == g.SpecificationId);
+                if (specification == null) continue;
+                var rules = JsonConvert.DeserializeObject<List<Rule>>(specification.SingleRules);
+                var rule = rules.FirstOrDefault(c => c.Id == _settings.Resistance);
+                if (rule == null) continue;
+                var valueList = new List<double>();
+                foreach (var data in g.DataList)
+                {
+                    var obj = JsonConvert.DeserializeObject<JObject>(data.Data);
+                    if (obj == null) continue;
+                    var value = obj[_settings.Resistance.ToString()];
+                    if (value != null)
+                    {
+                        if (!string.IsNullOrEmpty(value.ToString()))
+                            valueList.Add(double.Parse(value.ToString()));
+                    }
+                }
+
+                var statistic = valueList.toStatistic(rule.Standard, rule.Upper, rule.Lower);
+                result.Count += statistic.TotalCount;
+                result.LessCount += statistic.LowCnt;
+                result.MoreCount += statistic.HighCnt;
+                result.QualityCount += statistic.QualityCount;
+                result.GoodCount += statistic.QualityQualityCount;
+            }
+
+            result.QualifiedRate =
+                Math.Round((Convert.ToDouble(result.QualityCount) / result.Count) * 100, 2).ToString("F2");
+            result.GoodRate = Math.Round((Convert.ToDouble(result.GoodCount) / result.Count) * 100, 2).ToString("F2");
+            
+
+            list.Add(result);
+        }
+
+        return list;
+    }
     public List<DashboardDto.ManualCheckerInfo> GetManualCheckerInfos(string workshopName)
     {
         var begin = DateTime.Now.Date;
         var end = DateTime.Now.Date;
-        var list = base.Context.Queryable<MetricalGroup>()
-            .Where(c => c.Instance.Contains(workshopName) && c.BeginTime.Date >= begin && c.EndTime.Date <= end)
-            .Select(c => new {c.UserData, c.Count}).ToList();
-        var groups = list.GroupBy(c => c.UserData).ToList();
-        var result = new List<DashboardDto.ManualCheckerInfo>();
+        var query = base.Context.Queryable<MetricalGroup>()
+            .Includes(c => c.DataList)
+            .Where(c => c.Instance.Contains(workshopName)).ToList();
+        var groups = query.GroupBy(c => c.UserData).ToList();
+        var specifications = _spRepo.All().ToList();
+        var list = new List<DashboardDto.ManualCheckerInfo>();
         foreach (var group in groups)
         {
-            result.Add(new DashboardDto.ManualCheckerInfo() { No = group.Key, Count = group.Sum(c=>c.Count)});
+            var result = new DashboardDto.ManualCheckerInfo()
+            {
+                No = group.Key
+            };
+            foreach (var g in group)
+            {
+                var specification = specifications.FirstOrDefault(c => c.Id == g.SpecificationId);
+                if (specification == null) continue;
+                var rules = JsonConvert.DeserializeObject<List<Rule>>(specification.SingleRules);
+                var rule = rules.FirstOrDefault(c => c.Id == _settings.Resistance);
+                if (rule == null) continue;
+                var valueList = new List<double>();
+                foreach (var data in g.DataList)
+                {
+                    var obj = JsonConvert.DeserializeObject<JObject>(data.Data);
+                    if (obj == null) continue;
+                    var value = obj[_settings.Resistance.ToString()];
+                    if (value != null)
+                    {
+                        if (!string.IsNullOrEmpty(value.ToString()))
+                            valueList.Add(double.Parse(value.ToString()));
+                    }
+                }
+
+                var statistic = valueList.toStatistic(rule.Standard, rule.Upper, rule.Lower);
+                result.LessCount += statistic.LowCnt;
+                result.MoreCount += statistic.HighCnt;
+                result.QualityCount += statistic.QualityCount;
+            }
+
+            list.Add(result);
         }
 
-        return result;
+        return list;
     }
+
     // <summary>
     /// 获取手工车间
     /// </summary>
     /// <returns></returns>
     public async Task<IEnumerable<MaterialDataHandicraftWorkshop>> GetHandicraftWorkshopAsync()
     {
-
-        List<MaterialDataHandicraftWorkshop> HandicraftWorkshops = new List<MaterialDataHandicraftWorkshop>()
+        var list = new List<MaterialDataHandicraftWorkshop>()
         {
-            new MaterialDataHandicraftWorkshop() {ID = Guid.NewGuid().ToString(), Name = "甲", letters = "J"},
-            new MaterialDataHandicraftWorkshop(){ID = Guid.NewGuid().ToString(), Name = "乙", letters = "Y"},
-            new MaterialDataHandicraftWorkshop(){ID = Guid.NewGuid().ToString(), Name = "丙", letters = "B"},
+            new MaterialDataHandicraftWorkshop()
+            {
+                ID = Guid.NewGuid().ToString(),
+                Name = "甲",
+                letters = "J"
+            },
+            new MaterialDataHandicraftWorkshop()
+            {
+                ID = Guid.NewGuid().ToString(),
+                Name = "乙",
+                letters = "Y"
+            },
+            new MaterialDataHandicraftWorkshop()
+            {
+                ID = Guid.NewGuid().ToString(),
+                Name = "丙",
+                letters = "B"
+            },
         };
-        return await Task.FromResult(HandicraftWorkshops) ;
-     }
+        return list;
+    }
 
-    public  IEnumerable<MetricalDataTableDto> GetHandicraftWorkshopMatrialData(string WorkShopLetter,
+    public IEnumerable<MetricalDataTableDto> GetHandicraftWorkshopMatrialData(string WorkShopLetter,
         int PageSize, int PageNum, out int total)
     {
         total = 0;
@@ -1691,40 +1940,40 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
             .AndIF(WorkShopLetter != null, c => SqlFunc.StartsWith(c.Instance, WorkShopLetter))
             .ToExpression();
         var list = _db.Queryable<MetricalGroup>()
-          .LeftJoin<Core.SugarEntities.Specification>((c, s) => c.SpecificationId == s.Id)
-          .LeftJoin<Team>((c, s, team) => c.TeamId == team.Id)
-          .LeftJoin<Turn>((c, s, team, turn) => c.TurnId == turn.Id)
-          .LeftJoin<Machine>((c, s, team, turn, mac) => c.MachineId == mac.Id)
-          .LeftJoin<MeasureType>((c, s, team, turn, mac, mt) => c.MeasureTypeId == mt.Id)
-          .Where(exp)
-          .OrderByDescending(c => c.BeginTime)
-          .Select((c, s, team, turn, mac, mt) => new MetricalDataTableDto()
-          {
-              Id = c.Id,
-              SpecificationId = c.SpecificationId,
-              SpecificationName = s.Name,
-              SpecificationTypeId = c.Specification.SpecificationTypeId,
-              TeamId = c.TeamId,
-              TeamName = team.Name,
-              TurnName = turn.Name,
-              MachineId = c.MachineId,
-              MachineName = mac.Name,
-              MeasureTypeName = mt.Name,
-              BeginTime = c.BeginTime.ToString("yyyy-MM-dd HH:mm:ss"),
-              EndTime = c.EndTime.ToString("yyyy-MM-dd HH:mm:ss"),
-              ProductionTime = c.ProductionTime == null
-                  ? ""
-                  : Convert.ToDateTime(c.ProductionTime).ToString("yyyy-MM-dd"),
-              TurnId = c.TurnId,
-              MeasureTypeId = c.MeasureTypeId,
-              DeliverTime = c.DeliverTime == null ? "" : Convert.ToDateTime(c.DeliverTime).ToString("yyyy-MM-dd"),
-              OrderNo = c.OrderNo ?? "",
-              Instance = c.Instance,
-              UserName = c.UserName,
-              EquipmentType = c.EquipmentType,
-              UserData = c.UserData
-          })
-          .ToPageList(PageNum,PageSize, ref total);
+            .LeftJoin<Core.SugarEntities.Specification>((c, s) => c.SpecificationId == s.Id)
+            .LeftJoin<Team>((c, s, team) => c.TeamId == team.Id)
+            .LeftJoin<Turn>((c, s, team, turn) => c.TurnId == turn.Id)
+            .LeftJoin<Machine>((c, s, team, turn, mac) => c.MachineId == mac.Id)
+            .LeftJoin<MeasureType>((c, s, team, turn, mac, mt) => c.MeasureTypeId == mt.Id)
+            .Where(exp)
+            .OrderByDescending(c => c.BeginTime)
+            .Select((c, s, team, turn, mac, mt) => new MetricalDataTableDto()
+            {
+                Id = c.Id,
+                SpecificationId = c.SpecificationId,
+                SpecificationName = s.Name,
+                SpecificationTypeId = c.Specification.SpecificationTypeId,
+                TeamId = c.TeamId,
+                TeamName = team.Name,
+                TurnName = turn.Name,
+                MachineId = c.MachineId,
+                MachineName = mac.Name,
+                MeasureTypeName = mt.Name,
+                BeginTime = c.BeginTime.ToString("yyyy-MM-dd HH:mm:ss"),
+                EndTime = c.EndTime.ToString("yyyy-MM-dd HH:mm:ss"),
+                ProductionTime = c.ProductionTime == null
+                    ? ""
+                    : Convert.ToDateTime(c.ProductionTime).ToString("yyyy-MM-dd"),
+                TurnId = c.TurnId,
+                MeasureTypeId = c.MeasureTypeId,
+                DeliverTime = c.DeliverTime == null ? "" : Convert.ToDateTime(c.DeliverTime).ToString("yyyy-MM-dd"),
+                OrderNo = c.OrderNo ?? "",
+                Instance = c.Instance,
+                UserName = c.UserName,
+                EquipmentType = c.EquipmentType,
+                UserData = c.UserData
+            })
+            .ToPageList(PageNum, PageSize, ref total);
 
         foreach (var item in list)
         {
@@ -1736,5 +1985,225 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
         }
 
         return list;
+    }
+
+    public ManualDataPushDto GetManualMetricalDataStatistic(string workShopLetter)
+    {
+        var dto = new ManualDataPushDto();
+        var begin = DateTime.Now.AddMonths(-6);
+        var end = DateTime.Now;
+        var groups = _db.Queryable<MetricalGroup>().Includes(c=>c.DataList).Where(c =>
+            c.Instance.Contains(workShopLetter) &&
+            c.BeginTime.Date >= begin &&
+            c.EndTime.Date <= end).ToList();
+        var specificationGroups = groups.GroupBy(c => c.SpecificationId).ToList();
+        var specifications = _spRepo.All().ToList();
+        var tableList = new List<ManualDataPushDto.ManualDataPushTable>();
+        var pieChartInfos = new List<ManualDataPushDto.PieChartInfo>();
+        foreach (var spGroup in specificationGroups)
+        {
+            var specification = specifications.FirstOrDefault(c => c.Id == spGroup.Key);
+            if (specification == null) continue;
+            var rules = JsonConvert.DeserializeObject<List<Rule>>(specification.SingleRules);
+            var rule = rules.FirstOrDefault(c => c.Id == _settings.Resistance);
+            if (rule == null) continue;
+            var valueList = new List<double>();
+            foreach (var group in spGroup)
+            {
+                foreach (var data in group.DataList)
+                {
+                    var obj = JsonConvert.DeserializeObject<JObject>(data.Data);
+                    var value = obj?[_settings.Resistance.ToString()];
+                    if (value == null) continue;
+                    if (!string.IsNullOrEmpty(value.ToString()))
+                        valueList.Add(double.Parse(value.ToString()));
+                }
+            }
+
+            var statistic = valueList.toStatistic(rule, true);
+            var tableInfo = new ManualDataPushDto.ManualDataPushTable()
+            {
+                SpecificationName = specification.Name,
+                Mean = Math.Round(statistic.Mean, 3),
+                Total = statistic.TotalCount,
+                Quality = statistic.QualityCount,
+                QualityInfo = statistic.QualityQualityRate,
+                Rate = statistic.QualityRate
+            };
+            tableList.Add(tableInfo);
+            pieChartInfos.Add(new ManualDataPushDto.PieChartInfo()
+            {
+                Name = specification.Name,
+                Value = statistic.QualityCount,
+                ResistanceMean = statistic.Mean.ToString("#.###"),
+                QualifiedRate = statistic.QualityRate,
+                GoodQualifiedRate = statistic.QualityQualityRate
+            });
+        }
+
+        dto.TableInfo = tableList;
+        dto.PieChartInfos = pieChartInfos;
+
+        return dto;
+    }
+
+    public IEnumerable<BaseOptionDto> GetNewestGroupIdsByMachine(NewestGroupIdsQueryDto dto)
+    {
+        var groups = _db.Queryable<MetricalGroup>().Includes(c=>c.Machine).Where(c=>c.BeginTime.Date >= DateTime.Now.AddMonths(-6) &&
+                                                             c.EndTime.Date <= DateTime.Now);
+
+        if (dto.IsMachine)
+        {
+            var macLs = dto.Machines.Select(int.Parse).ToList();
+            groups = groups.Where(c => macLs.Contains(c.MachineId));
+        }
+        else
+        {
+            groups = groups.Where(c => dto.Machines.Contains(c.Instance.Substring(0, 1)));
+        }
+
+        var orderedGroups = groups.OrderByDescending(c => c.BeginTime).ToList();
+        List<BaseOptionDto> ids = new();
+        if (dto.IsMachine)
+        {
+            var machineGroups = orderedGroups.GroupBy(c => c.MachineId).ToList();
+            foreach (var gs in machineGroups)
+            {
+                ids.Add(new BaseOptionDto() { Text = gs.First().Machine.Name, Value = gs.First().Id});
+            }
+        }
+        else
+        {
+            var instanceGroups = orderedGroups.GroupBy(c => c.Instance[..1]).ToList();
+            foreach (var gs in instanceGroups)
+            {
+                ids.Add(new BaseOptionDto() {Text = gs.First().Instance, Value = gs.First().Id});
+            }
+        }
+
+        return ids;
+    }
+
+    public DashboardDto.ManualSummaryInfoDto GetManualSummaryInfo(ManualQueryInfoDto dto)
+    {
+        var result = new ManualSummaryInfoDto();
+        var begin = DateTime.Now.AddMonths(-6);
+        var end = DateTime.Now;
+        if (!string.IsNullOrEmpty(dto.Begin) && !string.IsNullOrEmpty(dto.End))
+        {
+            begin = Convert.ToDateTime(dto.Begin);
+            end = Convert.ToDateTime(dto.End);
+        }
+
+        var groups = _db.Queryable<MetricalGroup>().Includes(c => c.DataList).Where(c =>
+            c.BeginTime.Date >= begin &&
+            c.EndTime.Date <= end &&
+            c.EquipmentType == EquipmentType.SingleResistance);
+
+        if (!string.IsNullOrEmpty(dto.WorkShop))
+        {
+            groups = groups.Where(c => c.Instance.Contains(dto.WorkShop));
+        }
+
+        if (dto.SpecificationId.Count > 0)
+        {
+            groups = groups.Where(c => dto.SpecificationId.Contains(c.SpecificationId));
+        }
+
+        if (dto.TurnIds.Count > 0)
+        {
+            groups = groups.Where(c => dto.TurnIds.Contains(c.TurnId));
+        }
+
+        var tempList = groups.ToList();
+        var specificationGroups = tempList.GroupBy(c => c.SpecificationId).ToList();
+        var specifications = _spRepo.All().ToList();
+        var tableList = new List<ManualDataPushDto.ManualDataPushTable>();
+        var pieChartInfos = new List<ManualDataPushDto.PieChartInfo>();
+        foreach (var spGroup in specificationGroups)
+        {
+            var specification = specifications.FirstOrDefault(c => c.Id == spGroup.Key);
+            if (specification == null) continue;
+            var rules = JsonConvert.DeserializeObject<List<Rule>>(specification.SingleRules);
+            var rule = rules.FirstOrDefault(c => c.Id == _settings.Resistance);
+            if (rule == null) continue;
+            var valueList = new List<double>();
+            foreach (var group in spGroup)
+            {
+                foreach (var data in group.DataList)
+                {
+                    var obj = JsonConvert.DeserializeObject<JObject>(data.Data);
+                    var value = obj?[_settings.Resistance.ToString()];
+                    if (value == null) continue;
+                    if (!string.IsNullOrEmpty(value.ToString()))
+                        valueList.Add(double.Parse(value.ToString()));
+                }
+            }
+
+            var statistic = valueList.toStatistic(rule, true);
+            var tableInfo = new ManualDataPushDto.ManualDataPushTable()
+            {
+                SpecificationName = specification.Name,
+                Mean = Math.Round(statistic.Mean, 3),
+                Max = statistic.Max,
+                Min = statistic.Min,
+                Sd = Math.Round(statistic.Sd, 3),
+                Cpk = Math.Round(statistic.Cpk, 3),
+                Offset = Math.Round(statistic.Offset, 3),
+                Total = statistic.TotalCount,
+                Quality = statistic.QualityCount,
+                QualityInfo = statistic.QualityQualityRate,
+                Rate = statistic.QualityRate
+            };
+            tableList.Add(tableInfo);
+            pieChartInfos.Add(new ManualDataPushDto.PieChartInfo()
+            {
+                Name = specification.Name,
+                Value = statistic.QualityCount,
+                ResistanceMean = statistic.Mean.ToString("#.###"),
+                QualifiedRate = statistic.QualityRate,
+                GoodQualifiedRate = statistic.QualityQualityRate
+            });
+        }
+
+        result.TableInfo = tableList;
+        result.PieChartInfo = pieChartInfos;
+        result.CheckerInfo = getManualCheckerInfos(dto.WorkShop, begin, end, dto.SpecificationId, dto.TurnIds);
+
+        return result;
+    }
+
+    public IEnumerable<BaseOptionDto> GetSpecificationsByTeamIds(GetSpecificationByTurnsQueryDto dto)
+    {
+        var bDate = DateTime.Now.AddMonths(-6);
+        var eDate = DateTime.Now;
+        var query = _db.Queryable<MetricalGroup>();
+        if (!string.IsNullOrEmpty(dto.Begin) && !string.IsNullOrEmpty(dto.End))
+        {
+            bDate = Convert.ToDateTime(dto.Begin);
+            eDate = Convert.ToDateTime(dto.End);
+        }
+
+        query = query.Where(c => c.BeginTime.Date >= bDate.Date &&
+                                 c.EndTime.Date <= eDate.Date);
+
+        if (dto.TurnIds.Count > 0)
+        {
+            query = query.Where(c => dto.TurnIds.Contains(c.TurnId));
+        }
+
+        if (dto.IsManual)
+        {
+            query = query.Where(c => c.EquipmentType == EquipmentType.SingleResistance);
+        }
+
+        var specificationIds = query.Select(c => c.SpecificationId).Distinct().ToList();
+        var specifications = _db.Queryable<Core.SugarEntities.Specification>()
+            .Where(c => specificationIds.Contains(c.Id))
+            .Select(c => new BaseOptionDto()
+            {
+                Value = c.Id, Text = c.Name
+            }).ToList();
+        return specifications;
     }
 }

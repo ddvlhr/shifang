@@ -21,7 +21,8 @@
             node-key="id"
             ref="tree"
             :props="treeProps"
-            @node-click="selectPermission">
+            @node-click="selectPermission"
+          >
           </el-tree>
         </el-card>
       </el-col>
@@ -30,7 +31,12 @@
           <div slot="header" class="clearfix">
             <span v-if="selectedTree">编辑</span>
             <span v-else>新增</span>
-            <el-button style="float: right; padding: 3px;" type="text" @click="resetForm">重置</el-button>
+            <el-button
+              style="float: right; padding: 3px"
+              type="text"
+              @click="resetForm"
+              >重置</el-button
+            >
           </div>
           <ele-form
             v-model="formData"
@@ -69,7 +75,9 @@ export default {
           type: 'select',
           optionsLinkageFields: ['permissionType'],
           options: async (data) => {
-            const { data: res } = await this.$api.getPermissionOptions(data.permissionType === 1)
+            const { data: res } = await this.$api.getPermissionOptions(
+              data.permissionType === 1
+            )
             if (res.meta.code !== 0) {
               return this.$message.error(res.meta.message)
             }
@@ -137,9 +145,7 @@ export default {
       },
       formError: false,
       rules: {
-        name: [
-          { required: true, message: '请输入名称', trigger: 'blur' }
-        ],
+        name: [{ required: true, message: '请输入名称', trigger: 'blur' }],
         functionName: [
           { required: true, message: '请输入方法名称', trigger: 'blur' }
         ]
@@ -185,9 +191,8 @@ export default {
     },
     async handleSubmit(data) {
       if (data.level === '') {
-        data.level = 0;
+        data.level = 0
       }
-      
       const { data: res } = await this.$api.editPermission(data)
       if (res.meta.code !== 0) {
         return this.$message.error(res.meta.message)

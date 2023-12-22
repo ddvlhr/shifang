@@ -6,6 +6,7 @@ using Core.Dtos;
 using Core.Dtos.MetricalData;
 using Core.Models;
 using Newtonsoft.Json.Linq;
+using static Core.Dtos.DashboardDto;
 
 namespace Infrastructure.Services.MetricalData;
 
@@ -22,7 +23,7 @@ public interface IMetricalDataService
     string GetDataInfo(int id);
     string GetSpecifications();
     string GetSpecification(int id);
-    BaseStatisticInfoDto GetStatisticInfo(int groupId, out string failReason);
+    BaseStatisticInfoDto GetStatisticInfo(int groupId, bool dayStatistic, out string failReason);
     MetricalDataStatisticDto GetStatistic(int id, out string failReason);
     IEnumerable<BaseOptionDto> GetOptions();
     IEnumerable<BaseOptionDto> GetOptions(int specificationId, DateTime testDate, int type);
@@ -37,4 +38,8 @@ public interface IMetricalDataService
     List<DashboardDto.ManualCheckerInfo> GetManualCheckerInfos(string workshopName);
     Task<IEnumerable<MaterialDataHandicraftWorkshop>> GetHandicraftWorkshopAsync();
     IEnumerable<MetricalDataTableDto> GetHandicraftWorkshopMatrialData(string WorkShopLetter,int PageSize,int PageNum, out int total);
+    ManualDataPushDto GetManualMetricalDataStatistic(string workShopLetter);
+    IEnumerable<BaseOptionDto> GetNewestGroupIdsByMachine(NewestGroupIdsQueryDto dto);
+    DashboardDto.ManualSummaryInfoDto GetManualSummaryInfo(ManualQueryInfoDto dto);
+    IEnumerable<BaseOptionDto> GetSpecificationsByTeamIds(GetSpecificationByTurnsQueryDto dto);
 }

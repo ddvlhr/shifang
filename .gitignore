@@ -42,3 +42,4 @@ watchdog.db
 /backend/Api/watchlogs-log.db
 /frontend/ShiFang.Web
 /frontend/ShiFang.Web.zip
+netLog

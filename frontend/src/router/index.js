@@ -1,9 +1,9 @@
 /*
  * @Author: ddvlhr 354874258@qq.com
  * @Date: 2022-07-28 16:24:16
- * @LastEditors: ddvlhr 354874258@qq.com
- * @LastEditTime: 2022-10-31 10:00:51
- * @FilePath: /frontend/src/router/index.js
+ * @LastEditors: thx 354874258@qq.com
+ * @LastEditTime: 2023-11-02 11:42:44
+ * @FilePath: \frontend\src\router\index.js
  * @Description:
  */
 import Vue from 'vue'
@@ -35,7 +35,8 @@ export const constantRoutes = [
         path: '/dashboard',
         component: () => import('@/views/Dashboard.vue'),
         meta: {
-          title: 'Dashboard'
+          title: '数据看板',
+          closable: false
         }
       }
     ]

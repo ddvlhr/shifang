@@ -1,9 +1,9 @@
 /*
  * @Author: ddvlhr 354874258@qq.com
  * @Date: 2022-07-28 16:24:16
- * @LastEditors: ddvlhr 354874258@qq.com
- * @LastEditTime: 2022-10-29 00:33:19
- * @FilePath: /frontend/src/utils/http.js
+ * @LastEditors: thx 354874258@qq.com
+ * @LastEditTime: 2023-12-11 09:45:58
+ * @FilePath: \frontend\src\utils\http.js
  * @Description:
  */
 import axios from 'axios'
@@ -18,8 +18,8 @@ class Axios {
   constructor() {
     // this.baseURL = getBaseUrl(process.env.NODE_ENV)
     // this.baseURL = getCurrentHost(process.env.NODE_ENV)
-    this.baseURL =
-      utils.getCurrentApiUrl(process.env.NODE_ENV === 'development') + '/api'
+    const dev = process.env.NODE_ENV === 'development'
+    this.baseURL = utils.getCurrentApiUrl(dev, dev ? 9528 : 9527) + '/api'
     this.timeout = 100000
     this.withCredentials = true
   }

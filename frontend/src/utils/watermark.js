@@ -9,20 +9,20 @@
 'use strict'
 
 const id = '1.23452384164.123412415'
-let watermark = {
+const watermark = {
   opacity: 40
 }
 
-let setWatermark = (str) => {
+const setWatermark = (str) => {
   if (document.getElementById(id) !== null) {
     document.body.removeChild(document.getElementById(id))
   }
 
-  let can = document.createElement('canvas')
+  const can = document.createElement('canvas')
   can.width = 250
   can.height = 120
 
-  let cans = can.getContext('2d')
+  const cans = can.getContext('2d')
   cans.rotate((-15 * Math.PI) / 150)
   cans.font = '14px Vedana'
   cans.fillStyle = `rgba(200, 200, 200, ${watermark.opacity / 100})`
@@ -30,7 +30,7 @@ let setWatermark = (str) => {
   cans.textBaseline = 'Middle'
   cans.fillText(str, can.width / 8, can.height / 2)
 
-  let div = document.createElement('div')
+  const div = document.createElement('div')
   div.id = id
   div.style.pointerEvents = 'none'
   div.style.top = '50px'

@@ -51,6 +51,7 @@ public class SettingController : BaseController
             opt.CigarTypeId = setting.CigarTypeId;
             opt.Resistance = setting.Resistance;
             opt.IndicatorDecimal = setting.IndicatorDecimal;
+            opt.StatisticItemShowStr = setting.StatisticItemShowStr;
         });
         var serializeOptions = new JsonSerializerOptions()
         {

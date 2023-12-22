@@ -77,8 +77,13 @@ export default {
       }
     },
     async search() {
+      const queryInfo = Object.assign({}, this.queryInfo)
+      if (queryInfo.specificationId !== '') {
+        queryInfo.specificationId += ''
+      }
+      console.log(queryInfo)
       const { data: res } = await this.$api.getOriginDataStatisticInfo(
-        this.queryInfo
+        queryInfo
       )
       if (res.meta.code !== 0) {
         return this.$message.error(

@@ -1,9 +1,9 @@
 <!--
  * @Author: ddvlhr 354874258@qq.com
  * @Date: 2022-07-28 16:24:16
- * @LastEditors: ddvlhr 354874258@qq.com
- * @LastEditTime: 2022-10-31 09:41:02
- * @FilePath: /frontend/src/components/LoginForm.vue
+ * @LastEditors: thx 354874258@qq.com
+ * @LastEditTime: 2023-11-16 15:19:14
+ * @FilePath: \frontend\src\components\LoginForm.vue
  * @Description:
 -->
 <template>
@@ -33,11 +33,7 @@
     <el-form-item class="allow">
       <el-checkbox label="记住密码" v-model="loginUser.remember"></el-checkbox>
     </el-form-item>
-    <el-button
-      type="primary"
-      @click="handleLogin"
-      @keyup.enter.native="handleLogin()"
-      class="btn-submit"
+    <el-button type="primary" @click="handleLogin" class="btn-submit"
       >登 录</el-button
     >
   </el-form>
@@ -58,45 +54,39 @@ export default {
   mounted() {
     if (this.$store.state.user.rememberPassword) {
       const loginInfo = this.$store.state.user.loginInfo
-      this.loginUser = loginInfo
+      this.loginUser = Object.assign({}, loginInfo)
     }
   },
   methods: {
-    handleLogin() {
+    commitToStore(type, payload) {
+      this.$store.commit(type, payload)
+    },
+    async handleLogin() {
       this.$refs.loginFormRef.validate(async (valid) => {
         if (valid) {
-          const { data: res } = await this.$api.login(this.loginUser)
-          if (res.meta.code === 0) {
-            this.$store.commit('user/setToken', res.data.token)
-            this.$store.commit('user/setUserInfo', res.data.userInfo)
-            this.$store.commit(
-              'setCanSeeOtherData',
-              res.data.userInfo.canSeeOtherData
-            )
-            const { data: menuRes } = await this.$api.getPermissionTree(
-              res.data.userInfo.roleId
-            )
-            if (menuRes.meta.code !== 0) {
-              return this.$message.error('获取权限菜单失败, 请联系管理员')
+          try {
+            const { data: res } = await this.$api.login(this.loginUser)
+            if (res.meta.code === 0) {
+              this.commitToStore('user/setToken', res.data.token)
+              this.commitToStore('user/setUserInfo', res.data.userInfo)
+              this.commitToStore('setCanSeeOtherData', res.data.userInfo.canSeeOtherData)
+              const { data: menuRes } = await this.$api.getPermissionTree(res.data.userInfo.roleId)
+              if (menuRes.meta.code !== 0) {
+                return this.$message.error('获取权限菜单失败, 请联系管理员')
+              }
+              this.commitToStore('user/setRememberPasswordState', this.loginUser.remember)
+              if (this.loginUser.remember) {
+                this.commitToStore('user/setLoginInfo', this.loginUser)
+              }
+              this.commitToStore('permission/setAddRoutes', menuRes.data)
+              this.$router.push('/dashboard')
+              this.$message.success('登录成功')
             }
-            this.$store.commit(
-              'user/setRememberPasswordState',
-              this.loginUser.remember
-            )
-            if (this.loginUser.remember) {
-              this.$store.commit('user/setLoginInfo', this.loginUser)
-            }
-            this.$store.commit('permission/setAddRoutes', menuRes.data)
-            this.$router.push('/dashboard')
-            this.$message.success('登录成功')
-          } else {
-            return this.$message.error('登录失败: ' + res.meta.message)
+          } catch (error) {
+            this.$message.error('登录失败: ' + error.message)
           }
         }
       })
-    },
-    handleEnter() {
-      console.log('enter')
     }
   }
 }

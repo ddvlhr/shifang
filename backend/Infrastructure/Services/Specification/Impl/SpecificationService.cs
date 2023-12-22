@@ -55,7 +55,7 @@ public class SpecificationService : ISpecificationService
         if (!string.IsNullOrEmpty(dto.State))
         {
             var state = int.Parse(dto.State);
-            data = data.Where(c => c.Status == (Status)state);
+            data = data.Where(c => c.Status == (Status) state);
         }
 
         total = data.Count();
@@ -79,7 +79,8 @@ public class SpecificationService : ISpecificationService
     public bool Add(SpecificationEditDto dto, out string failReason)
     {
         failReason = string.Empty;
-        if (_speRepo.All().Any(c => c.Name == dto.Name))
+        var equipmentType = (EquipmentType)dto.EquipmentTypeId;
+        if (_speRepo.All().Any(c => c.Name == dto.Name && c.EquipmentType == equipmentType))
         {
             failReason = "该牌号名称已被使用, 请使用其他名称";
             return false;
@@ -91,8 +92,8 @@ public class SpecificationService : ISpecificationService
             {
                 var indicator = indicators.FirstOrDefault(c => c.Id == rule.Id);
                 rule.Name = indicator == null ? "" : indicator.Name;
-                if (dto.EquipmentTypeId == (int)EquipmentType.SingleResistance ||
-                    dto.EquipmentTypeId == (int)EquipmentType.Mts)
+                if (dto.EquipmentTypeId == (int) EquipmentType.SingleResistance ||
+                    dto.EquipmentTypeId == (int) EquipmentType.Mts)
                 {
                     var mid = double.Parse(rule.Standard);
                     var upper = double.Parse(rule.Upper);
@@ -108,7 +109,7 @@ public class SpecificationService : ISpecificationService
                     rule.Lower = low.ToString("F5");
                     rule.QualityUpper = qualityHigh.ToString("F5");
                     rule.QualityLower = qualityLow.ToString("F5");
-                    if (rule.Id == _settings.Resistance && dto.EquipmentTypeId == (int)EquipmentType.SingleResistance)
+                    if (rule.Id == _settings.Resistance && dto.EquipmentTypeId == (int) EquipmentType.SingleResistance)
                     {
                         rule.Standard = ConvertHelper.mmWGToPa(mid).ToString("F5");
                         rule.Upper = ConvertHelper.mmWGToPa(high).ToString("F5");
@@ -141,7 +142,7 @@ public class SpecificationService : ISpecificationService
             OrderNo = dto.OrderNo,
             SpecificationTypeId = dto.TypeId,
             Remark = dto.Remark,
-            EquipmentType = (EquipmentType)dto.EquipmentTypeId,
+            EquipmentType = (EquipmentType) dto.EquipmentTypeId,
             Status = dto.State ? Status.Enabled : Status.Disabled,
             SingleRules = JsonConvert.SerializeObject(dto.SingleRules),
             MeanRules = JsonConvert.SerializeObject(dto.MeanRules),
@@ -158,7 +159,8 @@ public class SpecificationService : ISpecificationService
     public bool Update(SpecificationEditDto dto, out string failReason)
     {
         failReason = string.Empty;
-        if (_speRepo.All().Any(c => c.Name == dto.Name && c.Id != dto.Id))
+        var equipmentType = (EquipmentType)dto.EquipmentTypeId;
+        if (_speRepo.All().Any(c => c.Name == dto.Name && c.EquipmentType == equipmentType && c.Id != dto.Id))
         {
             failReason = "该牌号名称已被使用, 请使用其他名称";
             return false;
@@ -170,8 +172,8 @@ public class SpecificationService : ISpecificationService
             {
                 var indicator = indicators.FirstOrDefault(c => c.Id == rule.Id);
                 rule.Name = indicator == null ? "" : indicator.Name;
-                if (dto.EquipmentTypeId == (int)EquipmentType.SingleResistance ||
-                    dto.EquipmentTypeId == (int)EquipmentType.Mts)
+                if (dto.EquipmentTypeId == (int) EquipmentType.SingleResistance ||
+                    dto.EquipmentTypeId == (int) EquipmentType.Mts)
                 {
                     var mid = double.Parse(rule.Standard);
                     var upper = double.Parse(rule.Upper);
@@ -187,7 +189,7 @@ public class SpecificationService : ISpecificationService
                     rule.Lower = low.ToString("F5");
                     rule.QualityUpper = qualityHigh.ToString("F5");
                     rule.QualityLower = qualityLow.ToString("F5");
-                    if (rule.Id == _settings.Resistance && dto.EquipmentTypeId == (int)EquipmentType.SingleResistance)
+                    if (rule.Id == _settings.Resistance && dto.EquipmentTypeId == (int) EquipmentType.SingleResistance)
                     {
                         rule.Standard = ConvertHelper.mmWGToPa(mid).ToString("F5");
                         rule.Upper = ConvertHelper.mmWGToPa(high).ToString("F5");
@@ -218,7 +220,7 @@ public class SpecificationService : ISpecificationService
         specification.OrderNo = dto.OrderNo;
         specification.SpecificationTypeId = dto.TypeId;
         specification.Remark = dto.Remark;
-        specification.EquipmentType = (EquipmentType)dto.EquipmentTypeId;
+        specification.EquipmentType = (EquipmentType) dto.EquipmentTypeId;
         specification.SingleRules = JsonConvert.SerializeObject(dto.SingleRules);
         specification.MeanRules = JsonConvert.SerializeObject(dto.MeanRules);
         specification.SdRules = JsonConvert.SerializeObject(dto.SdRules);
@@ -241,7 +243,7 @@ public class SpecificationService : ISpecificationService
             OrderNo = specification.OrderNo,
             TypeId = specification.SpecificationTypeId,
             Remark = specification.Remark,
-            EquipmentTypeId = (int)specification.EquipmentType,
+            EquipmentTypeId = (int) specification.EquipmentType,
             SingleRules = JsonConvert.DeserializeObject<IEnumerable<Rule>>(specification.SingleRules),
             MeanRules = JsonConvert.DeserializeObject<IEnumerable<Rule>>(specification.MeanRules),
             SdRules = JsonConvert.DeserializeObject<IEnumerable<Rule>>(specification.SdRules),
@@ -265,8 +267,8 @@ public class SpecificationService : ISpecificationService
                     var low = double.Parse(item.Lower);
                     var upper = Math.Round(high - mid, 3);
                     var lower = Math.Round(mid - low, 3);
-                    var qualityHigh =string.IsNullOrEmpty(item.QualityUpper) ? high : double.Parse(item.QualityUpper);
-                    var qualityLow  = string.IsNullOrEmpty(item.QualityLower) ? low : double.Parse(item.QualityLower);
+                    var qualityHigh = string.IsNullOrEmpty(item.QualityUpper) ? high : double.Parse(item.QualityUpper);
+                    var qualityLow = string.IsNullOrEmpty(item.QualityLower) ? low : double.Parse(item.QualityLower);
                     var qualityUpper = Math.Round(qualityHigh - mid, 3);
                     var qualityLower = Math.Round(mid - qualityLow, 3);
                     item.Standard = mid.ToString("0.######");
@@ -274,7 +276,8 @@ public class SpecificationService : ISpecificationService
                     item.Lower = lower.ToString("0.######");
                     item.QualityUpper = qualityUpper.ToString("0.######");
                     item.QualityLower = qualityLower.ToString("0.######");
-                    if (item.Id == _settings.Resistance && specification.EquipmentType == EquipmentType.SingleResistance)
+                    if (item.Id == _settings.Resistance &&
+                        specification.EquipmentType == EquipmentType.SingleResistance)
                     {
                         item.Standard = ConvertHelper.paToMMWG(mid).ToString("F0");
                         item.Upper = ConvertHelper.paToMMWG(upper).ToString("F0");
@@ -289,15 +292,18 @@ public class SpecificationService : ISpecificationService
         return dto;
     }
 
-    public IEnumerable<BaseOptionDto> GetOptions()
+    public IEnumerable<BaseOptionDto> GetOptions(bool isManual)
     {
         var data = _speRepo.All().AsNoTracking().OrderByDescending(c => c.ModifiedAtUtc)
-            .Where(c => c.Status == Status.Enabled).Select(c => new BaseOptionDto
-            {
-                Value = c.Id,
-                Text = c.Name
-            }).ToList();
-        return data;
+            .Where(c => c.Status == Status.Enabled);
+        if (isManual)
+            data = data.Where(c => c.EquipmentType == EquipmentType.SingleResistance);
+        var result = data.Select(c => new BaseOptionDto
+        {
+            Value = c.Id,
+            Text = c.Name
+        }).ToList();
+        return result;
     }
 
     public IEnumerable<BaseOptionDto> GetSpecificationsByTypeId(int id)
@@ -348,8 +354,8 @@ public class SpecificationService : ISpecificationService
             Rules = new object(),
             TableAttrs = new Dictionary<string, object>()
             {
-                { "max-height", "500" },
-                {"ref", "dataTable" }
+                {"max-height", "500"},
+                {"ref", "dataTable"}
             }
         };
 
@@ -369,13 +375,15 @@ public class SpecificationService : ISpecificationService
             Content = new Dictionary<string, object>()
             {
                 {"type", "el-date-picker"},
-                {"attrs", new Dictionary<string, object>()
                 {
-                    {"type", "datetime"},
-                    {"placeholder", "选择测量时间"},
-                    {"value-format", "yyyy-MM-dd HH:mm:ss"},
-                    {"default-value", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}
-                }}
+                    "attrs", new Dictionary<string, object>()
+                    {
+                        {"type", "datetime"},
+                        {"placeholder", "选择测量时间"},
+                        {"value-format", "yyyy-MM-dd HH:mm:ss"},
+                        {"default-value", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}
+                    }
+                }
             }
         };
         tableEditorColumns.Add(timeColumns);
@@ -393,11 +401,11 @@ public class SpecificationService : ISpecificationService
                 Width = "220",
                 Content = new Dictionary<string, object>()
                 {
-                    { "type", "el-input-number" },
+                    {"type", "el-input-number"},
                     {
                         "attrs", new Dictionary<string, object>()
                         {
-                            { "width", "200" }
+                            {"width", "200"}
                         }
                     }
                 }
