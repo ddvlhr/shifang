@@ -587,14 +587,21 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
         info.MachineId = group.MachineId;
         info.Instance = group.EquipmentType == EquipmentType.SingleResistance ? group.Instance : group.Machine.Name;
         info.BeginTime = group.BeginTime.ToString("yyyy-MM-dd HH:mm:ss");
-        var wsName = group.Instance[..1];
-        info.WorkShopName = wsName switch
+        if (!string.IsNullOrEmpty(group.Instance))
         {
-            "J" => "甲班",
-            "Y" => "乙班",
-            "B" => "丙班",
-            _ => ""
-        };
+            var wsName = group.Instance[..1];
+            info.WorkShopName = wsName switch
+            {
+                "J" => "甲班",
+                "Y" => "乙班",
+                "B" => "丙班",
+                _ => ""
+            };
+        }
+        else
+        {
+            info.WorkShopName = "";
+        }
 
         var data = _db.Queryable<Core.SugarEntities.MetricalData>().Where(c => c.GroupId == groupId)
             .Select(c => c.Data).ToList();
