@@ -371,7 +371,7 @@ namespace WebService
                 cmd.Parameters.AddWithValue("teamId", teamId == "" ? 0 : int.Parse(teamId));
                 cmd.Parameters.AddWithValue("turnId", turnId == "" ? 0 : int.Parse(turnId));
                 cmd.Parameters.AddWithValue("machineId", machineId == "" ? 0 : int.Parse(machineId));
-                cmd.Parameters.AddWithValue("measureTypeId", equipmentType is 1 or 2 ? int.Parse(measureTypeId) : 25);
+                cmd.Parameters.AddWithValue("measureTypeId", measureTypeId == "" ? 0 : int.Parse(measureTypeId));
                 cmd.Parameters.AddWithValue("pickupWay", int.Parse(xInfo.Attributes["pickupWay"].Value));
                 cmd.Parameters.AddWithValue("count", xDetails.Count);
 
