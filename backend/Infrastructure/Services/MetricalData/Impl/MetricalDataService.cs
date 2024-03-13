@@ -624,8 +624,7 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
         }
 
         var ruleDics = new Dictionary<string, DoubleRule>();
-        var columns = new Dictionary<string, object>()
-            {{"testTime", new Dictionary<string, object>() {{"text", "测量时间"}}}};
+        var columns = new Dictionary<string, object> {{"testTime", new Dictionary<string, object> {{"text", "测量时间"}}}};
         var statisticColumns = new Dictionary<string, object>();
         var dataInfo = new List<Dictionary<string, object>>();
         var statisticDataInfo = new List<Dictionary<string, Dictionary<string, object>>>();
@@ -636,12 +635,12 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
         {
             var dic = new Dictionary<string, Dictionary<string, object>>()
             {
-                {"itemName", new Dictionary<string, object>() {{"text", statisticItem}, {"high", 0}, {"low", 0}}}
+                {"itemName", new Dictionary<string, object> {{"text", statisticItem}, {"high", 0}, {"low", 0}}}
             };
             statisticDataInfo.Add(dic);
             var dic2 = new Dictionary<string, Dictionary<string, object>>()
             {
-                {"itemName", new Dictionary<string, object>() {{"text", statisticItem}, {"high", 0}, {"low", 0}}}
+                {"itemName", new Dictionary<string, object> {{"text", statisticItem}, {"high", 0}, {"low", 0}}}
             };
             dayStatisticDataInfo.Add(dic2);
         }
@@ -660,7 +659,7 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
             if (indicatorValue != null && indicatorValue.ToString() != "")
             {
                 var indicatorName = indicators.FirstOrDefault(c => c.Id == rule.Id)?.Name;
-                var columnItem = new Dictionary<string, object>()
+                var columnItem = new Dictionary<string, object>
                 {
                     {"text", indicatorName}
                 };
@@ -690,9 +689,17 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
                             var standard = Convert.ToDouble(currentRule?.Standard);
                             var upper = Convert.ToDouble(currentRule?.Upper);
                             var lower = Convert.ToDouble(currentRule?.Lower);
+                            var val = Convert.ToDouble(kv.Value?.ToString());
+                            if (group.EquipmentType == EquipmentType.SingleResistance)
+                            {
+                                standard = ConvertHelper.paToMMWG(standard);
+                                upper = ConvertHelper.paToMMWG(upper);
+                                lower = ConvertHelper.paToMMWG(lower);
+                                val = Math.Round(ConvertHelper.paToMMWG(val), 0);
+                            }
                             var tempInfo = new
                             {
-                                text = Convert.ToDouble(kv.Value?.ToString()),
+                                text = val,
                                 high = standard + upper,
                                 low = standard - lower
                             };
@@ -708,7 +715,12 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
                 if (currentDataItem == null) continue;
                 var value = currentDataItem.ToString();
                 if (!string.IsNullOrEmpty(value))
-                    dataList.Add(double.Parse(value));
+                {
+                    var val = double.Parse(value);
+                    if (group.EquipmentType == EquipmentType.SingleResistance)
+                        val = Math.Round(ConvertHelper.paToMMWG(val), 0);
+                    dataList.Add(val);
+                }
             }
 
             var specificationDataItemList = new List<double>();
@@ -724,7 +736,12 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
                     if (currentDataItem == null) continue;
                     var value = currentDataItem.ToString();
                     if (!string.IsNullOrEmpty(value))
-                        specificationDataItemList.Add(double.Parse(value));
+                    {
+                        var val = double.Parse(value);
+                        if (group.EquipmentType == EquipmentType.SingleResistance)
+                            val = Math.Round(ConvertHelper.paToMMWG(val), 0);
+                        specificationDataItemList.Add(val);
+                    }
                 }
             }
 
@@ -733,6 +750,14 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
             var ruleLower = Convert.ToDouble(rule.Lower);
             var ruleQualityUpper = string.IsNullOrEmpty(rule.QualityUpper) ? 0 : Convert.ToDouble(rule.QualityUpper);
             var ruleQualityLower = string.IsNullOrEmpty(rule.QualityLower) ? 0 : Convert.ToDouble(rule.QualityLower);
+            if (group.EquipmentType == EquipmentType.SingleResistance)
+            {
+                ruleStandard = ConvertHelper.paToMMWG(ruleStandard);
+                ruleUpper = ConvertHelper.paToMMWG(ruleUpper);
+                ruleLower = ConvertHelper.paToMMWG(ruleLower);
+                ruleQualityUpper = ConvertHelper.paToMMWG(ruleQualityUpper);
+                ruleQualityLower = ConvertHelper.paToMMWG(ruleQualityLower);
+            }
             var doubleRule = new DoubleRule()
             {
                 Standard = ruleStandard,
@@ -840,6 +865,12 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
                     var standard = Convert.ToDouble(rule.Standard);
                     var upper = Convert.ToDouble(rule.Upper);
                     var lower = Convert.ToDouble(rule.Lower);
+                    if (group.EquipmentType == EquipmentType.SingleResistance)
+                    {
+                        standard = ConvertHelper.paToMMWG(standard);
+                        upper = ConvertHelper.paToMMWG(upper);
+                        lower = ConvertHelper.paToMMWG(lower);
+                    }
                     itemInfo.Add("text", currentItem);
                     itemInfo.Add("high", standard + upper);
                     itemInfo.Add("low", standard - lower);
