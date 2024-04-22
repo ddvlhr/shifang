@@ -35,3 +35,7 @@ export const getSpecificationsByTypeId = (data) => {
 export const getSpecificationIndicators = (id) => {
   return http.request('/specification/indicators/' + id, 'get')
 }
+
+export const getSpecificationChangeLog = (id) => {
+  return http.request('/specification/changeLog/' + id, 'get')
+}

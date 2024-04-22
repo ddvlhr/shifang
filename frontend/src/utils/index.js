@@ -2,7 +2,7 @@
  * @Author: ddvlhr 354874258@qq.com
  * @Date: 2022-10-31 10:14:42
  * @LastEditors: thx 354874258@qq.com
- * @LastEditTime: 2023-11-03 14:06:49
+ * @LastEditTime: 2024-04-11 13:27:08
  * @FilePath: \frontend\src\utils\index.js
  * @Description:
  */
@@ -150,6 +150,7 @@ utils.getCurrentApiUrl = (ssl = false, port = 9527) => {
   if (ssl) {
     url = url.replace('http', 'https')
   }
+  // url = 'http://192.168.1.190:9527'
   return url
 }
 

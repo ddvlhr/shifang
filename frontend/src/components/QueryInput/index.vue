@@ -13,11 +13,9 @@
     :placeholder="placeholder"
     v-on="$listeners"
   >
-    <el-button
-      v-slot:append
-      v-on="$listeners"
-      icon="el-icon-search"
-    ></el-button>
+    <template v-slot:append>
+      <el-button v-on="$listeners" icon="el-icon-search"></el-button>
+    </template>
   </el-input>
 </template>
 

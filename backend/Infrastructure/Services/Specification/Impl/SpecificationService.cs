@@ -6,12 +6,17 @@ using Core.Dtos.Specification;
 using Core.Entities;
 using Core.Enums;
 using Core.Models;
+using Core.SugarEntities;
 using Infrastructure.DataBase;
 using Infrastructure.Extensions;
 using Infrastructure.Helper;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
+using SqlSugar;
+using ShiFangSettings = Core.Models.ShiFangSettings;
+using SpecificationType = Core.Entities.SpecificationType;
 
 namespace Infrastructure.Services.Specification.Impl;
 
@@ -23,12 +28,18 @@ public class SpecificationService : ISpecificationService
     private readonly IRepository<SpecificationTypeRule> _sptRepo;
     private readonly IRepository<MachineModel> _mmRepo;
     private readonly IRepository<CraftIndicatorRule> _cirRepo;
+    private readonly IRepository<SpecificationChangeLog> _sclRepo;
+    private readonly IRepository<SpecificationType> _stRepo;
+    private readonly IHttpContextAccessor _accessor;
     private readonly ShiFangSettings _settings;
 
     public SpecificationService(IRepository<Core.Entities.Specification> speRepo,
         IRepository<Core.Entities.Indicator> iRepo, IUnitOfWork uow,
         IOptionsSnapshot<ShiFangSettings> settings, IRepository<SpecificationTypeRule> sptRepo,
-        IRepository<MachineModel> mmRepo, IRepository<CraftIndicatorRule> cirRepo)
+        IRepository<MachineModel> mmRepo, IRepository<CraftIndicatorRule> cirRepo,
+        IRepository<SpecificationChangeLog> sclRepo,
+        IRepository<SpecificationType> stRepo,
+        IHttpContextAccessor accessor)
     {
         _speRepo = speRepo;
         _iRepo = iRepo;
@@ -36,6 +47,9 @@ public class SpecificationService : ISpecificationService
         _sptRepo = sptRepo;
         _mmRepo = mmRepo;
         _cirRepo = cirRepo;
+        _sclRepo = sclRepo;
+        _stRepo = stRepo;
+        _accessor = accessor;
         _settings = settings.Value;
     }
 
@@ -153,6 +167,16 @@ public class SpecificationService : ISpecificationService
 
         _speRepo.Add(specification);
 
+        var changeLog = new SpecificationChangeLog()
+        {
+            SpecificationId = specification.Id,
+            Before = "",
+            After = JsonConvert.SerializeObject(specification),
+            ChangeId = _accessor.HttpContext.getUserId(),
+            ChangeBy = _accessor.HttpContext.getUserName()
+        };
+        
+        _sclRepo.Add(changeLog);
         return _uow.Save() > 0;
     }
 
@@ -216,6 +240,13 @@ public class SpecificationService : ISpecificationService
 
 
         var specification = _speRepo.Get(dto.Id);
+        var changeLog = new SpecificationChangeLog()
+        {
+            SpecificationId = specification.Id,
+            Before = JsonConvert.SerializeObject(specification),
+            ChangeId = _accessor.HttpContext.getUserId(),
+            ChangeBy = _accessor.HttpContext.getUserName()
+        };
         specification.Name = dto.Name;
         specification.OrderNo = dto.OrderNo;
         specification.SpecificationTypeId = dto.TypeId;
@@ -229,6 +260,10 @@ public class SpecificationService : ISpecificationService
         specification.Status = dto.State ? Status.Enabled : Status.Disabled;
 
         _speRepo.Update(specification);
+        
+        changeLog.After = JsonConvert.SerializeObject(specification);
+        
+        _sclRepo.Add(changeLog);
 
         return _uow.Save() >= 0;
     }
@@ -393,6 +428,22 @@ public class SpecificationService : ISpecificationService
             if (indicator == null) continue;
             var indicatorName = indicator.Name;
             if (rule.Standard == "0") indicatorName += "(外观)";
+            else
+            {
+                if (indicatorName.Contains("吸阻") ||
+                indicatorName.Contains("压降"))
+                {
+                    if (specification.EquipmentType == EquipmentType.SingleResistance)
+                    {
+                        indicatorName += "(mmWG)";
+                    }
+                    else
+                    {
+                        indicatorName += "(Pa)";
+                    }
+                }
+            }
+           
 
             var indicatorColumn = new TableEditor.ColumnAttr()
             {
@@ -418,5 +469,30 @@ public class SpecificationService : ISpecificationService
 
         result = tableEditor;
         return true;
+    }
+    public IEnumerable<SpecificationChangeLogDto> GetSpecificationChangeLog(int id)
+    {
+        var result = new List<SpecificationChangeLogDto>();
+        var specificationTypes = _stRepo.All().Where(c => c.Status == Status.Enabled).ToList();
+        var changeLogs = _sclRepo.All().Where(c => c.SpecificationId == id).ToList();
+        foreach (var changeLog in changeLogs)
+        {
+            var ret = new SpecificationChangeLogDto
+            {
+                ChangeTime = changeLog.CreatedAtUtc.ToString("yyyy-MM-dd HH:mm:ss")
+            };
+            var before = JsonConvert.DeserializeObject<Core.Entities.Specification>(changeLog.Before);
+            var after = JsonConvert.DeserializeObject<Core.Entities.Specification>(changeLog.After);
+            ret.Before = before;
+            ret.BeforeType = specificationTypes.FirstOrDefault(c => c.Id == before.SpecificationTypeId)?.Name;
+            ret.BeforeEquipment = before.EquipmentType.toDescription();
+            ret.After = after;
+            ret.AfterType = specificationTypes.FirstOrDefault(c => c.Id == after.SpecificationTypeId)?.Name;
+            ret.AfterEquipment = after.EquipmentType.toDescription();
+            ret.ChangeBy = changeLog.ChangeBy;
+            result.Add(ret);
+        }
+
+        return result;
     }
 }

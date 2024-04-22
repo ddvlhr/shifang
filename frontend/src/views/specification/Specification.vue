@@ -1,6 +1,11 @@
 <template>
   <div class="main-container">
-    <function-button @add="add" @edit="edit" @copy="copy" />
+    <function-button
+      @add="add"
+      @edit="edit"
+      @copy="copy"
+      @changeLog="changeLog"
+    />
     <el-card shadow="never">
       <div slot="header">
         <el-row :gutter="10">
@@ -67,6 +72,119 @@
       :form-desc="waterFormDesc"
       :visible.sync="waterDialogFormVisible"
     ></ele-form-dialog>
+    <el-dialog></el-dialog>
+    <el-dialog
+      title="牌号变更记录"
+      width="85%"
+      :visible.sync="changeLogVisible"
+      @close="changeLogClosed"
+    >
+      <el-tabs v-model="changeLogTabsActive">
+        <el-tab-pane
+          :label="log.changeTime"
+          :name="'log_' + log.changeTime"
+          v-for="log in changeLogs"
+          :key="log.changeTime"
+        >
+          <div style="display: flex; justify-content: space-evenly">
+            <div class="before" style="width: 45%; height: 100%">
+              <el-descriptions title="牌号信息(前)" :column="3">
+                <el-descriptions-item label="牌号名称">{{
+                  log.before.name
+                }}</el-descriptions-item>
+                <el-descriptions-item label="标准编号">{{
+                  log.before.orderNo
+                }}</el-descriptions-item>
+                <el-descriptions-item label="备注">{{
+                  log.before.remark
+                }}</el-descriptions-item>
+                <el-descriptions-item label="牌号类型">{{
+                  log.beforeType
+                }}</el-descriptions-item>
+                <el-descriptions-item label="仪器类型">{{
+                  log.beforeEquipment
+                }}</el-descriptions-item>
+                <el-descriptions-item label="状态">
+                  <el-tag
+                    type="success"
+                    size="small"
+                    v-if="log.before.status == 0"
+                    >启用</el-tag
+                  >
+                  <el-tag type="danger" size="small" v-else>停用</el-tag>
+                </el-descriptions-item>
+              </el-descriptions>
+
+              <el-table :data="log.before.singleRules" border>
+                <el-table-column prop="Name" label="指标名称"></el-table-column>
+                <el-table-column
+                  prop="Standard"
+                  label="标准值"
+                ></el-table-column>
+                <el-table-column prop="Upper" label="上允差"></el-table-column>
+                <el-table-column prop="Lower" label="下允差"></el-table-column>
+                <el-table-column
+                  prop="QualityUpper"
+                  label="优质品上允差"
+                ></el-table-column>
+                <el-table-column
+                  prop="QualityLower"
+                  label="优质品下允差"
+                ></el-table-column>
+              </el-table>
+            </div>
+            <div class="after" style="width: 45%; height: 100%">
+              <el-descriptions title="牌号信息(后)" :column="3">
+                <el-descriptions-item label="牌号名称">{{
+                  log.after.name
+                }}</el-descriptions-item>
+                <el-descriptions-item label="标准编号">{{
+                  log.after.orderNo
+                }}</el-descriptions-item>
+                <el-descriptions-item label="备注">{{
+                  log.after.remark
+                }}</el-descriptions-item>
+                <el-descriptions-item label="牌号类型">{{
+                  log.afterType
+                }}</el-descriptions-item>
+                <el-descriptions-item label="仪器类型">{{
+                  log.afterEquipment
+                }}</el-descriptions-item>
+                <el-descriptions-item label="修改人">
+                  {{ log.changeBy }}
+                </el-descriptions-item>
+                <el-descriptions-item label="状态">
+                  <el-tag
+                    size="small"
+                    type="success"
+                    v-if="log.after.status == 0"
+                    >启用</el-tag
+                  >
+                  <el-tag type="danger" size="small" v-else>停用</el-tag>
+                </el-descriptions-item>
+              </el-descriptions>
+              <el-table :data="log.after.singleRules" border>
+                <el-table-column prop="Name" label="指标名称"></el-table-column>
+                <el-table-column
+                  prop="Standard"
+                  label="标准值"
+                ></el-table-column>
+                <el-table-column prop="Upper" label="上允差"></el-table-column>
+                <el-table-column prop="Lower" label="下允差"></el-table-column>
+                <el-table-column
+                  prop="QualityUpper"
+                  label="优质品上允差"
+                ></el-table-column>
+                <el-table-column
+                  prop="QualityLower"
+                  label="优质品下允差"
+                ></el-table-column>
+              </el-table>
+            </div>
+          </div>
+        </el-tab-pane>
+      </el-tabs>
+    </el-dialog>
   </div>
 </template>
 
@@ -83,6 +201,9 @@ export default {
       },
       rightButtons: [],
       equipmentTypes: [],
+      changeLogVisible: false,
+      changeLogs: [],
+      changeLogTabsActive: '',
       columnsDesc: {
         name: {
           text: '牌号名称'
@@ -157,7 +278,7 @@ export default {
           required: true
         },
         orderNo: {
-          label: '编号',
+          label: '标准编号',
           type: 'input'
         },
         typeId: {
@@ -220,6 +341,44 @@ export default {
                 content: {
                   type: 'el-radio-group',
                   options: equalList
+                }
+              },
+              {
+                prop: 'rangeBegin',
+                label: '范围开始',
+                content: {
+                  type: 'el-input',
+                  attrs: {
+                    type: 'number'
+                  },
+                  change(val, row, index) {
+                    if (row.rangeBegin !== '' && row.rangeEnd !== '') {
+                      const begin = parseFloat(row.rangeBegin)
+                      const end = parseFloat(row.rangeEnd)
+                      row.standard = ((begin + end) / 2).toString()
+                      row.upper = ((end - begin) / 2).toString()
+                      row.lower = ((end - begin) / 2).toString()
+                    }
+                  }
+                }
+              },
+              {
+                prop: 'rangeEnd',
+                label: '范围结束',
+                content: {
+                  type: 'el-input',
+                  attrs: {
+                    type: 'number'
+                  },
+                  change(val, row, index) {
+                    if (row.rangeBegin !== '' && row.rangeEnd !== '') {
+                      const begin = parseFloat(row.rangeBegin)
+                      const end = parseFloat(row.rangeEnd)
+                      row.standard = ((begin + end) / 2).toString()
+                      row.upper = ((end - begin) / 2).toString()
+                      row.lower = ((end - begin) / 2).toString()
+                    }
+                  }
                 }
               },
               {
@@ -656,6 +815,37 @@ export default {
       that.formData.id = 0
       that.isEdit = false
       that.dialogFormVisible = true
+    },
+    async changeLog(data, that) {
+      const { data: res } = await that.$api.getSpecificationChangeLog(data.id)
+      if (res.meta.code !== 0) {
+        return that.$message.error('获取牌号更改记录失败: ' + res.meta.message)
+      }
+      if (res.data.length === 0) {
+        return that.$message.info('暂无修改记录')
+      }
+      res.data.forEach((item) => {
+        const tempBefore = item.before
+        const tempAfter = item.after
+        tempBefore.singleRules = JSON.parse(tempBefore.singleRules)
+        tempAfter.singleRules = JSON.parse(tempAfter.singleRules)
+        const temp = {
+          changeTime: item.changeTime,
+          before: tempBefore,
+          after: tempAfter,
+          beforeType: item.beforeType,
+          beforeEquipment: item.beforeEquipment,
+          afterType: item.afterType,
+          afterEquipment: item.afterEquipment,
+          changeBy: item.changeBy
+        }
+        that.changeLogs.push(temp)
+      })
+      that.changeLogTabsActive = 'log_' + res.data[0].changeTime
+      that.changeLogVisible = true
+    },
+    changeLogClosed() {
+      this.changeLogs = []
     },
     async handleSubmit(data) {
       this.formError = false

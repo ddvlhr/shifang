@@ -87,4 +87,10 @@ public class SpecificationController : BaseController
             ? Success(result)
             : Error(message);
     }
+
+    [HttpGet, Route("specification/changeLog/{id}")]
+    public IActionResult GetSpecificationChangeLog(int id)
+    {
+        return Success(_spService.GetSpecificationChangeLog(id));
+    }
 }

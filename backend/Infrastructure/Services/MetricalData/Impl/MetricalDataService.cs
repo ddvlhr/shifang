@@ -410,6 +410,7 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
             .AndIF(dto.MeasureTypeId != null, c => c.MeasureTypeId == int.Parse(dto.MeasureTypeId))
             .AndIF(dto.MachineModelId != null, c => c.MachineId == int.Parse(dto.MachineModelId))
             .AndIF(equipmentTypes.Count > 0, c => equipmentTypes.Contains(c.EquipmentType))
+            .AndIF(!string.IsNullOrEmpty(dto.Query), c=>c.Instance.Contains(dto.Query) || c.Machine.Name.Contains(dto.Query))
             .ToExpression();
         var list = _db.Queryable<MetricalGroup>()
             .LeftJoin<Core.SugarEntities.Specification>((c, s) => c.SpecificationId == s.Id)
@@ -423,7 +424,7 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
             {
                 Id = c.Id,
                 SpecificationId = c.SpecificationId,
-                SpecificationName = s.Name,
+                SpecificationName = string.IsNullOrEmpty(s.OrderNo) ? s.Name : s.Name + "(" + s.OrderNo + ")",
                 SpecificationTypeId = c.Specification.SpecificationTypeId,
                 TeamId = c.TeamId,
                 TeamName = team.Name,
@@ -531,7 +532,7 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
             .Select((c, s) => new
             {
                 beginTime = c.BeginTime,
-                specificationName = s.Name
+                specificationName = string.IsNullOrEmpty(s.OrderNo) ? s.Name : s.Name + "(" + s.OrderNo + ")"
             }).First();
         var data = _db.Queryable<Core.SugarEntities.MetricalData>().Where(c => c.GroupId == id).ToList();
         var dataInfo = new JArray();
@@ -560,7 +561,7 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
         var info = new BaseStatisticInfoDto();
         failReason = "";
         var indicators = _iRepo.All().ToList();
-        var statisticItems = new[] {"平均值", "最大值", "最小值", "SD", "CV", "CPK", "Offs", "上超", "下超", "合格数", "合格率"};
+        var statisticItems = new[] {"平均值", "最大值", "最小值", "SD", "CV", "CPK", "Offs", "上超", "下超", "合格数", "优质品率", "合格率"};
         var group = _db.Queryable<MetricalGroup>().Includes(c=>c.Specification).Includes(c=>c.Machine).Single(c => c.Id == groupId);
         if (group == null)
         {
@@ -583,8 +584,9 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
             return info;
         }
 
-        info.SpecificationName = group.Specification.Name;
-        info.MachineId = group.MachineId;
+        info.SpecificationName = string.IsNullOrEmpty(group.Specification.OrderNo) ? group.Specification.Name : group.Specification.Name
+        +"(" + group.Specification.OrderNo + ")"; 
+            info.MachineId = group.MachineId;
         info.Instance = group.EquipmentType == EquipmentType.SingleResistance ? group.Instance : group.Machine.Name;
         info.BeginTime = group.BeginTime.ToString("yyyy-MM-dd HH:mm:ss");
         if (!string.IsNullOrEmpty(group.Instance))
@@ -830,6 +832,7 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
                     "上超" => statistic.HighCnt.ToString(),
                     "下超" => statistic.LowCnt.ToString(),
                     "合格数" => statistic.Quality,
+                    "优质品率" => statistic.QualityQualityRate,
                     "合格率" => statistic.QualityRate,
                     _ => ""
                 };
@@ -852,6 +855,7 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
                         "上超" => dayStatisticInfo.HighCnt.ToString(),
                         "下超" => dayStatisticInfo.LowCnt.ToString(),
                         "合格数" => dayStatisticInfo.Quality,
+                        "优质品率" => dayStatisticInfo.QualityQualityRate,
                         "合格率" => dayStatisticInfo.QualityRate,
                         _ => ""
                     };
@@ -917,7 +921,7 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
     {
         failReason = string.Empty;
         var dto = new MetricalDataStatisticDto();
-        var statisticItems = new[] {"平均值", "最大值", "最小值", "SD", "CV", "CPK", "Offs", "上超", "下超", "合格数", "合格率"};
+        var statisticItems = new[] {"平均值", "最大值", "最小值", "SD", "CV", "CPK", "Offs", "上超", "下超", "合格数", "优质品率", "合格率"};
         var group = _gRepo.Get(id);
         var specification = _spRepo.Get(group.SpecificationId);
         var rules = JsonConvert.DeserializeObject<List<Rule>>(specification.SingleRules);
@@ -997,6 +1001,7 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
                     "下超" => statistic.LowCnt.ToString(),
                     "合格数" => statistic.Quality,
                     "合格率" => statistic.QualityRate,
+                    "优质品率" => statistic.QualityQualityRate,
                     _ => ""
                 };
 
@@ -1062,7 +1067,7 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
                 c.Id,
                 c.GroupId,
                 specificationId = g.SpecificationId,
-                specificationName = s.Name,
+                specificationName = string.IsNullOrEmpty(s.OrderNo) ? s.Name : s.Name + "(" + s.OrderNo + ")",
                 turnName = turn.Name,
                 machineName = mac.Name,
                 measureTypeName = mt.Name,
@@ -1195,7 +1200,7 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
                 c.Id,
                 c.GroupId,
                 specificationId = g.SpecificationId,
-                specificationName = s.Name,
+                specificationName = string.IsNullOrEmpty(s.OrderNo) ? s.Name : s.Name + "(" + s.OrderNo + ")",
                 turnName = turn.Name,
                 machineName = mac.Name,
                 measureTypeName = mt.Name,
@@ -1379,7 +1384,7 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
                 c.Id,
                 c.GroupId,
                 specificationId = g.SpecificationId,
-                specificationName = s.Name,
+                specificationName = string.IsNullOrEmpty(s.OrderNo) ? s.Name : s.Name + "(" + s.OrderNo + ")",
                 turnName = turn.Name,
                 machineName = mac.Name,
                 measureTypeName = mt.Name,
@@ -1396,7 +1401,7 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
         var indicators = _iRepo.All().ToList();
         using var package = new ExcelPackage();
         var statisticItems = new List<string>
-            {"平均值", "最大值", "最小值", "SD", "CV", "CPK", "Offs", "上超", "下超", "合格数", "合格数(优)", "总数", "合格率", "合格率(优)"};
+            {"平均值", "最大值", "最小值", "SD", "CV", "CPK", "Offs", "上超", "下超", "合格数", "优质品数", "总数", "合格率", "优质品率"};
         var sheets = new Dictionary<string, object>();
         foreach (var specificationGroup in specificationGroups)
         {
@@ -1656,6 +1661,12 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
             if (indicator == null) continue;
             var indicatorName = indicator.Name;
             if (rule.Standard == "0") indicatorName += "(外观)";
+            else
+            {
+                if (!string.IsNullOrEmpty(indicator.Unit))
+                    indicatorName += $"({indicator.Unit})";
+            }
+            
             var column = new JObject {{"prop", rule.Id.ToString()}, {"label", indicatorName}, {"width", 150}};
             var content = new JObject {{"type", "el-input"}};
             var attrs = new JObject {{"type", "number"}, {"step", "0.0000001"}};
@@ -1989,7 +2000,7 @@ public class MetricalDataService : SugarRepository<MetricalGroup>, IMetricalData
             {
                 Id = c.Id,
                 SpecificationId = c.SpecificationId,
-                SpecificationName = s.Name,
+                SpecificationName = string.IsNullOrEmpty(s.OrderNo) ? s.Name : s.Name + "(" + s.OrderNo + ")",
                 SpecificationTypeId = c.Specification.SpecificationTypeId,
                 TeamId = c.TeamId,
                 TeamName = team.Name,
