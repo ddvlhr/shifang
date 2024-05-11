@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Configuration;
@@ -24,39 +25,29 @@ namespace WebService
     // [System.Web.Script.Services.ScriptService]
     public class DataService : System.Web.Services.WebService
     {
-        private readonly HubConnection _connection;
-        public DataService()
-        {
-            var signalRServerUrl = ConfigurationManager.AppSettings["signalRUrl"];
-            var serviceUser = new Dictionary<string, object>()
-            {
-                {"userId", 10086},
-                {"userName", "DataService"},
-                {"machine", 0}
-            };
-
-            _connection = new HubConnectionBuilder()
-                .WithUrl(signalRServerUrl, options =>
-                {
-                    options.Headers.Add("access_token", JsonConvert.SerializeObject(serviceUser));
-                })
-                .WithAutomaticReconnect()
-                .Build();
-            
-            startSignalR();
-        }
-
-        private void startSignalR()
+        [WebMethod]
+        public bool addSignalRQueue(string data)
         {
             try
             {
-                _connection.StartAsync().Wait();
-                NetLog.save("SignalR连接成功", false);
+                AppContext.SignalRQueue.Enqueue(new SignalRRequest()
+                {
+                    MethodName = "PushMetricalData",
+                    Data = new object[] { 1556, 2, DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss") }
+                });
+                return true;
             }
             catch (Exception ex)
             {
-                NetLog.save("SignalR连接失败: " + ex.ToString());
+                RunLog.save(ex.ToString(), false);
+                return false;
             }
+        }
+        
+        [WebMethod]
+        public int getSignalRQueueCount()
+        {
+            return AppContext.SignalRQueue.Count;
         }
 
         /// <summary>
@@ -117,14 +108,24 @@ namespace WebService
         [WebMethod]
         public bool signalRTest(int groupId)
         {
-            _connection.InvokeAsync("PushMetricalData", groupId, 3, DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
+            // AppContext.HubConnection.InvokeAsync("PushMetricalData", groupId, 3, DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
+            AppContext.SignalRQueue.Enqueue(new SignalRRequest()
+            {
+                MethodName = "PushMetricalData",
+                Data = new object[] { groupId, 3, DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") }
+            });
             return true;
         }
 
         [WebMethod]
         public bool manualSignalRTest(int groupId)
         {
-            _connection.InvokeAsync("PushManualData", groupId, "J04-1", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
+            // _connection.InvokeAsync("PushManualData", groupId, "J04-1", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"), "123");
+            AppContext.SignalRQueue.Enqueue(new SignalRRequest()
+            {
+                MethodName = "PushManualData",
+                Data = new object[] { groupId, "J04-1", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"), "123" }
+            });
             return true;
         }
         
@@ -396,10 +397,29 @@ namespace WebService
                 // }
 
                 if (machineId != "")
-                    _connection.InvokeAsync("PushMetricalData", int.Parse(strGid), int.Parse(machineId), xInfo.Attributes["beginTime"].Value);
+                {
+                    var request = new SignalRRequest()
+                    {
+                        MethodName = "PushMetricalData",
+                        Data = new object[] { int.Parse(strGid), int.Parse(machineId), xInfo.Attributes["beginTime"].Value }
+                    };
+                    
+                    AppContext.SignalRQueue.Enqueue(request);
+                }
 
                 if (!string.IsNullOrEmpty(instance))
-                    _connection.InvokeAsync("PushManualMetricalData", int.Parse(strGid), instance, xInfo.Attributes["beginTime"].Value);
+                {
+                    var request = new SignalRRequest()
+                    {
+                        MethodName = "PushManualMetricalData",
+                        Data = new object[] { int.Parse(strGid), instance, xInfo.Attributes["beginTime"].Value }
+                    };
+                    
+                    AppContext.SignalRQueue.Enqueue(request);
+                }
+                    // _connection.InvokeAsync("PushMetricalData", int.Parse(strGid), int.Parse(machineId), xInfo.Attributes["beginTime"].Value);
+                    //
+                    // _connection.InvokeAsync("PushManualMetricalData", int.Parse(strGid), instance, xInfo.Attributes["beginTime"].Value);
 
                 // 记录详细数据t_data
                 var dtIndicator = db.excuteToTable(cmd, "select id, alias from t_indicator", transaction);
